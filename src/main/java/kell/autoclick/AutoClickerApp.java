@@ -9,6 +9,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.awt.event.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
+import org.jnativehook.keyboard.NativeKeyEvent;
+import org.jnativehook.keyboard.NativeKeyListener;
 
 public class AutoClickerApp {
 
@@ -16,13 +23,13 @@ public class AutoClickerApp {
 
     private static final int HEIGHT = 300;
 
-    private static boolean isAddClick = false;
-
     private static boolean isAutoClick = false;
+
     private static boolean isStopClick = false;
 
     private static ArrayList<Model> listItems = new ArrayList<>();
 
+    private static int repeatTimes = 0;
 
     public static void main(String[] args) {
 
@@ -114,14 +121,28 @@ public class AutoClickerApp {
             }
         });
 
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+        Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
+        logger.setLevel(Level.OFF);
+
+        try {
+            GlobalScreen.registerNativeHook();
+        } catch (NativeHookException ex) {
+            System.err.println("Could not register native hook. Exiting.");
+            System.exit(1);
+        }
+
+        GlobalScreen.addNativeKeyListener(new NativeKeyListener() {
             @Override
-            public boolean dispatchKeyEvent(KeyEvent e) {
-                if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F11) {
+            public void nativeKeyPressed(NativeKeyEvent e) {
+                if (e.getKeyCode() == NativeKeyEvent.VC_F11) {
                     isStopClick = true;
                 }
-                return false;
             }
+            @Override
+            public void nativeKeyReleased(NativeKeyEvent e) {}
+
+            @Override
+            public void nativeKeyTyped(NativeKeyEvent e) {}
         });
 
         deleteBtn.addActionListener(new ActionListener() {
