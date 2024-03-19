@@ -6,6 +6,8 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
@@ -23,7 +25,7 @@ public class AutoClickerApp {
     private static final Object lock = new Object();
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("AutoClicker App");
+        JFrame frame = new JFrame("Java code app");
         frame.setSize(WIDTH, HEIGHT);
         centerFrame(frame);
 
@@ -36,10 +38,31 @@ public class AutoClickerApp {
         DefaultTableModel model = new DefaultTableModel();
         JTable tableItems = new JTable(model);
         setupTable(model);
+        model.addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                int row = e.getFirstRow();
+                int column = e.getColumn();
+                if (row >= 0 && column >= 0) {
+                    Object data = model.getValueAt(row, column);
+                    switch (column) {
+                        case 0:
+                            listItems.get(row).setXAxis(Integer.parseInt((String) data));
+                            break;
+                        case 1:
+                            listItems.get(row).setYAxis(Integer.parseInt((String) data));
+                            break;
+                        case 2:
+                            listItems.get(row).setTimeToNext(Integer.parseInt((String) data));
+                            break;
+                    }
+                }
+            }
+        });
 
         addBtn.addActionListener(e -> showTransparentFrame(tableItems));
 
-        startBtn.addActionListener(e -> startAutoClick());
+        startBtn.addActionListener(e -> startAutoClick(frame));
 
         deleteBtn.addActionListener(e -> deleteSelectedRows(tableItems, model));
 
@@ -47,7 +70,7 @@ public class AutoClickerApp {
 
         stopBtn.addActionListener(e -> stopAutoClick());
 
-        setupGlobalKeyListener();
+        setupGlobalKeyListener(frame);
 
         JPanel panel = new JPanel(new FlowLayout());
         addComponentsToPanel(panel, addBtn, startBtn, stopBtn, resetBtn, deleteBtn);
@@ -98,12 +121,13 @@ public class AutoClickerApp {
         model.addRow(new Object[]{x, y, listItems.get(listItems.size() - 1).getTimeToNext()});
     }
 
-    private static void startAutoClick() {
+    private static void startAutoClick(JFrame frame) {
         if (!listItems.isEmpty()) {
             isStopClick = false;
+            frame.setVisible(false);
             new Thread(() -> {
                 try {
-                    synchronized (lock) {
+                    synchronized (lock) { // synchronized trên lock
                         while (!isStopClick) {
                             for (Model m : listItems) {
                                 if (isStopClick) {
@@ -113,6 +137,8 @@ public class AutoClickerApp {
                                 lock.wait(m.getTimeToNext());
                             }
                         }
+                        // Khi kết thúc auto click, hiển thị lại cửa sổ chính của ứng dụng
+                        SwingUtilities.invokeLater(() -> frame.setVisible(true));
                     }
                 } catch (AWTException | InterruptedException ex) {
                     Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
@@ -121,6 +147,7 @@ public class AutoClickerApp {
         }
     }
 
+
     private static void performClick(Model m) throws AWTException {
         Robot robot = new Robot();
         robot.mouseMove(m.getXAxis(), m.getYAxis());
@@ -128,7 +155,7 @@ public class AutoClickerApp {
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
-    private static void setupGlobalKeyListener() {
+    private static void setupGlobalKeyListener(JFrame frame) {
         Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
 
@@ -142,7 +169,9 @@ public class AutoClickerApp {
         GlobalScreen.addNativeKeyListener(new NativeKeyListener() {
             @Override
             public void nativeKeyPressed(NativeKeyEvent e) {
-                if (e.getKeyCode() == NativeKeyEvent.VC_F11) {
+                if (e.getKeyCode() == NativeKeyEvent.VC_F7) {
+                    startAutoClick(frame);
+                } else if (e.getKeyCode() == NativeKeyEvent.VC_F8) {
                     isStopClick = true;
                 }
             }
