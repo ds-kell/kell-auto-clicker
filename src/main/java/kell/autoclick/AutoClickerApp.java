@@ -73,16 +73,6 @@ public class AutoClickerApp {
         model.addColumn("xAxis");
         model.addColumn("yAxis");
         model.addColumn("Time");
-
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(new CustomTableCellRenderer());
-        }
-        table.setRowHeight(30);
-        table.setIntercellSpacing(new Dimension(10, 10));
-        table.setFont(new Font("Arial", Font.PLAIN, 12));
-        table.getTableHeader().setFont(new Font("Arial", Font.PLAIN, 12));
-        table.getTableHeader().setPreferredSize(new Dimension(table.getTableHeader().getWidth(), 30));
-        table.setFillsViewportHeight(true);
     }
 
     private static void showTransparentFrame(JTable table) {
