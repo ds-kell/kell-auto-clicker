@@ -6,8 +6,6 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
@@ -22,6 +20,8 @@ public class AutoClickerApp {
     private static final ArrayList<Model> listItems = new ArrayList<>();
     private static boolean isStopClick = false;
 
+    private static final Object lock = new Object();
+
     public static void main(String[] args) {
         JFrame frame = new JFrame("AutoClicker App");
         frame.setSize(WIDTH, HEIGHT);
@@ -35,7 +35,7 @@ public class AutoClickerApp {
 
         DefaultTableModel model = new DefaultTableModel();
         JTable tableItems = new JTable(model);
-        setupTable(tableItems, model);
+        setupTable(model);
 
         addBtn.addActionListener(e -> showTransparentFrame(tableItems));
 
@@ -69,7 +69,7 @@ public class AutoClickerApp {
         frame.setLocation((screenWidth - WIDTH) / 2, (screenHeight - HEIGHT) / 2);
     }
 
-    private static void setupTable(JTable table, DefaultTableModel model) {
+    private static void setupTable(DefaultTableModel model) {
         model.addColumn("xAxis");
         model.addColumn("yAxis");
         model.addColumn("Time");
@@ -103,17 +103,19 @@ public class AutoClickerApp {
             isStopClick = false;
             new Thread(() -> {
                 try {
-                    while (!isStopClick) {
-                        for (Model m : listItems) {
-                            if (isStopClick) {
-                                break;
+                    synchronized (lock) {
+                        while (!isStopClick) {
+                            for (Model m : listItems) {
+                                if (isStopClick) {
+                                    break;
+                                }
+                                performClick(m);
+                                lock.wait(m.getTimeToNext());
                             }
-                            performClick(m);
-                            Thread.sleep(m.getTimeToNext());
                         }
                     }
                 } catch (AWTException | InterruptedException ex) {
-                    ex.printStackTrace();
+                    Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
                 }
             }).start();
         }
@@ -178,6 +180,9 @@ public class AutoClickerApp {
 
     private static void stopAutoClick() {
         isStopClick = true;
+        synchronized (lock) {
+            lock.notifyAll();
+        }
     }
 
     private static void addComponentsToPanel(JPanel panel, JComponent... components) {
