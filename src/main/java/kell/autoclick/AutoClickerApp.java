@@ -12,6 +12,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,23 +22,28 @@ public class AutoClickerApp {
     private static final int HEIGHT = 300;
     private static final ArrayList<Model> listItems = new ArrayList<>();
     private static boolean isStopClick = false;
-
     private static final Object lock = new Object();
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Java code app");
         frame.setSize(WIDTH, HEIGHT);
-        centerFrame(frame);
+        initFrame(frame);
 
+        // Button
         JButton addBtn = new JButton("Add");
         JButton startBtn = new JButton("Start");
         JButton stopBtn = new JButton("Stop");
         JButton resetBtn = new JButton("Reset");
         JButton deleteBtn = new JButton("Delete");
 
+        // Loop variables
+        JRadioButton infiniteRBtn = new JRadioButton("Until stop");
+        JLabel repeatLabel = new JLabel("Repeat times: ", JLabel.RIGHT);
+        JTextField repeatTimesTxt = new JTextField(8);
+        // Table
         DefaultTableModel model = new DefaultTableModel();
-        JTable tableItems = new JTable(model);
-        setupTable(model);
+        JTable table = new JTable(model);
+        initTable(table, model);
         model.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
@@ -60,39 +66,42 @@ public class AutoClickerApp {
             }
         });
 
-        addBtn.addActionListener(e -> showTransparentFrame(tableItems));
+        addBtn.addActionListener(e -> showTransparentFrame(table));
 
-        startBtn.addActionListener(e -> startAutoClick(frame));
+        startBtn.addActionListener(e -> startClick(frame));
 
-        deleteBtn.addActionListener(e -> deleteSelectedRows(tableItems, model));
+        deleteBtn.addActionListener(e -> deleteSelectedRows(table, model));
 
-        resetBtn.addActionListener(e -> resetTable(tableItems, model));
+        resetBtn.addActionListener(e -> resetTable(table, model));
 
-        stopBtn.addActionListener(e -> stopAutoClick());
+        stopBtn.addActionListener(e -> stopClick());
 
-        setupGlobalKeyListener(frame);
+        globalKeyListener(frame);
 
-        JPanel panel = new JPanel(new FlowLayout());
-        addComponentsToPanel(panel, addBtn, startBtn, stopBtn, resetBtn, deleteBtn);
+        JPanel panelBtn = new JPanel(new FlowLayout());
+        JPanel panelLoop = new JPanel(new FlowLayout());
+        addComponentsToPanel(panelBtn, addBtn, startBtn, stopBtn, resetBtn, deleteBtn);
+        addComponentsToPanel(panelLoop, repeatLabel, repeatTimesTxt, infiniteRBtn);
 
-        JScrollPane scrollPane = new JScrollPane(tableItems);
+        JScrollPane scrollPane = new JScrollPane(table);
 
         frame.getContentPane().setLayout(new BorderLayout());
-        frame.getContentPane().add(panel, BorderLayout.NORTH);
+        frame.getContentPane().add(panelBtn, BorderLayout.NORTH);
+        frame.getContentPane().add(panelLoop, BorderLayout.SOUTH);
         frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
 
-    private static void centerFrame(JFrame frame) {
+    private static void initFrame(JFrame frame) {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int screenWidth = (int) screenSize.getWidth();
         int screenHeight = (int) screenSize.getHeight();
         frame.setLocation((screenWidth - WIDTH) / 2, (screenHeight - HEIGHT) / 2);
     }
 
-    private static void setupTable(DefaultTableModel model) {
+    private static void initTable(JTable table, DefaultTableModel model) {
         model.addColumn("xAxis");
         model.addColumn("yAxis");
         model.addColumn("Time");
@@ -107,7 +116,7 @@ public class AutoClickerApp {
         transparentFrame.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                addRowToListAndTable(table, e.getX(), e.getY());
+                addData(table, e.getX(), e.getY());
                 transparentFrame.setVisible(false);
             }
         });
@@ -115,29 +124,29 @@ public class AutoClickerApp {
         transparentFrame.setVisible(true);
     }
 
-    private static void addRowToListAndTable(JTable table, int x, int y) {
+    private static void addData(JTable table, int x, int y) {
         listItems.add(new Model(x, y));
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.addRow(new Object[]{x, y, listItems.get(listItems.size() - 1).getTimeToNext()});
     }
 
-    private static void startAutoClick(JFrame frame) {
+    private static void startClick(JFrame frame) {
         if (!listItems.isEmpty()) {
             isStopClick = false;
             frame.setVisible(false);
             new Thread(() -> {
                 try {
-                    synchronized (lock) { // synchronized trên lock
+                    synchronized (lock) {
                         while (!isStopClick) {
                             for (Model m : listItems) {
                                 if (isStopClick) {
                                     break;
                                 }
                                 performClick(m);
+//                                randomClick();
                                 lock.wait(m.getTimeToNext());
                             }
                         }
-                        // Khi kết thúc auto click, hiển thị lại cửa sổ chính của ứng dụng
                         SwingUtilities.invokeLater(() -> frame.setVisible(true));
                     }
                 } catch (AWTException | InterruptedException ex) {
@@ -155,7 +164,17 @@ public class AutoClickerApp {
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
-    private static void setupGlobalKeyListener(JFrame frame) {
+    private static void randomClick() throws AWTException {
+        Robot robot = new Robot();
+        Random random = new Random();
+        int x = random.nextInt(600) + 200;
+        int y = random.nextInt(600) + 200;
+        robot.mouseMove(x, y);
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    }
+
+    private static void globalKeyListener(JFrame frame) {
         Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
 
@@ -170,7 +189,7 @@ public class AutoClickerApp {
             @Override
             public void nativeKeyPressed(NativeKeyEvent e) {
                 if (e.getKeyCode() == NativeKeyEvent.VC_F7) {
-                    startAutoClick(frame);
+                    startClick(frame);
                 } else if (e.getKeyCode() == NativeKeyEvent.VC_F8) {
                     isStopClick = true;
                 }
@@ -207,7 +226,7 @@ public class AutoClickerApp {
         model.setRowCount(0);
     }
 
-    private static void stopAutoClick() {
+    private static void stopClick() {
         isStopClick = true;
         synchronized (lock) {
             lock.notifyAll();
