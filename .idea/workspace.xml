@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="update git ignore">
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="update aaaa">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java" afterDir="false" />
     </list>
@@ -28,6 +28,20 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "ds-kell"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="32dde2d5-deff-4aaa-b558-84944aa68b37" />
+        <option name="url" value="https://github.com/ds-kell/auto-clicker" />
+      </UrlAndAccount>
+    </option>
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -42,7 +56,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.AutoClickerApp.executor": "Debug",
+    "Application.AutoClickerApp.executor": "Run",
     "Application.Example.executor": "Run",
     "Application.MouseClickListener.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
@@ -140,7 +154,15 @@
       <option name="project" value="LOCAL" />
       <updated>1710899058062</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="update aaaa">
+      <option name="closed" value="true" />
+      <created>1710922890940</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1710922890940</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -170,6 +192,7 @@
     <MESSAGE value="create app" />
     <MESSAGE value="config stop when hide app" />
     <MESSAGE value="update git ignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="update git ignore" />
+    <MESSAGE value="update aaaa" />
+    <option name="LAST_COMMIT_MESSAGE" value="update aaaa" />
   </component>
 </project>
