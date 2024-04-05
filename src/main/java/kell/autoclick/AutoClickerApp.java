@@ -24,6 +24,10 @@ public class AutoClickerApp {
     private static boolean isStopClick = false;
     private static final Object lock = new Object();
 
+    private static boolean infinite = false;
+
+    private static int repeatTimes = 0;
+
     public static void main(String[] args) {
         JFrame frame = new JFrame("Java code app");
         frame.setSize(WIDTH, HEIGHT);
@@ -66,9 +70,33 @@ public class AutoClickerApp {
             }
         });
 
+        infiniteRBtn.addItemListener(new ItemListener() {
+            boolean a = false;
+            public void itemStateChanged(ItemEvent e) {
+                infiniteRBtn.addItemListener(new ItemListener() {
+                    public void itemStateChanged(ItemEvent e) {
+                        infinite = e.getStateChange() == ItemEvent.SELECTED;
+                    }
+                });
+
+            }
+        });
+
+        repeatTimesTxt.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String input = repeatTimesTxt.getText();
+                try {
+                    repeatTimes = Integer.parseInt(input);
+                } catch (NumberFormatException ex) {
+                    System.out.println("Invalid input: Please enter a valid integer.");
+                }
+            }
+        });
+
         addBtn.addActionListener(e -> showTransparentFrame(table));
 
-        startBtn.addActionListener(e -> startClick(frame));
+        startBtn.addActionListener(e -> startClick(frame, infiniteRBtn, repeatTimesTxt));
 
         deleteBtn.addActionListener(e -> deleteSelectedRows(table, model));
 
@@ -76,7 +104,7 @@ public class AutoClickerApp {
 
         stopBtn.addActionListener(e -> stopClick());
 
-        globalKeyListener(frame);
+        globalKeyListener(frame, infiniteRBtn, repeatTimesTxt);
 
         JPanel panelBtn = new JPanel(new FlowLayout());
         JPanel panelLoop = new JPanel(new FlowLayout());
@@ -129,10 +157,12 @@ public class AutoClickerApp {
         model.addRow(new Object[]{x, y, listItems.get(listItems.size() - 1).getTimeToNext()});
     }
 
-    private static void startClick(JFrame frame) {
+    private static void startClick(JFrame frame, JRadioButton infiniteRBtn, JTextField repeatTimesTxt) {
         if (!listItems.isEmpty()) {
             isStopClick = false;
             frame.setVisible(false);
+            infiniteRBtn.setEnabled(false);
+            repeatTimesTxt.setEnabled(false);
             new Thread(() -> {
                 try {
                     synchronized (lock) {
@@ -146,6 +176,8 @@ public class AutoClickerApp {
                                 lock.wait(m.getTimeToNext());
                             }
                         }
+                        infiniteRBtn.setEnabled(true);
+                        repeatTimesTxt.setEnabled(true);
                         SwingUtilities.invokeLater(() -> frame.setVisible(true));
                     }
                 } catch (AWTException | InterruptedException ex) {
@@ -173,7 +205,7 @@ public class AutoClickerApp {
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
-    private static void globalKeyListener(JFrame frame) {
+    private static void globalKeyListener(JFrame frame, JRadioButton infiniteRBtn, JTextField repeatTimesTxt) {
         Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
 
@@ -188,9 +220,11 @@ public class AutoClickerApp {
             @Override
             public void nativeKeyPressed(NativeKeyEvent e) {
                 if (e.getKeyCode() == NativeKeyEvent.VC_F7) {
-                    startClick(frame);
+                    startClick(frame, infiniteRBtn, repeatTimesTxt);
                 } else if (e.getKeyCode() == NativeKeyEvent.VC_F8) {
                     isStopClick = true;
+                    infinite = false;
+                    repeatTimes = 0;
                 }
             }
 
