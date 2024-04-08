@@ -42,6 +42,9 @@ public class AutoClickerApp {
         JRadioButton infiniteRBtn = new JRadioButton("Until stop");
         JLabel repeatLabel = new JLabel("Repeat times: ", JLabel.RIGHT);
         JTextField repeatTimesTxt = new JTextField(8);
+        JTextField messageTxt = new JTextField(8);
+        messageTxt.setText("Fuck you. Enter a valid integer.");
+        messageTxt.setEditable(false);
         // Table
         DefaultTableModel model = new DefaultTableModel();
         JTable table = new JTable(model);
@@ -108,8 +111,13 @@ public class AutoClickerApp {
         JScrollPane scrollPane = new JScrollPane(table);
         frame.getContentPane().setLayout(new BorderLayout());
         frame.getContentPane().add(panelBtn, BorderLayout.NORTH);
-        frame.getContentPane().add(panelLoop, BorderLayout.SOUTH);
         frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.add(panelLoop, BorderLayout.NORTH);
+        bottomPanel.add(messageTxt, BorderLayout.SOUTH);
+
+        frame.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
@@ -157,7 +165,12 @@ public class AutoClickerApp {
             frame.setVisible(false);
             infiniteRBtn.setEnabled(false);
             repeatTimesTxt.setEnabled(false);
-            repeatTimes = Integer.parseInt(repeatTimesTxt.getText());
+            String input = repeatTimesTxt.getText();
+            try {
+                repeatTimes = Integer.parseInt(input);
+            } catch (NumberFormatException ex) {
+                System.out.println("Invalid input: Please enter a valid integer.");
+            }
             if(infinite){
                 new Thread(() -> {
                     try {
