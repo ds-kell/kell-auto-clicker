@@ -23,9 +23,7 @@ public class AutoClickerApp {
     private static final ArrayList<Model> listItems = new ArrayList<>();
     private static boolean isStopClick = false;
     private static final Object lock = new Object();
-
     private static boolean infinite = false;
-
     private static int repeatTimes = 0;
 
     public static void main(String[] args) {
@@ -71,16 +69,12 @@ public class AutoClickerApp {
         });
 
         infiniteRBtn.addItemListener(new ItemListener() {
-            boolean a = false;
             public void itemStateChanged(ItemEvent e) {
-                infiniteRBtn.addItemListener(new ItemListener() {
-                    public void itemStateChanged(ItemEvent e) {
-                        infinite = e.getStateChange() == ItemEvent.SELECTED;
-                    }
-                });
-
+                infinite = e.getStateChange() == ItemEvent.SELECTED;
+                repeatTimesTxt.setEnabled(!(e.getStateChange() == ItemEvent.SELECTED));
             }
         });
+
 
         repeatTimesTxt.addActionListener(new ActionListener() {
             @Override
@@ -163,27 +157,52 @@ public class AutoClickerApp {
             frame.setVisible(false);
             infiniteRBtn.setEnabled(false);
             repeatTimesTxt.setEnabled(false);
-            new Thread(() -> {
-                try {
-                    synchronized (lock) {
-                        while (!isStopClick) {
-                            for (Model m : listItems) {
-                                if (isStopClick) {
-                                    break;
+            repeatTimes = Integer.parseInt(repeatTimesTxt.getText());
+            if(infinite){
+                new Thread(() -> {
+                    try {
+                        synchronized (lock) {
+                            while (!isStopClick) {
+                                for (Model m : listItems) {
+                                    if (isStopClick) {
+                                        break;
+                                    }
+                                    performClick(m);
+                                    lock.wait(m.getTimeToNext());
                                 }
-                                performClick(m);
-//                                randomClick();
-                                lock.wait(m.getTimeToNext());
                             }
+                            infiniteRBtn.setEnabled(true);
+                            repeatTimesTxt.setEnabled(true);
+                            SwingUtilities.invokeLater(() -> frame.setVisible(true));
                         }
-                        infiniteRBtn.setEnabled(true);
-                        repeatTimesTxt.setEnabled(true);
-                        SwingUtilities.invokeLater(() -> frame.setVisible(true));
+                    } catch (AWTException | InterruptedException ex) {
+                        Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
                     }
-                } catch (AWTException | InterruptedException ex) {
-                    Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
-                }
-            }).start();
+                }).start();
+            }
+            else{
+                new Thread(() -> {
+                    try {
+                        synchronized (lock) {
+                            while (!isStopClick && repeatTimes > 0) {
+                                for (Model m : listItems) {
+                                    if (isStopClick) {
+                                        break;
+                                    }
+                                    performClick(m);
+                                    lock.wait(m.getTimeToNext());
+                                }
+                                repeatTimes--;
+                            }
+                            infiniteRBtn.setEnabled(true);
+                            repeatTimesTxt.setEnabled(true);
+                            SwingUtilities.invokeLater(() -> frame.setVisible(true));
+                        }
+                    } catch (AWTException | InterruptedException ex) {
+                        Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
+                    }
+                }).start();
+            }
         }
     }
 

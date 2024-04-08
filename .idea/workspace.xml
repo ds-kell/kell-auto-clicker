@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="update bbbb">
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="add ev listen time repeat">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java" afterDir="false" />
     </list>
@@ -57,6 +57,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.AutoClickerApp (1).executor": "Run",
+    "Application.AutoClickerApp (2).executor": "Debug",
     "Application.AutoClickerApp.executor": "Run",
     "Application.Example.executor": "Run",
     "Application.MouseClickListener.executor": "Run",
@@ -69,8 +70,21 @@
     "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
-  <component name="RunManager" selected="Application.AutoClickerApp">
+  <component name="RunManager" selected="Application.AutoClickerApp (2)">
     <configuration name="AutoClickerApp (1)" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="kell.autoclick.AutoClickerApp" />
+      <module name="auto-clicker" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="kell.autoclick.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AutoClickerApp (2)" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="kell.autoclick.AutoClickerApp" />
       <module name="auto-clicker" />
       <extension name="coverage">
@@ -124,6 +138,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.AutoClickerApp (2)" />
         <item itemvalue="Application.AutoClickerApp" />
         <item itemvalue="Application.AutoClickerApp (1)" />
         <item itemvalue="Application.Example" />
@@ -188,7 +203,15 @@
       <option name="project" value="LOCAL" />
       <updated>1710923651685</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="add ev listen time repeat">
+      <option name="closed" value="true" />
+      <created>1712312387762</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1712312387762</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -220,6 +243,23 @@
     <MESSAGE value="update git ignore" />
     <MESSAGE value="update aaaa" />
     <MESSAGE value="update bbbb" />
-    <option name="LAST_COMMIT_MESSAGE" value="update bbbb" />
+    <MESSAGE value="add ev listen time repeat" />
+    <option name="LAST_COMMIT_MESSAGE" value="add ev listen time repeat" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java</url>
+          <line>185</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java</url>
+          <line>83</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
