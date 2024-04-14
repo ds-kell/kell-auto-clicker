@@ -160,18 +160,18 @@ public class AutoClickerApp {
     }
 
     private static void startClick(JFrame frame, JRadioButton infiniteRBtn, JTextField repeatTimesTxt) {
-        if (!listItems.isEmpty()) {
+        repeatTimesTxt.setEnabled(false);
+        String input = repeatTimesTxt.getText();
+        try {
+            repeatTimes = Integer.parseInt(input);
+        } catch (NumberFormatException ex) {
+            System.out.println("Invalid input: Please enter a valid integer.");
+        }
+        if (!listItems.isEmpty() && (repeatTimes > 0 || infinite)) {
             isStopClick = false;
             frame.setVisible(false);
             infiniteRBtn.setEnabled(false);
-            repeatTimesTxt.setEnabled(false);
-            String input = repeatTimesTxt.getText();
-            try {
-                repeatTimes = Integer.parseInt(input);
-            } catch (NumberFormatException ex) {
-                System.out.println("Invalid input: Please enter a valid integer.");
-            }
-            if(infinite){
+            if (infinite) {
                 new Thread(() -> {
                     try {
                         synchronized (lock) {
@@ -186,14 +186,12 @@ public class AutoClickerApp {
                             }
                             infiniteRBtn.setEnabled(true);
                             repeatTimesTxt.setEnabled(true);
-                            SwingUtilities.invokeLater(() -> frame.setVisible(true));
                         }
                     } catch (AWTException | InterruptedException ex) {
                         Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
                     }
                 }).start();
-            }
-            else{
+            } else {
                 new Thread(() -> {
                     try {
                         synchronized (lock) {
@@ -209,7 +207,6 @@ public class AutoClickerApp {
                             }
                             infiniteRBtn.setEnabled(true);
                             repeatTimesTxt.setEnabled(true);
-                            SwingUtilities.invokeLater(() -> frame.setVisible(true));
                         }
                     } catch (AWTException | InterruptedException ex) {
                         Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
@@ -255,8 +252,11 @@ public class AutoClickerApp {
                     startClick(frame, infiniteRBtn, repeatTimesTxt);
                 } else if (e.getKeyCode() == NativeKeyEvent.VC_F8) {
                     isStopClick = true;
-                    infinite = false;
-                    repeatTimes = 0;
+//                    infinite = false;
+//                    repeatTimes = 0;
+//                    infiniteRBtn.setSelected(false);
+//                    repeatTimesTxt.setText("");
+                    SwingUtilities.invokeLater(() -> frame.setVisible(true));
                 }
             }
 
@@ -303,6 +303,7 @@ public class AutoClickerApp {
             panel.add(component);
         }
     }
+
     static class Model {
         private int xAxis;
 
@@ -313,29 +314,36 @@ public class AutoClickerApp {
         public Model(int xAxis, int yAxis) {
             this.xAxis = xAxis;
             this.yAxis = yAxis;
-            this.timeToNext = 2000;
+            this.timeToNext = 1000;
         }
+
         public Model(int xAxis, int yAxis, int timeToNext) {
             this.xAxis = xAxis;
             this.yAxis = yAxis;
             this.timeToNext = timeToNext;
         }
 
-        public void setXAxis( int value ) {
+        public void setXAxis(int value) {
             this.xAxis = value;
         }
-        public int getXAxis() { return xAxis; }
 
-        public void setYAxis( int value ) {
+        public int getXAxis() {
+            return xAxis;
+        }
+
+        public void setYAxis(int value) {
             this.yAxis = value;
         }
-        public int getYAxis() { return yAxis; }
+
+        public int getYAxis() {
+            return yAxis;
+        }
 
         public void setTimeToNext(int timeToNext) {
             this.timeToNext = timeToNext;
         }
 
-        public int getTimeToNext(){
+        public int getTimeToNext() {
             return timeToNext;
         }
 
