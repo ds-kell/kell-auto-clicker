@@ -10,7 +10,7 @@ public class Model {
     public Model(int xAxis, int yAxis) {
         this.xAxis = xAxis;
         this.yAxis = yAxis;
-        this.timeToNext = 2000;
+        this.timeToNext = 1000;
     }
     public Model(int xAxis, int yAxis, int timeToNext) {
         this.xAxis = xAxis;

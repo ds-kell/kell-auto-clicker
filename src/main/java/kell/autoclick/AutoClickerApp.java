@@ -11,44 +11,19 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class AutoClickerApp {
-
-    private static final int WIDTH = 400;
-    private static final int HEIGHT = 300;
-    private static final ArrayList<Model> listItems = new ArrayList<>();
-    private static boolean isStopClick = false;
-    private static final Object lock = new Object();
-    private static boolean infinite = false;
-    private static int repeatTimes = 0;
+public class AutoClickerApp extends DeclareClass{
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Java code app");
+
+        // Init
         frame.setSize(WIDTH, HEIGHT);
-        initFrame(frame);
-
-        // Button
-        JButton addBtn = new JButton("Add");
-        JButton startBtn = new JButton("Start");
-        JButton stopBtn = new JButton("Stop");
-        JButton resetBtn = new JButton("Reset");
-        JButton deleteBtn = new JButton("Delete");
-
-        // Loop variables
-        JRadioButton infiniteRBtn = new JRadioButton("Until stop");
-        JLabel repeatLabel = new JLabel("Repeat times: ", JLabel.RIGHT);
-        JTextField repeatTimesTxt = new JTextField(8);
-        JTextField messageTxt = new JTextField(8);
+        initFrame();
         messageTxt.setText("Fuck you. Enter a valid integer.");
         messageTxt.setEditable(false);
-        // Table
-        DefaultTableModel model = new DefaultTableModel();
-        JTable table = new JTable(model);
-        initTable(table, model);
+        initTable();
         model.addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
@@ -91,52 +66,43 @@ public class AutoClickerApp {
             }
         });
 
-        addBtn.addActionListener(e -> showTransparentFrame(table));
-
-        startBtn.addActionListener(e -> startClick(frame, infiniteRBtn, repeatTimesTxt));
-
-        deleteBtn.addActionListener(e -> deleteSelectedRows(table, model));
-
-        resetBtn.addActionListener(e -> resetTable(table, model));
-
+        addBtn.addActionListener(e -> showTransparentFrame());
+        startBtn.addActionListener(e -> startClick());
+        deleteBtn.addActionListener(e -> deleteSelectedRows());
+        resetBtn.addActionListener(e -> resetData());
         stopBtn.addActionListener(e -> stopClick());
 
-        globalKeyListener(frame, infiniteRBtn, repeatTimesTxt);
+        globalKeyListener();
 
-        JPanel panelBtn = new JPanel(new FlowLayout());
-        JPanel panelLoop = new JPanel(new FlowLayout());
         addComponentsToPanel(panelBtn, addBtn, startBtn, stopBtn, resetBtn, deleteBtn);
-        addComponentsToPanel(panelLoop, repeatLabel, repeatTimesTxt, infiniteRBtn);
+        addComponentsToPanel(panelLoop, repeatLabel, repeatTimesTxt, infiniteRBtn, hideFrameRBtn);
 
-        JScrollPane scrollPane = new JScrollPane(table);
         frame.getContentPane().setLayout(new BorderLayout());
         frame.getContentPane().add(panelBtn, BorderLayout.NORTH);
         frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
 
-        JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(panelLoop, BorderLayout.NORTH);
         bottomPanel.add(messageTxt, BorderLayout.SOUTH);
 
         frame.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
-
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
 
-    private static void initFrame(JFrame frame) {
+    private static void initFrame() {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int screenWidth = (int) screenSize.getWidth();
         int screenHeight = (int) screenSize.getHeight();
         frame.setLocation((screenWidth - WIDTH) / 2, (screenHeight - HEIGHT) / 2);
     }
 
-    private static void initTable(JTable table, DefaultTableModel model) {
+    private static void initTable() {
         model.addColumn("xAxis");
         model.addColumn("yAxis");
         model.addColumn("Time");
     }
 
-    private static void showTransparentFrame(JTable table) {
+    private static void showTransparentFrame() {
         JFrame transparentFrame = new JFrame();
         transparentFrame.setUndecorated(true);
         transparentFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -145,77 +111,90 @@ public class AutoClickerApp {
         transparentFrame.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                addData(table, e.getX(), e.getY());
+                addData(e.getX(), e.getY());
                 transparentFrame.setVisible(false);
             }
         });
-
         transparentFrame.setVisible(true);
     }
 
-    private static void addData(JTable table, int x, int y) {
+    private static void addData(int x, int y) {
         listItems.add(new Model(x, y));
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.addRow(new Object[]{x, y, listItems.get(listItems.size() - 1).getTimeToNext()});
     }
 
-    private static void startClick(JFrame frame, JRadioButton infiniteRBtn, JTextField repeatTimesTxt) {
-        repeatTimesTxt.setEnabled(false);
-        String input = repeatTimesTxt.getText();
-        try {
-            repeatTimes = Integer.parseInt(input);
-        } catch (NumberFormatException ex) {
-            System.out.println("Invalid input: Please enter a valid integer.");
-        }
-        if (!listItems.isEmpty() && (repeatTimes > 0 || infinite)) {
-            isStopClick = false;
-            frame.setVisible(false);
-            infiniteRBtn.setEnabled(false);
+    private static void startClick() {
+        if(!listItems.isEmpty()){
             if (infinite) {
-                new Thread(() -> {
-                    try {
-                        synchronized (lock) {
-                            while (!isStopClick) {
-                                for (Model m : listItems) {
-                                    if (isStopClick) {
-                                        break;
-                                    }
-                                    performClick(m);
-                                    lock.wait(m.getTimeToNext());
-                                }
-                            }
-                            infiniteRBtn.setEnabled(true);
-                            repeatTimesTxt.setEnabled(true);
-                        }
-                    } catch (AWTException | InterruptedException ex) {
-                        Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
-                    }
-                }).start();
+                repeatTimesTxt.setEnabled(false);
+                isStopClick = false;
+                frame.setVisible(false);
+                infiniteRBtn.setEnabled(false);
+                startInfiniteAutoClick();
             } else {
-                new Thread(() -> {
-                    try {
-                        synchronized (lock) {
-                            while (!isStopClick && repeatTimes > 0) {
-                                for (Model m : listItems) {
-                                    if (isStopClick) {
-                                        break;
-                                    }
-                                    performClick(m);
-                                    lock.wait(m.getTimeToNext());
-                                }
-                                repeatTimes--;
-                            }
-                            infiniteRBtn.setEnabled(true);
-                            repeatTimesTxt.setEnabled(true);
-                        }
-                    } catch (AWTException | InterruptedException ex) {
-                        Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
-                    }
-                }).start();
+                String input = repeatTimesTxt.getText();
+                try {
+                    repeatTimes = Integer.parseInt(input);
+                } catch (NumberFormatException ex) {
+                    System.out.println("Invalid input: Please enter a valid integer.");
+                }
+                if(repeatTimes > 0) {
+                    repeatTimesTxt.setEnabled(false);
+                    isStopClick = false;
+                    frame.setVisible(false);
+                    infiniteRBtn.setEnabled(false);
+                    startLimitedAutoClick();
+                }
             }
         }
     }
 
+    private static void startInfiniteAutoClick() {
+        new Thread(() -> {
+            try {
+                synchronized (lock) {
+                    while (!isStopClick) {
+                        for (Model m : listItems) {
+                            if (isStopClick) {
+                                break;
+                            }
+                            performClick(m);
+                            lock.wait(m.getTimeToNext());
+                        }
+                    }
+                    infiniteRBtn.setEnabled(true);
+                    repeatTimesTxt.setEnabled(true);
+                }
+            } catch (AWTException | InterruptedException ex) {
+                Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
+            }
+        }).start();
+    }
+
+    private static void startLimitedAutoClick() {
+        new Thread(() -> {
+            try {
+                synchronized (lock) {
+                    while (!isStopClick && repeatTimes > 0) {
+                        for (Model m : listItems) {
+                            if (isStopClick) {
+                                break;
+                            }
+                            performClick(m);
+                            lock.wait(m.getTimeToNext());
+                        }
+                        repeatTimes--;
+                    }
+                    infiniteRBtn.setEnabled(true);
+                    repeatTimesTxt.setEnabled(true);
+                    frame.setVisible(true);
+                }
+            } catch (AWTException | InterruptedException ex) {
+                Logger.getLogger(AutoClickerApp.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
+            }
+        }).start();
+    }
 
     private static void performClick(Model m) throws AWTException {
         Robot robot = new Robot();
@@ -224,17 +203,7 @@ public class AutoClickerApp {
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
-    private static void randomClick() throws AWTException {
-        Robot robot = new Robot();
-        Random random = new Random();
-        int x = random.nextInt(600) + 200;
-        int y = random.nextInt(600) + 200;
-        robot.mouseMove(x, y);
-        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-    }
-
-    private static void globalKeyListener(JFrame frame, JRadioButton infiniteRBtn, JTextField repeatTimesTxt) {
+    private static void globalKeyListener() {
         Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
 
@@ -249,13 +218,9 @@ public class AutoClickerApp {
             @Override
             public void nativeKeyPressed(NativeKeyEvent e) {
                 if (e.getKeyCode() == NativeKeyEvent.VC_F7) {
-                    startClick(frame, infiniteRBtn, repeatTimesTxt);
+                    startClick();
                 } else if (e.getKeyCode() == NativeKeyEvent.VC_F8) {
                     isStopClick = true;
-//                    infinite = false;
-//                    repeatTimes = 0;
-//                    infiniteRBtn.setSelected(false);
-//                    repeatTimesTxt.setText("");
                     SwingUtilities.invokeLater(() -> frame.setVisible(true));
                 }
             }
@@ -270,7 +235,7 @@ public class AutoClickerApp {
         });
     }
 
-    private static void deleteSelectedRows(JTable table, DefaultTableModel model) {
+    private static void deleteSelectedRows() {
         if (table.isEditing()) {
             table.getCellEditor().stopCellEditing();
         }
@@ -282,12 +247,15 @@ public class AutoClickerApp {
         }
     }
 
-    private static void resetTable(JTable table, DefaultTableModel model) {
+    private static void resetData() {
         if (table.isEditing()) {
             table.getCellEditor().stopCellEditing();
         }
-
         listItems.clear();
+        infinite = false;
+        repeatTimes = 0;
+        infiniteRBtn.setSelected(false);
+        repeatTimesTxt.setText("");
         model.setRowCount(0);
     }
 
