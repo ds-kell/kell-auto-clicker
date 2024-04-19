@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="oooo">
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/DeclareClass.java" afterDir="false" />
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="tach class">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickBrowser.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Model.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Model.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/DeclareClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/DeclareClass.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,24 +57,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.AutoClickerApp (1).executor&quot;: &quot;Run&quot;,
-    &quot;Application.AutoClickerApp (2).executor&quot;: &quot;Run&quot;,
-    &quot;Application.AutoClickerApp.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Example.executor&quot;: &quot;Run&quot;,
-    &quot;Application.MouseClickListener.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/truyen.nguyentuan/kell-web-project/be-bookstore&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.AutoClickerApp (1).executor": "Run",
+    "Application.AutoClickerApp (2).executor": "Run",
+    "Application.AutoClickerApp.executor": "Run",
+    "Application.Example.executor": "Run",
+    "Application.MouseClickListener.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/truyen.nguyentuan/auto-clicker/launch4j-maven-plugin",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
-    <configuration name="AutoClickerApp (2)" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+    <configuration name="AutoClickerApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="kell.autoclick.AutoClickerApp" />
       <module name="auto-clicker" />
       <extension name="coverage">
@@ -88,7 +89,7 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.AutoClickerApp (2)" />
+        <item itemvalue="Application.AutoClickerApp" />
       </list>
     </recent_temporary>
   </component>
@@ -173,7 +174,15 @@
       <option name="project" value="LOCAL" />
       <updated>1713145990687</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="tach class">
+      <option name="closed" value="true" />
+      <created>1713167019808</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1713167019808</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -187,7 +196,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="master" />
+                        <option value="origin/master" />
                       </list>
                     </value>
                   </entry>
@@ -208,6 +217,7 @@
     <MESSAGE value="add ev listen time repeat" />
     <MESSAGE value="loop by time repeat" />
     <MESSAGE value="oooo" />
-    <option name="LAST_COMMIT_MESSAGE" value="oooo" />
+    <MESSAGE value="tach class" />
+    <option name="LAST_COMMIT_MESSAGE" value="tach class" />
   </component>
 </project>
