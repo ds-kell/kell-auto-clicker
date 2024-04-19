@@ -4,11 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="tach class">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="add frame msg">
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickBrowser.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/DeclareClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/DeclareClass.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -182,7 +179,15 @@
       <option name="project" value="LOCAL" />
       <updated>1713167019808</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="add frame msg">
+      <option name="closed" value="true" />
+      <created>1713522887213</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1713522887213</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -218,6 +223,7 @@
     <MESSAGE value="loop by time repeat" />
     <MESSAGE value="oooo" />
     <MESSAGE value="tach class" />
-    <option name="LAST_COMMIT_MESSAGE" value="tach class" />
+    <MESSAGE value="add frame msg" />
+    <option name="LAST_COMMIT_MESSAGE" value="add frame msg" />
   </component>
 </project>

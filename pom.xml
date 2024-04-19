@@ -84,7 +84,7 @@
                         <configuration>
                             <headerType>gui</headerType>
                             <outfile>target/auto-clicker.exe</outfile>
-                            <jar>target/auto-clicker-1.0-SNAPSHOT-jar-with-dependencies.jar</jar>
+                            <jar>target/auto-clicker-2.0-SNAPSHOT-jar-with-dependencies.jar</jar>
                             <classPath>
                                 <mainClass>kell.autoclick.AutoClickerApp</mainClass>
                             </classPath>

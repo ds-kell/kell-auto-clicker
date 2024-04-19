@@ -27,8 +27,8 @@ public class DeclareClass {
     public static boolean isHideFrame = false;
     // Button
     public static final JButton addBtn = new JButton("Add");
-    public static final JButton startBtn = new JButton("Start");
-    public static final JButton stopBtn = new JButton("Stop");
+    public static final JButton startBtn = new JButton("Start-(F7)");
+    public static final JButton stopBtn = new JButton("Stop-(F8)");
     public static final JButton resetBtn = new JButton("Reset");
     public static final JButton deleteBtn = new JButton("Delete");
     public static final JButton confirmBtn = new JButton("OK");
