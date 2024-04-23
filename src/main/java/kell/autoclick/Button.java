@@ -21,7 +21,7 @@ public class Button {
     
     private final JButton confirmBtn = new JButton("OK");
     
-    private final JRadioButton hideFrameRBtn = new JRadioButton("Hide frame");
+    private final JRadioButton hideMainFrameRBtn = new JRadioButton("Hide frame");
 
     private final JRadioButton infiniteRBtn = new JRadioButton("Until stop");
 

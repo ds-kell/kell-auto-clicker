@@ -4,22 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="config pom">
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClicker.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Button.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/ClickEvent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/ClickPoint.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/LabelF.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/MainFrame.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Panel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/SubFrame.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Table.java" afterDir="false" />
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="change structure project">
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click_pointer.ico" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/SOS/AutoClickerApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/DeclareClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/SOS/DeclareClass.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Model.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClicker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Button.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Button.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/MainFrame.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,10 +71,15 @@
     "UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/truyen.nguyentuan/auto-clicker/auto-clicker",
+    "last_opened_file_path": "D:/truyen.nguyentuan/auto-clicker/auto-clicker/src/main/java/kell/autoclick",
     "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\truyen.nguyentuan\auto-clicker\auto-clicker\src\main\java\kell\autoclick" />
+    </key>
+  </component>
   <component name="RunManager" selected="Application.Main">
     <configuration name="AutoClickerApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="SOS.AutoClickerApp" />
@@ -231,7 +227,15 @@
       <option name="project" value="LOCAL" />
       <updated>1713523152199</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="change structure project">
+      <option name="closed" value="true" />
+      <created>1713849203123</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1713849203123</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -269,6 +273,7 @@
     <MESSAGE value="tach class" />
     <MESSAGE value="add frame msg" />
     <MESSAGE value="config pom" />
-    <option name="LAST_COMMIT_MESSAGE" value="config pom" />
+    <MESSAGE value="change structure project" />
+    <option name="LAST_COMMIT_MESSAGE" value="change structure project" />
   </component>
 </project>

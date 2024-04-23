@@ -42,6 +42,9 @@ public class AutoClicker implements ClickEvent{
 
     AutoClicker(){
         addToPanel();
+        btn.getHideMainFrameRBtn().setSelected(MAIN_FRAME.isHideFrame());
+        MAIN_FRAME.getMainFrame().setVisible(true);
+        SUB_FRAME.getSubFrame().setVisible(false);
     }
 
     public void start(){
@@ -82,6 +85,12 @@ public class AutoClicker implements ClickEvent{
             }
         });
 
+        btn.getHideMainFrameRBtn().addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                MAIN_FRAME.setHideFrame(e.getStateChange() == ItemEvent.SELECTED);
+            }
+        });
+
         label.getRepeatTimesTxt().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -111,7 +120,7 @@ public class AutoClicker implements ClickEvent{
 
     public void addToPanel(){
         panel.addComponentsToPanel(panel.getBtnPanel(), btn.getAddBtn(), btn.getStartBtn(), btn.getStopBtn(), btn.getDeleteBtn(), btn.getResetBtn());
-        panel.addComponentsToPanel(panel.getPanelLoop(), label.getRepeatTimesLabel(), label.getRepeatTimesTxt(), btn.getInfiniteRBtn(), btn.getHideFrameRBtn());
+        panel.addComponentsToPanel(panel.getPanelLoop(), label.getRepeatTimesLabel(), label.getRepeatTimesTxt(), btn.getInfiniteRBtn(), btn.getHideMainFrameRBtn());
 
         MAIN_FRAME.getMainFrame().getContentPane().setLayout(new BorderLayout());
         MAIN_FRAME.getMainFrame().getContentPane().add(panel.getBtnPanel(), BorderLayout.NORTH);
@@ -121,13 +130,11 @@ public class AutoClicker implements ClickEvent{
 
         MAIN_FRAME.getMainFrame().getContentPane().add(panel.getBottomPanel(), BorderLayout.SOUTH);
         MAIN_FRAME.getMainFrame().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        MAIN_FRAME.getMainFrame().setVisible(true);
 
         panel.getMsgPanel().add(label.getMessageTxt(), BorderLayout.CENTER);
         panel.getMsgPanel().add(btn.getConfirmBtn(), BorderLayout.SOUTH);
         SUB_FRAME.getSubFrame().getContentPane().setLayout(new BorderLayout());
         SUB_FRAME.getSubFrame().getContentPane().add(panel.getMsgPanel(), BorderLayout.CENTER);
-        SUB_FRAME.getSubFrame().setVisible(false);
     }
 
     @Override
@@ -155,7 +162,12 @@ public class AutoClicker implements ClickEvent{
     public void deleteSelected() {
         if(table.getTable().getSelectedRows().length < 1){
             SUB_FRAME.getSubFrame().setVisible(true);
-            label.getMessageTxt().setText("Fuck you, select row to delete");
+            if(table.getListItems().isEmpty()) {
+                label.getMessageTxt().setText("Fuck you, list is empty");
+            } else {
+                label.getMessageTxt().setText("Fuck you, select row to delete");
+            }
+
         }
         table.deleteSelectedRows();
     }
@@ -163,10 +175,12 @@ public class AutoClicker implements ClickEvent{
     @Override
     public void startClick() {
         if(!table.getListItems().isEmpty()){
-            if (infinite) {
+            if(!infinite && ("").equals(label.getRepeatTimesTxt().getText())){
+                changeFrame(false, "Fuck you. Enter repeat times");
+            } else if (infinite) {
                 label.getRepeatTimesTxt().setEnabled(false);
                 isStopClick = false;
-                MAIN_FRAME.getMainFrame().setVisible(false);
+                MAIN_FRAME.getMainFrame().setVisible(!MAIN_FRAME.isHideFrame());
                 btn.getInfiniteRBtn().setEnabled(false);
                 infiniteAutoClick();
             } else {
@@ -179,7 +193,7 @@ public class AutoClicker implements ClickEvent{
                 if(repeatTimes > 0) {
                     isStopClick = false;
                     label.getRepeatTimesTxt().setEnabled(false);
-                    MAIN_FRAME.getMainFrame().setVisible(false);
+                    MAIN_FRAME.getMainFrame().setVisible(!MAIN_FRAME.isHideFrame());
                     btn.getInfiniteRBtn().setEnabled(false);
                     limitedAutoClick();
                 }

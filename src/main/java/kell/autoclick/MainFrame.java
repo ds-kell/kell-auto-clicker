@@ -15,8 +15,6 @@ public class MainFrame {
 
     private final int HEIGHT = 300;
 
-    private final JRadioButton hideFrameRBtn = new JRadioButton("Hide frame");
-
     private boolean isHideFrame = true;
 
     MainFrame(){
