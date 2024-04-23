@@ -1,0 +1,34 @@
+package kell.autoclick;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.swing.*;
+import java.awt.*;
+
+@Getter
+@Setter
+public class MainFrame {
+    private final JFrame mainFrame = new JFrame("Auto Clicker");
+
+    private final int WIDTH = 500;
+
+    private final int HEIGHT = 300;
+
+    private final JRadioButton hideFrameRBtn = new JRadioButton("Hide frame");
+
+    private boolean isHideFrame = true;
+
+    MainFrame(){
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        int screenWidth = (int) screenSize.getWidth();
+        int screenHeight = (int) screenSize.getHeight();
+
+        mainFrame.setSize(WIDTH, HEIGHT);
+        mainFrame.setLocation((screenWidth - WIDTH) / 2, (screenHeight - HEIGHT) / 2);
+    }
+
+    public void initMainFrame() {
+    }
+}

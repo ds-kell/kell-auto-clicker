@@ -4,9 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="add frame msg">
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="config pom">
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClicker.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Button.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/ClickEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/ClickPoint.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/LabelF.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Main.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/MainFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Panel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/SubFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Table.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/DeclareClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/DeclareClass.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClickerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/SOS/AutoClickerApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/DeclareClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/SOS/DeclareClass.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Model.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,19 +73,33 @@
     "Application.AutoClickerApp (2).executor": "Run",
     "Application.AutoClickerApp.executor": "Run",
     "Application.Example.executor": "Run",
+    "Application.Main.executor": "Run",
     "Application.MouseClickListener.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/truyen.nguyentuan/auto-clicker/launch4j-maven-plugin",
+    "last_opened_file_path": "D:/truyen.nguyentuan/auto-clicker/auto-clicker",
     "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.Main">
     <configuration name="AutoClickerApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="kell.autoclick.AutoClickerApp" />
+      <option name="MAIN_CLASS_NAME" value="SOS.AutoClickerApp" />
+      <module name="auto-clicker" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="SOS.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="kell.autoclick.Main" />
       <module name="auto-clicker" />
       <extension name="coverage">
         <pattern>
@@ -86,6 +113,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.Main" />
         <item itemvalue="Application.AutoClickerApp" />
       </list>
     </recent_temporary>
@@ -187,7 +215,23 @@
       <option name="project" value="LOCAL" />
       <updated>1713522887213</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="config pom">
+      <option name="closed" value="true" />
+      <created>1713523131724</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1713523131724</updated>
+    </task>
+    <task id="LOCAL-00012" summary="config pom">
+      <option name="closed" value="true" />
+      <created>1713523152199</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1713523152199</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -201,7 +245,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="origin/master" />
+                        <option value="master" />
                       </list>
                     </value>
                   </entry>
@@ -224,6 +268,7 @@
     <MESSAGE value="oooo" />
     <MESSAGE value="tach class" />
     <MESSAGE value="add frame msg" />
-    <option name="LAST_COMMIT_MESSAGE" value="add frame msg" />
+    <MESSAGE value="config pom" />
+    <option name="LAST_COMMIT_MESSAGE" value="config pom" />
   </component>
 </project>

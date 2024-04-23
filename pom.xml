@@ -24,6 +24,12 @@
             <artifactId>selenium-java</artifactId>
             <version>4.19.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.32</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -37,7 +43,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>kell.autoclick.AutoClickerApp</mainClass>
+                            <mainClass>SOS.AutoClickerApp</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -54,7 +60,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>kell.autoclick.AutoClickerApp</mainClass>
+                            <mainClass>SOS.AutoClickerApp</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -86,7 +92,7 @@
                             <outfile>target/auto-clicker.exe</outfile>
                             <jar>target/auto-clicker-2.0-SNAPSHOT-jar-with-dependencies.jar</jar>
                             <classPath>
-                                <mainClass>kell.autoclick.AutoClickerApp</mainClass>
+                                <mainClass>SOS.AutoClickerApp</mainClass>
                             </classPath>
                             <jre>
                                 <minVersion>1.8.0</minVersion>
