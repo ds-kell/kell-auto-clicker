@@ -1,5 +1,7 @@
-package kell.autoclick;
+package kell.autoclick.click;
 
+
+import kell.autoclick.model.ClickItem;
 
 import java.awt.*;
 
@@ -17,9 +19,9 @@ public interface ClickEvent {
 
     void limitedAutoClick();
 
-    void performClick(ClickPoint model) throws AWTException;
+    void performClick(ClickItem clickItem) throws AWTException;
 
     void globalKeyListener();
 
-    void showTransparentFrame();
+    void showAddPointFrame();
 }

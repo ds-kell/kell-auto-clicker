@@ -1,4 +1,4 @@
-package kell.autoclick;
+package kell.autoclick.frame;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +16,7 @@ public class SubFrame {
 
     private final int SUB_WIDTH = 200;
 
-    SubFrame(){
+    public SubFrame(){
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
         int screenWidth = (int) screenSize.getWidth();

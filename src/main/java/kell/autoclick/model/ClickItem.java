@@ -1,21 +1,19 @@
-package kell.autoclick;
+package kell.autoclick.model;
 
+import kell.autoclick.model.Item;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class ClickPoint {
-
-    private String name = "Point";
+public class ClickItem extends Item {
 
     private int xAxis;
 
     private int yAxis;
 
-    private int timeToNext = 1000;
-
-    public ClickPoint(int xAxis, int yAxis) {
+    public ClickItem(int xAxis, int yAxis) {
+        super("Point");
         this.xAxis = xAxis;
         this.yAxis = yAxis;
     }

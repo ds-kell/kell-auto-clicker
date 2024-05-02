@@ -1,12 +1,14 @@
-package kell.autoclick;
+package kell.autoclick.button;
 
 import lombok.Getter;
 
 import javax.swing.*;
 @Getter
 public class Button {
-    private final JButton addBtn = new JButton("Add");
-    
+    private final JButton addClickBtn = new JButton("Add Click");
+
+    private final JButton addKeyBtn = new JButton("Add Key");
+
     private final JButton startBtn = new JButton("Start-(F7)");
     
     private final JButton stopBtn = new JButton("Stop-(F8)");
@@ -25,7 +27,7 @@ public class Button {
 
     private final JRadioButton infiniteRBtn = new JRadioButton("Until stop");
 
-    Button(){
+    public Button(){
 
     }
 }

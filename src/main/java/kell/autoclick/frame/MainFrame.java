@@ -1,4 +1,4 @@
-package kell.autoclick;
+package kell.autoclick.frame;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,11 +13,11 @@ public class MainFrame {
 
     private final int WIDTH = 500;
 
-    private final int HEIGHT = 300;
+    private final int HEIGHT = 400;
 
     private boolean isHideFrame = true;
 
-    MainFrame(){
+    public MainFrame(){
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
         int screenWidth = (int) screenSize.getWidth();

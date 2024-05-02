@@ -1,4 +1,5 @@
-package kell.autoclick;
+package kell.autoclick.table;
+
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,19 +10,17 @@ import java.util.Vector;
 
 @Getter
 @Setter
-public class Table {
+public abstract class TableItems<T> {
+    public final Vector<T> listItems = new Vector<>();
 
-    public final Vector<ClickPoint> listItems = new Vector<>();
+    public final DefaultTableModel model = new DefaultTableModel();
 
-    private final DefaultTableModel model = new DefaultTableModel();
+    public final JTable table = new JTable(model);
 
-    private final JTable table = new JTable(model);
-
-    Table(){
-        model.addColumn("Point");
-        model.addColumn("xAxis");
-        model.addColumn("yAxis");
-        model.addColumn("Time");
+    public TableItems(){
+        model.addColumn("Name");
+        model.addColumn("Hold time");
+        model.addColumn("Time to next");
     }
 
     public void deleteSelectedRows(){
@@ -44,9 +43,5 @@ public class Table {
         model.setRowCount(0);
     }
 
-    public void addItem(ClickPoint point){
-        listItems.add(point);
-        DefaultTableModel model = (DefaultTableModel) table.getModel();
-        model.addRow(new Object[]{point.getName(), point.getXAxis(), point.getYAxis(), listItems.get(listItems.size() - 1).getTimeToNext()});
-    }
+    public abstract void addItem(T item);
 }

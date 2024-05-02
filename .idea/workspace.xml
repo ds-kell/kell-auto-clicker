@@ -4,13 +4,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="change structure project">
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click_pointer.ico" afterDir="false" />
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="update code v3">
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/Item.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/PressItem.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TableClickItems.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TableItems.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TablePressItems.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClicker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Button.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Button.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/MainFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Button.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/button/Button.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/ClickEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/ClickEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/ClickPoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ClickItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/LabelF.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/label/LabelF.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Panel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/panel/Panel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/SubFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/SubFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/Table.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click_pointer.ico" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/click_pointer.ico" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,26 +71,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.AutoClickerApp (1).executor": "Run",
-    "Application.AutoClickerApp (2).executor": "Run",
-    "Application.AutoClickerApp.executor": "Run",
-    "Application.Example.executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.MouseClickListener.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW": "true",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/truyen.nguyentuan/auto-clicker/auto-clicker/src/main/java/kell/autoclick",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.AutoClickerApp (1).executor&quot;: &quot;Run&quot;,
+    &quot;Application.AutoClickerApp (2).executor&quot;: &quot;Run&quot;,
+    &quot;Application.AutoClickerApp.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Example.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.MouseClickListener.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/webproject/spring/be-bookstore&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\truyen.nguyentuan\auto-clicker\auto-clicker\src\main\java\kell\autoclick" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\webproject\auto-clicker\src\main\resources" />
+      <recent name="D:\webproject\auto-clicker\src\static\template" />
     </key>
   </component>
   <component name="RunManager" selected="Application.Main">
@@ -99,7 +117,7 @@
       <module name="auto-clicker" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="kell.autoclick.*" />
+          <option name="PATTERN" value="kell.autoclick.model.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -118,7 +136,6 @@
     <attachedChunks>
       <set>
         <option value="jdk-17.0.10-corretto-17.0.10-4caba194b151-5cd809f4" />
-        <option value="jdk-21.0.1-openjdk-21.0.1-4caba194b151-23eed401" />
       </set>
     </attachedChunks>
   </component>

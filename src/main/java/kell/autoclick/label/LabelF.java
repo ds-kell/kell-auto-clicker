@@ -1,4 +1,4 @@
-package kell.autoclick;
+package kell.autoclick.label;
 
 import lombok.Getter;
 
@@ -11,7 +11,7 @@ public class LabelF {
 
     public final JTextField messageTxt = new JTextField(8);
 
-    LabelF(){
+    public LabelF(){
         repeatTimesTxt.setText("");
         messageTxt.setText("Fuck you");
     }

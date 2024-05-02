@@ -1,5 +1,7 @@
-package kell.autoclick;
+package kell.autoclick.panel;
 
+import kell.autoclick.table.Table;
+import kell.autoclick.table.TableClickItems;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,15 +14,19 @@ public class Panel {
 
     private JScrollPane scrollPane;
 
-    private final  JPanel btnPanel = new JPanel(new FlowLayout());
+    private final  JPanel topPanel = new JPanel(new FlowLayout());
 
-    private final  JPanel panelLoop = new JPanel(new FlowLayout());
+    private final  JPanel btnControlPanel = new JPanel(new FlowLayout());
+
+    private final  JPanel btnAddPanel = new JPanel(new FlowLayout());
+
+    private final  JPanel loopPanel = new JPanel(new FlowLayout());
 
     private final  JPanel bottomPanel = new JPanel(new BorderLayout());
 
     private final  JPanel msgPanel = new JPanel(new BorderLayout());
 
-    public Panel(Table table) {
+    public Panel(TableClickItems table) {
         scrollPane = new JScrollPane(table.getTable());
     }
 

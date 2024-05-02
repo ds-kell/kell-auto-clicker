@@ -1,5 +1,12 @@
-package kell.autoclick;
+package kell.autoclick.click;
 
+import kell.autoclick.model.ClickItem;
+import kell.autoclick.panel.Panel;
+import kell.autoclick.button.Button;
+import kell.autoclick.frame.MainFrame;
+import kell.autoclick.frame.SubFrame;
+import kell.autoclick.label.LabelF;
+import kell.autoclick.table.TableClickItems;
 import lombok.Getter;
 import lombok.Setter;
 import org.jnativehook.GlobalScreen;
@@ -18,13 +25,13 @@ import java.util.logging.Logger;
 
 @Getter
 @Setter
-public class AutoClicker implements ClickEvent{
+public class AutoClicker implements ClickEvent {
 
     private MainFrame MAIN_FRAME = new MainFrame();
 
     private SubFrame SUB_FRAME = new SubFrame();
 
-    private Table table = new Table();
+    private TableClickItems table = new TableClickItems();
 
     private Button btn = new Button();
 
@@ -40,7 +47,7 @@ public class AutoClicker implements ClickEvent{
 
     public final Object lock = new Object();
 
-    AutoClicker(){
+    public AutoClicker(){
         addToPanel();
         btn.getHideMainFrameRBtn().setSelected(MAIN_FRAME.isHideFrame());
         MAIN_FRAME.getMainFrame().setVisible(true);
@@ -103,7 +110,7 @@ public class AutoClicker implements ClickEvent{
             }
         });
 
-        btn.getAddBtn().addActionListener(e -> showTransparentFrame());
+        btn.getAddClickBtn().addActionListener(e -> showAddPointFrame());
 
         btn.getStartBtn().addActionListener(e -> startClick());
 
@@ -119,14 +126,20 @@ public class AutoClicker implements ClickEvent{
     }
 
     public void addToPanel(){
-        panel.addComponentsToPanel(panel.getBtnPanel(), btn.getAddBtn(), btn.getStartBtn(), btn.getStopBtn(), btn.getDeleteBtn(), btn.getResetBtn());
-        panel.addComponentsToPanel(panel.getPanelLoop(), label.getRepeatTimesLabel(), label.getRepeatTimesTxt(), btn.getInfiniteRBtn(), btn.getHideMainFrameRBtn());
+        panel.addComponentsToPanel(panel.getBtnAddPanel(), btn.getAddClickBtn(), btn.getAddKeyBtn(), btn.getDeleteBtn(), btn.getResetBtn());
+        panel.addComponentsToPanel(panel.getBtnControlPanel(), btn.getStartBtn(), btn.getStopBtn(), btn.getSaveBtn(), btn.getLoadBtn());
+        panel.addComponentsToPanel(panel.getLoopPanel(), label.getRepeatTimesLabel(), label.getRepeatTimesTxt(), btn.getInfiniteRBtn(), btn.getHideMainFrameRBtn());
+
+        panel.getTopPanel().setLayout(new BorderLayout());
+        panel.getTopPanel().add(panel.getBtnAddPanel(), BorderLayout.NORTH);
+        panel.getTopPanel().add(panel.getBtnControlPanel(), BorderLayout.SOUTH);
 
         MAIN_FRAME.getMainFrame().getContentPane().setLayout(new BorderLayout());
-        MAIN_FRAME.getMainFrame().getContentPane().add(panel.getBtnPanel(), BorderLayout.NORTH);
+        MAIN_FRAME.getMainFrame().getContentPane().add(panel.getTopPanel(), BorderLayout.NORTH);
         MAIN_FRAME.getMainFrame().getContentPane().add(panel.getScrollPane(), BorderLayout.CENTER);
 
-        panel.getBottomPanel().add(panel.getPanelLoop(), BorderLayout.NORTH);
+        panel.getBottomPanel().setLayout(new BorderLayout());
+        panel.getBottomPanel().add(panel.getLoopPanel(), BorderLayout.NORTH);
 
         MAIN_FRAME.getMainFrame().getContentPane().add(panel.getBottomPanel(), BorderLayout.SOUTH);
         MAIN_FRAME.getMainFrame().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -161,12 +174,13 @@ public class AutoClicker implements ClickEvent{
     @Override
     public void deleteSelected() {
         if(table.getTable().getSelectedRows().length < 1){
-            SUB_FRAME.getSubFrame().setVisible(true);
+            String msg = "";
             if(table.getListItems().isEmpty()) {
-                label.getMessageTxt().setText("Fuck you, list is empty");
+                msg = "Fuck you, list is empty";
             } else {
-                label.getMessageTxt().setText("Fuck you, select row to delete");
+                msg = "Fuck you, select row to delete";
             }
+            changeFrame(false, msg);
 
         }
         table.deleteSelectedRows();
@@ -209,12 +223,12 @@ public class AutoClicker implements ClickEvent{
             try {
                 synchronized (lock) {
                     while (!isStopClick) {
-                        for (ClickPoint m : table.getListItems()) {
+                        for (ClickItem item: table.getListItems()) {
                             if (isStopClick) {
                                 break;
                             }
-                            performClick(m);
-                            lock.wait(m.getTimeToNext());
+                            performClick(item);
+                            lock.wait(item.getTimeToNext());
                         }
                     }
                     btn.getInfiniteRBtn().setEnabled(true);
@@ -232,12 +246,12 @@ public class AutoClicker implements ClickEvent{
             try {
                 synchronized (lock) {
                     while (!isStopClick && repeatTimes > 0) {
-                        for (ClickPoint m : table.getListItems()) {
+                        for (ClickItem item: table.getListItems()) {
                             if (isStopClick) {
                                 break;
                             }
-                            performClick(m);
-                            lock.wait(m.getTimeToNext());
+                            performClick(item);
+                            lock.wait(item.getTimeToNext());
                         }
                         repeatTimes--;
                     }
@@ -253,16 +267,16 @@ public class AutoClicker implements ClickEvent{
     }
 
     @Override
-    public void performClick(ClickPoint m) throws AWTException {
+    public void performClick(ClickItem clickItem) throws AWTException {
         Robot robot = new Robot();
-        robot.mouseMove(m.getXAxis(), m.getYAxis());
+        robot.mouseMove(clickItem.getXAxis(), clickItem.getYAxis());
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
 
     @Override
-    public void showTransparentFrame() {
+    public void showAddPointFrame() {
         JFrame transparentFrame = new JFrame();
         transparentFrame.setUndecorated(true);
         transparentFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -271,7 +285,7 @@ public class AutoClicker implements ClickEvent{
         transparentFrame.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                table.addItem(new ClickPoint(e.getX(), e.getY()));
+                table.addItem(new ClickItem(e.getX(), e.getY()));
                 transparentFrame.setVisible(false);
             }
         });

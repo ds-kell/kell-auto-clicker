@@ -88,7 +88,7 @@
                             <goal>launch4j</goal>
                         </goals>
                         <configuration>
-                            <icon>src/main/java/kell/autoclick/click_pointer.ico</icon>
+                            <icon>src/main/resources/static/images/click_pointer.ico</icon>
                             <headerType>gui</headerType>
                             <outfile>target/auto-clicker.exe</outfile>
                             <jar>target/auto-clicker-3.0-SNAPSHOT-jar-with-dependencies.jar</jar>
