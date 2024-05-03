@@ -99,7 +99,8 @@ public class AutoClicker {
                 try {
                     repeatTimes = Integer.parseInt(input);
                 } catch (NumberFormatException ex) {
-                    System.out.println("Invalid input: Please enter a valid integer.");
+                    Logger logger = Logger.getLogger(AutoClicker.class.getName());
+                    logger.log(Level.SEVERE, "\"Invalid input: Please enter a valid integer: ", e);
                 }
             }
         });
@@ -261,7 +262,6 @@ public class AutoClicker {
                     try {
                         robot = new Robot();
                         keyCode = KeyEvent.getExtendedKeyCodeForChar(ch);
-                        System.out.println(keyCode);
                         if (Character.isLetterOrDigit(ch) || Character.isSpaceChar(ch)) {
                             robot.keyPress(keyCode);
                             robot.keyRelease(keyCode);
@@ -346,48 +346,57 @@ public class AutoClicker {
     }
 
     private void saveData() {
-        if(MAIN_FRAME.getTableClickItems().getListItems().isEmpty()) {
+        if (MAIN_FRAME.getTableClickItems().getListItems().isEmpty()) {
             changeFrame(false, "Fuck you, list is empty");
         } else {
-            String filename = "data.txt";
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-                System.out.println(MAIN_FRAME.getTableClickItems().getListItems().size());
-                for (ClickItem item : MAIN_FRAME.getTableClickItems().getListItems()) {
-                    System.out.println(item);
-                    String line = item.getName() + " / " + item.getXAxis() + " / " + item.getYAxis() + " / " + item.getHoldTime() + " / " + item.getTimeToNext();
-                    writer.write(line);
-                    writer.newLine();
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            int result = fileChooser.showOpenDialog(null);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                String selectedFolder = fileChooser.getSelectedFile().getAbsolutePath();
+                String filename = selectedFolder + "/data.txt";
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+                    for (ClickItem item : MAIN_FRAME.getTableClickItems().getListItems()) {
+                        String line = item.getName() + " / " + item.getXAxis() + " / " + item.getYAxis() + " / " + item.getHoldTime() + " / " + item.getTimeToNext();
+                        writer.write(line);
+                        writer.newLine();
+                    }
+                    changeFrame(false, "Data saved");
+                } catch (IOException e) {
+                    Logger logger = Logger.getLogger(AutoClicker.class.getName());
+                    logger.log(Level.SEVERE, "Error while saving data to file: ", e);
                 }
-            } catch (IOException e) {
-                Logger logger = Logger.getLogger(AutoClicker.class.getName());
-                logger.log(Level.SEVERE, "Error while saving data to file: ", e);
             }
         }
     }
 
-    private void loadData(){
+    private void loadData() {
         Vector<ClickItem> listItems = new Vector<>();
-        String filename = "data.txt";
-        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(" / ");
-                if (parts.length == 5) {
-                    String name = parts[0];
-                    int xAxis = Integer.parseInt(parts[1]);
-                    int yAxis = Integer.parseInt(parts[2]);
-                    int holdTime = Integer.parseInt(parts[3]);
-                    int timeToNext = Integer.parseInt(parts[4]);
 
-                    ClickItem item = new ClickItem(name, xAxis, yAxis, holdTime, timeToNext);
-                    System.out.println(item);
-                    listItems.add(item);
+        JFileChooser fileChooser = new JFileChooser();
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            String filename = fileChooser.getSelectedFile().getAbsolutePath();
+            try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(" / ");
+                    if (parts.length == 5) {
+                        String name = parts[0];
+                        int xAxis = Integer.parseInt(parts[1]);
+                        int yAxis = Integer.parseInt(parts[2]);
+                        int holdTime = Integer.parseInt(parts[3]);
+                        int timeToNext = Integer.parseInt(parts[4]);
+                        ClickItem item = new ClickItem(name, xAxis, yAxis, holdTime, timeToNext);
+                        listItems.add(item);
+                    }
                 }
+                MAIN_FRAME.getTableClickItems().setListItems(listItems);
+                changeFrame(false, "Data loaded");
+            } catch (IOException e) {
+                Logger logger = Logger.getLogger(AutoClicker.class.getName());
+                logger.log(Level.SEVERE, "Error while loading data to file: ", e);
             }
-            MAIN_FRAME.getTableClickItems().setListItems(listItems);
-            System.out.println("Data has been successfully read from file: " + filename);
-        } catch (IOException e) {
-            System.err.println("Error while reading data from file: " + e.getMessage());
         }
     }
 }
