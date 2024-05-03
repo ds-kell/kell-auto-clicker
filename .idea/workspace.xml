@@ -5,25 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="update code v3">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/Item.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/PressItem.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TableClickItems.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TableItems.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TablePressItems.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Button.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/button/Button.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/ClickEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/ClickEvent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/ClickPoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ClickItem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/LabelF.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/label/LabelF.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Panel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/panel/Panel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/SubFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/SubFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/Table.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click_pointer.ico" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/click_pointer.ico" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/ClickEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/ClickEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ClickItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ClickItem.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,10 +26,11 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="aa" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {

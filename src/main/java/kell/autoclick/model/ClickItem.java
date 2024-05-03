@@ -13,7 +13,7 @@ public class ClickItem extends Item {
     private int yAxis;
 
     public ClickItem(int xAxis, int yAxis) {
-        super("Point");
+        super("Point(" + xAxis + ", " + yAxis + ")");
         this.xAxis = xAxis;
         this.yAxis = yAxis;
     }

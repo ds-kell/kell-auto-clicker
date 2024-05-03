@@ -19,6 +19,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -228,6 +229,7 @@ public class AutoClicker implements ClickEvent {
                                 break;
                             }
                             performClick(item);
+                            performPress();
                             lock.wait(item.getTimeToNext());
                         }
                     }
@@ -251,7 +253,11 @@ public class AutoClicker implements ClickEvent {
                                 break;
                             }
                             performClick(item);
+//                            performPress();
                             lock.wait(item.getTimeToNext());
+                            CountDownLatch latch = new CountDownLatch(1);
+                            performInput("Hello  World 123", latch);
+                            latch.await();
                         }
                         repeatTimes--;
                     }
@@ -268,10 +274,74 @@ public class AutoClicker implements ClickEvent {
 
     @Override
     public void performClick(ClickItem clickItem) throws AWTException {
-        Robot robot = new Robot();
-        robot.mouseMove(clickItem.getXAxis(), clickItem.getYAxis());
-        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+        try {
+            Robot robot = new Robot();
+            robot.mouseMove(clickItem.getXAxis(), clickItem.getYAxis());
+            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+        } catch (AWTException e){
+            Logger logger = Logger.getLogger(AutoClicker.class.getName());
+            logger.log(Level.SEVERE, "An AWTException", e);
+        }
+    }
+
+    @Override
+    public void performPress() throws AWTException, InterruptedException {
+        try {
+            Robot robot = new Robot();
+            robot.keyPress(KeyEvent.VK_A);
+            Thread.sleep(500);
+            robot.keyRelease(KeyEvent.VK_A);
+            robot.keyPress(KeyEvent.VK_D);
+            Thread.sleep(500);
+            robot.keyRelease(KeyEvent.VK_D);
+        } catch (AWTException e){
+            stopClick();
+            Logger logger = Logger.getLogger(AutoClicker.class.getName());
+            logger.log(Level.SEVERE, "An AWTException", e);
+        } catch (InterruptedException e){
+            stopClick();
+            Logger logger = Logger.getLogger(AutoClicker.class.getName());
+            logger.log(Level.SEVERE, "An InterruptedException ", e);
+        }
+    }
+
+    @Override
+    public void performInput(String input, CountDownLatch latch) {
+        Timer timer = new Timer(100, new ActionListener() {
+            int index = 0;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int keyCode = 0 ;
+                if (index < input.length()) {
+                    char ch = input.charAt(index);
+                    Robot robot = null;
+                    try {
+                        robot = new Robot();
+                        keyCode = KeyEvent.getExtendedKeyCodeForChar(ch);
+                        System.out.println(keyCode);
+                        if (Character.isLetterOrDigit(ch) || Character.isSpaceChar(ch)) {
+                            robot.keyPress(keyCode);
+                            robot.keyRelease(keyCode);
+                        }
+                    } catch (AWTException awtException) {
+                        stopClick();
+                        Logger logger = Logger.getLogger(AutoClicker.class.getName());
+                        logger.log(Level.SEVERE, "An InterruptedException ", e);
+                    }
+                    index++;
+                } else {
+                    ((Timer) e.getSource()).stop();
+                    latch.countDown();
+                }
+                if (isStopClick) {
+                    ((Timer) e.getSource()).stop();
+                    latch.countDown();
+                }
+            }
+        });
+        timer.start();
     }
 
 
@@ -329,5 +399,10 @@ public class AutoClicker implements ClickEvent {
         MAIN_FRAME.getMainFrame().setEnabled(isMainFrmae);
         SUB_FRAME.getSubFrame().setVisible(!isMainFrmae);
         label.getMessageTxt().setText(message);
+    }
+
+    @Override
+    public void showAddPressKeyFrame() {
+
     }
 }
