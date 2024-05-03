@@ -9,7 +9,7 @@ import java.awt.*;
 @Getter
 @Setter
 public class AddPointFrame {
-    private final JFrame addPointFrame = new JFrame("Add Point Frame");
+    private final JFrame addPointFrame = new JFrame();
 
     public AddPointFrame(){
         addPointFrame.setUndecorated(true);

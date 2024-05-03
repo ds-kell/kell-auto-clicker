@@ -1,8 +1,6 @@
 package kell.autoclick.frame;
 
-import kell.autoclick.table.TableClickItems;
 import kell.autoclick.table.TableItems;
-import kell.autoclick.table.TablePressItems;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -55,9 +53,7 @@ public class MainFrame extends CustomFrame {
     private boolean isHideFrame = true;
 
 //    Table
-    private TableClickItems tableClickItems = new TableClickItems();
-
-    private TablePressItems tablePressItems = new TablePressItems();
+    private final TableItems tableClickItems = new TableItems();
 
     public MainFrame(){
         super(500, 400);

@@ -1,6 +1,8 @@
 package kell.autoclick.table;
 
 
+import kell.autoclick.model.ClickItem;
+import kell.autoclick.model.Item;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,8 +12,8 @@ import java.util.Vector;
 
 @Getter
 @Setter
-public abstract class TableItems<T> {
-    public final Vector<T> listItems = new Vector<>();
+public class TableItems {
+    public final Vector<ClickItem> listItems = new Vector<>();
 
     public final DefaultTableModel model = new DefaultTableModel();
 
@@ -19,8 +21,9 @@ public abstract class TableItems<T> {
 
     public TableItems(){
         model.addColumn("Name");
-        model.addColumn("Hold time");
-        model.addColumn("Time to next");
+        model.addColumn("xAxis");
+        model.addColumn("yAxis");
+        model.addColumn("Delay");
     }
 
     public void deleteSelectedRows(){
@@ -43,5 +46,19 @@ public abstract class TableItems<T> {
         model.setRowCount(0);
     }
 
-    public abstract void addItem(T item);
+    public void addItem(ClickItem item){
+        listItems.add(item);
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.addRow(new Object[]{ item.getName(), item.getXAxis(), item.getYAxis(), item.getTimeToNext()});
+    };
+
+    public void setListItems(Vector<ClickItem> listItems) {
+        this.listItems.clear();
+        this.listItems.addAll(listItems);
+        model.setRowCount(0);
+        for(ClickItem item : listItems){
+            DefaultTableModel model = (DefaultTableModel) table.getModel();
+            model.addRow(new Object[]{ item.getName(), item.getXAxis(), item.getYAxis(), item.getTimeToNext()});
+        }
+    }
 }

@@ -16,6 +16,8 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
+import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,7 +25,7 @@ import java.util.logging.Logger;
 
 @Getter
 @Setter
-public class AutoClicker implements ClickEvent {
+public class AutoClicker {
 
     private MainFrame MAIN_FRAME = new MainFrame();
 
@@ -39,13 +41,13 @@ public class AutoClicker implements ClickEvent {
 
     public final Object lock = new Object();
 
-    public AutoClicker(){
+    public AutoClicker() {
         MAIN_FRAME.initMainFrame();
         SUB_FRAME.initSubFrame();
         MAIN_FRAME.getFrame().setVisible(true);
     }
 
-    public void start(){
+    public void start() {
         MAIN_FRAME.getTableClickItems().getModel().addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
@@ -58,13 +60,13 @@ public class AutoClicker implements ClickEvent {
                             MAIN_FRAME.getTableClickItems().getListItems().get(row).setName((String) data);
                             break;
                         case 1:
-                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setXAxis(Integer.parseInt((String) data));
+                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setXAxis(Integer.parseInt(((String) data).trim()));
                             break;
                         case 2:
-                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setYAxis(Integer.parseInt((String) data));
+                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setYAxis(Integer.parseInt(((String) data).trim()));
                             break;
                         case 3:
-                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setTimeToNext(Integer.parseInt((String) data));
+                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setTimeToNext(Integer.parseInt(((String) data).trim()));
                             break;
                     }
                 }
@@ -75,7 +77,8 @@ public class AutoClicker implements ClickEvent {
 
         globalKeyListener();
     }
-    public void btnListener(){
+
+    public void btnListener() {
         MAIN_FRAME.getInfiniteRBtn().addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 infinite = e.getStateChange() == ItemEvent.SELECTED;
@@ -111,12 +114,15 @@ public class AutoClicker implements ClickEvent {
 
         MAIN_FRAME.getStopBtn().addActionListener(e -> stopClick());
 
+        MAIN_FRAME.getSaveBtn().addActionListener(e -> saveData());
+
+        MAIN_FRAME.getLoadBtn().addActionListener(e -> loadData());
+
         SUB_FRAME.getConfirmBtn().addActionListener(e -> {
             changeFrame(true);
         });
     }
 
-    @Override
     public void stopClick() {
         isStopClick = true;
         synchronized (lock) {
@@ -124,24 +130,22 @@ public class AutoClicker implements ClickEvent {
         }
     }
 
-    @Override
     public void resetData() {
         if (MAIN_FRAME.getTableClickItems().getTable().isEditing()) {
             MAIN_FRAME.getTableClickItems().getTable().getCellEditor().stopCellEditing();
         }
-        MAIN_FRAME.getTableClickItems().clearTable();;
         infinite = false;
         repeatTimes = 0;
+        MAIN_FRAME.getTableClickItems().clearTable();
         MAIN_FRAME.getInfiniteRBtn().setSelected(false);
         MAIN_FRAME.getRepeatTimesTxt().setText("");
         MAIN_FRAME.getTableClickItems().getModel().setRowCount(0);
     }
 
-    @Override
     public void deleteSelected() {
-        if(MAIN_FRAME.getTableClickItems().getTable().getSelectedRows().length < 1){
+        if (MAIN_FRAME.getTableClickItems().getTable().getSelectedRows().length < 1) {
             String msg = "";
-            if(MAIN_FRAME.getTableClickItems().getListItems().isEmpty()) {
+            if (MAIN_FRAME.getTableClickItems().getListItems().isEmpty()) {
                 msg = "Fuck you, list is empty";
             } else {
                 msg = "Fuck you, select row to delete";
@@ -152,16 +156,14 @@ public class AutoClicker implements ClickEvent {
         MAIN_FRAME.getTableClickItems().deleteSelectedRows();
     }
 
-    @Override
     public void startClick() {
-        if(!MAIN_FRAME.getTableClickItems().getListItems().isEmpty()){
-            if(!infinite && ("").equals(MAIN_FRAME.getRepeatTimesTxt().getText())){
+        if (!MAIN_FRAME.getTableClickItems().getListItems().isEmpty()) {
+            if (!infinite && ("").equals(MAIN_FRAME.getRepeatTimesTxt().getText())) {
                 changeFrame(false, "Fuck you. Enter repeat times");
             } else if (infinite) {
-                MAIN_FRAME.getRepeatTimesTxt().setEnabled(false);
-                isStopClick = false;
                 MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
-                MAIN_FRAME.getInfiniteRBtn().setEnabled(false);
+                enableInput(false);
+                isStopClick = false;
                 infiniteAutoClick();
             } else {
                 String input = MAIN_FRAME.getRepeatTimesTxt().getText();
@@ -170,36 +172,36 @@ public class AutoClicker implements ClickEvent {
                 } catch (NumberFormatException ex) {
                     changeFrame(false, "Fuck you. Enter a valid integer");
                 }
-                if(repeatTimes > 0) {
-                    isStopClick = false;
-                    MAIN_FRAME.getRepeatTimesTxt().setEnabled(false);
+                if (repeatTimes > 0) {
                     MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
-                    MAIN_FRAME.getInfiniteRBtn().setEnabled(false);
+                    enableInput(false);
+                    isStopClick = false;
                     limitedAutoClick();
                 }
             }
-        } else{
+        } else {
             changeFrame(false, "Fuck, add position");
         }
     }
 
-    @Override
     public void infiniteAutoClick() {
         new Thread(() -> {
             try {
                 synchronized (lock) {
                     while (!isStopClick) {
-                        for (ClickItem item: MAIN_FRAME.getTableClickItems().getListItems()) {
+                        for (ClickItem item : MAIN_FRAME.getTableClickItems().getListItems()) {
                             if (isStopClick) {
                                 break;
                             }
                             performClick(item);
-                            performPress();
+//                            CountDownLatch latch = new CountDownLatch(1);
+//                            performPress("AD", 300, latch);
+//                            latch.await();
                             lock.wait(item.getTimeToNext());
                         }
                     }
-                    MAIN_FRAME.getInfiniteRBtn().setEnabled(true);
-                    MAIN_FRAME.getRepeatTimesLabel().setEnabled(true);
+                    enableInput(true);
+                    MAIN_FRAME.getFrame().setVisible(true);
                 }
             } catch (AWTException | InterruptedException ex) {
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
@@ -207,29 +209,25 @@ public class AutoClicker implements ClickEvent {
         }).start();
     }
 
-    @Override
-    public void limitedAutoClick() {
+    private void limitedAutoClick() {
         new Thread(() -> {
             try {
                 synchronized (lock) {
                     while (!isStopClick && repeatTimes > 0) {
-                        for (ClickItem item: MAIN_FRAME.getTableClickItems().getListItems()) {
+                        for (ClickItem item : MAIN_FRAME.getTableClickItems().getListItems()) {
                             if (isStopClick) {
                                 break;
                             }
                             performClick(item);
-//                            performPress();
                             lock.wait(item.getTimeToNext());
-                            CountDownLatch latch = new CountDownLatch(1);
-                            performInput("Hello  World 123", latch);
-                            latch.await();
+//                            CountDownLatch latch = new CountDownLatch(1);
+//                            performPress("Hello  World 123", 300, latch);
+//                            latch.await();
                         }
                         repeatTimes--;
                     }
-                    MAIN_FRAME.getInfiniteRBtn().setEnabled(true);
-                    MAIN_FRAME.getRepeatTimesLabel().setEnabled(true);
+                    enableInput(true);
                     MAIN_FRAME.getFrame().setVisible(true);
-                    MAIN_FRAME.getRepeatTimesTxt().setEnabled(true);
                 }
             } catch (AWTException | InterruptedException ex) {
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
@@ -237,48 +235,26 @@ public class AutoClicker implements ClickEvent {
         }).start();
     }
 
-    @Override
-    public void performClick(ClickItem clickItem) throws AWTException {
+    private void performClick(ClickItem clickItem) throws AWTException {
         try {
             Robot robot = new Robot();
             robot.mouseMove(clickItem.getXAxis(), clickItem.getYAxis());
             robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-        } catch (AWTException e){
+        } catch (AWTException e) {
+            stopClick();
             Logger logger = Logger.getLogger(AutoClicker.class.getName());
             logger.log(Level.SEVERE, "An AWTException", e);
         }
     }
 
-    @Override
-    public void performPress() throws AWTException, InterruptedException {
-        try {
-            Robot robot = new Robot();
-            robot.keyPress(KeyEvent.VK_A);
-            Thread.sleep(500);
-            robot.keyRelease(KeyEvent.VK_A);
-            robot.keyPress(KeyEvent.VK_D);
-            Thread.sleep(500);
-            robot.keyRelease(KeyEvent.VK_D);
-        } catch (AWTException e){
-            stopClick();
-            Logger logger = Logger.getLogger(AutoClicker.class.getName());
-            logger.log(Level.SEVERE, "An AWTException", e);
-        } catch (InterruptedException e){
-            stopClick();
-            Logger logger = Logger.getLogger(AutoClicker.class.getName());
-            logger.log(Level.SEVERE, "An InterruptedException ", e);
-        }
-    }
-
-    @Override
-    public void performInput(String input, CountDownLatch latch) {
-        Timer timer = new Timer(100, new ActionListener() {
+    private void performPress(String input, int delay, CountDownLatch latch) {
+        Timer timer = new Timer(delay, new ActionListener() {
             int index = 0;
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                int keyCode = 0 ;
+                int keyCode = 0;
                 if (index < input.length()) {
                     char ch = input.charAt(index);
                     Robot robot = null;
@@ -309,21 +285,20 @@ public class AutoClicker implements ClickEvent {
         timer.start();
     }
 
-
-    @Override
-    public void showAddPointFrame() {
-        ADD_POINT_FRAME.getAddPointFrame().addMouseListener(new MouseAdapter() {
+    private void showAddPointFrame() {
+        MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 MAIN_FRAME.getTableClickItems().addItem(new ClickItem(e.getX(), e.getY()));
                 ADD_POINT_FRAME.getAddPointFrame().setVisible(false);
+                ADD_POINT_FRAME.getAddPointFrame().removeMouseListener(this);
             }
-        });
+        };
+        ADD_POINT_FRAME.getAddPointFrame().addMouseListener(mouseAdapter);
         ADD_POINT_FRAME.getAddPointFrame().setVisible(true);
     }
 
-    @Override
-    public void globalKeyListener() {
+    private void globalKeyListener() {
         Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
 
@@ -337,10 +312,10 @@ public class AutoClicker implements ClickEvent {
         GlobalScreen.addNativeKeyListener(new NativeKeyListener() {
             @Override
             public void nativeKeyPressed(NativeKeyEvent e) {
-                if (e.getKeyCode() == NativeKeyEvent.VC_F7) {
+                if (e.getKeyCode() == NativeKeyEvent.VC_F7 && isStopClick) {
                     startClick();
-                } else if (e.getKeyCode() == NativeKeyEvent.VC_F8) {
-                    isStopClick = true;
+                } else if (e.getKeyCode() == NativeKeyEvent.VC_F8 && !isStopClick) {
+                    stopClick();
                     SwingUtilities.invokeLater(() -> MAIN_FRAME.getFrame().setVisible(true));
                 }
             }
@@ -356,7 +331,7 @@ public class AutoClicker implements ClickEvent {
     }
 
     private void changeFrame(boolean isMainFrame) {
-       this.changeFrame(isMainFrame, "");
+        this.changeFrame(isMainFrame, "");
     }
 
     private void changeFrame(boolean isMainFrame, String message) {
@@ -365,8 +340,50 @@ public class AutoClicker implements ClickEvent {
         SUB_FRAME.getMessageTxt().setText(message);
     }
 
-    @Override
-    public void showAddPressKeyFrame() {
+    private void enableInput(boolean isShow) {
+        MAIN_FRAME.getInfiniteRBtn().setEnabled(isShow);
+        MAIN_FRAME.getRepeatTimesTxt().setEnabled(isShow);
+    }
 
+    private void saveData() {
+        String filename = "data.txt";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            System.out.println(MAIN_FRAME.getTableClickItems().getListItems().size());
+            for (ClickItem item : MAIN_FRAME.getTableClickItems().getListItems()) {
+                System.out.println(item);
+                String line = item.getName() + " / " + item.getXAxis() + " / " + item.getYAxis() + " / " + item.getHoldTime() + " / " + item.getTimeToNext();
+                writer.write(line);
+                writer.newLine();
+            }
+            System.out.println("Data has been successfully saved to file: " + filename);
+        } catch (IOException e) {
+            System.err.println("Error while saving data to file: " + e.getMessage());
+        }
+    }
+
+    private void loadData(){
+        Vector<ClickItem> listItems = new Vector<>();
+        String filename = "data.txt";
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(" / ");
+                if (parts.length == 5) {
+                    String name = parts[0];
+                    int xAxis = Integer.parseInt(parts[1]);
+                    int yAxis = Integer.parseInt(parts[2]);
+                    int holdTime = Integer.parseInt(parts[3]);
+                    int timeToNext = Integer.parseInt(parts[4]);
+
+                    ClickItem item = new ClickItem(name, xAxis, yAxis, holdTime, timeToNext);
+                    System.out.println(item);
+                    listItems.add(item);
+                }
+            }
+            MAIN_FRAME.getTableClickItems().setListItems(listItems);
+            System.out.println("Data has been successfully read from file: " + filename);
+        } catch (IOException e) {
+            System.err.println("Error while reading data from file: " + e.getMessage());
+        }
     }
 }

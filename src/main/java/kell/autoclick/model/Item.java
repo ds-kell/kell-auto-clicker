@@ -7,13 +7,19 @@ import lombok.Setter;
 @Setter
 public abstract class Item {
 
-    private String name;
+    protected String name;
 
-    private int holdTime = 0;
+    protected int holdTime = 0;
 
-    private int timeToNext = 1000;
+    protected int timeToNext = 1000;
 
     public Item(String name) {
         this.name = name;
+    }
+
+    public Item(String name, int holdTime, int timeToNext) {
+        this.name = name;
+        this.holdTime = holdTime;
+        this.timeToNext = timeToNext;
     }
 }
