@@ -5,11 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="update code v3">
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPointFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPressKeyFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/CustomFrame.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/button/Button.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/ClickEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/ClickEvent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ClickItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ClickItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/SubFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/SubFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/label/LabelF.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/panel/Panel.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/Table.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,7 +32,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="aa" />
+        <entry key="$PROJECT_DIR$" value="browser" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -114,6 +120,8 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.Main" />
+        <item itemvalue="Application.AutoClickerApp" />
         <item itemvalue="Application.Main" />
         <item itemvalue="Application.AutoClickerApp" />
       </list>

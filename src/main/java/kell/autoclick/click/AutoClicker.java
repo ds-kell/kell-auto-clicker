@@ -1,12 +1,9 @@
 package kell.autoclick.click;
 
+import kell.autoclick.frame.AddPointFrame;
 import kell.autoclick.model.ClickItem;
-import kell.autoclick.panel.Panel;
-import kell.autoclick.button.Button;
 import kell.autoclick.frame.MainFrame;
 import kell.autoclick.frame.SubFrame;
-import kell.autoclick.label.LabelF;
-import kell.autoclick.table.TableClickItems;
 import lombok.Getter;
 import lombok.Setter;
 import org.jnativehook.GlobalScreen;
@@ -32,13 +29,7 @@ public class AutoClicker implements ClickEvent {
 
     private SubFrame SUB_FRAME = new SubFrame();
 
-    private TableClickItems table = new TableClickItems();
-
-    private Button btn = new Button();
-
-    private Panel panel = new Panel(table);
-
-    private LabelF label = new LabelF();
+    private AddPointFrame ADD_POINT_FRAME = new AddPointFrame();
 
     private boolean isStopClick = false;
 
@@ -49,32 +40,31 @@ public class AutoClicker implements ClickEvent {
     public final Object lock = new Object();
 
     public AutoClicker(){
-        addToPanel();
-        btn.getHideMainFrameRBtn().setSelected(MAIN_FRAME.isHideFrame());
-        MAIN_FRAME.getMainFrame().setVisible(true);
-        SUB_FRAME.getSubFrame().setVisible(false);
+        MAIN_FRAME.initMainFrame();
+        SUB_FRAME.initSubFrame();
+        MAIN_FRAME.getFrame().setVisible(true);
     }
 
     public void start(){
-        table.getModel().addTableModelListener(new TableModelListener() {
+        MAIN_FRAME.getTableClickItems().getModel().addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
                 int row = e.getFirstRow();
                 int column = e.getColumn();
                 if (row >= 0 && column >= 0) {
-                    Object data = table.getModel().getValueAt(row, column);
+                    Object data = MAIN_FRAME.getTableClickItems().getModel().getValueAt(row, column);
                     switch (column) {
                         case 0:
-                            table.getListItems().get(row).setName((String) data);
+                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setName((String) data);
                             break;
                         case 1:
-                            table.getListItems().get(row).setXAxis(Integer.parseInt((String) data));
+                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setXAxis(Integer.parseInt((String) data));
                             break;
                         case 2:
-                            table.getListItems().get(row).setYAxis(Integer.parseInt((String) data));
+                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setYAxis(Integer.parseInt((String) data));
                             break;
                         case 3:
-                            table.getListItems().get(row).setTimeToNext(Integer.parseInt((String) data));
+                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setTimeToNext(Integer.parseInt((String) data));
                             break;
                     }
                 }
@@ -86,23 +76,23 @@ public class AutoClicker implements ClickEvent {
         globalKeyListener();
     }
     public void btnListener(){
-        btn.getInfiniteRBtn().addItemListener(new ItemListener() {
+        MAIN_FRAME.getInfiniteRBtn().addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 infinite = e.getStateChange() == ItemEvent.SELECTED;
-                label.getRepeatTimesTxt().setEnabled(!(e.getStateChange() == ItemEvent.SELECTED));
+                MAIN_FRAME.getRepeatTimesTxt().setEnabled(!(e.getStateChange() == ItemEvent.SELECTED));
             }
         });
 
-        btn.getHideMainFrameRBtn().addItemListener(new ItemListener() {
+        MAIN_FRAME.getHideMainFrameRBtn().addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 MAIN_FRAME.setHideFrame(e.getStateChange() == ItemEvent.SELECTED);
             }
         });
 
-        label.getRepeatTimesTxt().addActionListener(new ActionListener() {
+        MAIN_FRAME.getRepeatTimesTxt().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String input = label.getRepeatTimesTxt().getText();
+                String input = MAIN_FRAME.getRepeatTimesTxt().getText();
                 try {
                     repeatTimes = Integer.parseInt(input);
                 } catch (NumberFormatException ex) {
@@ -111,44 +101,19 @@ public class AutoClicker implements ClickEvent {
             }
         });
 
-        btn.getAddClickBtn().addActionListener(e -> showAddPointFrame());
+        MAIN_FRAME.getAddClickBtn().addActionListener(e -> showAddPointFrame());
 
-        btn.getStartBtn().addActionListener(e -> startClick());
+        MAIN_FRAME.getStartBtn().addActionListener(e -> startClick());
 
-        btn.getDeleteBtn().addActionListener(e -> deleteSelected());
+        MAIN_FRAME.getDeleteBtn().addActionListener(e -> deleteSelected());
 
-        btn.getResetBtn().addActionListener(e -> resetData());
+        MAIN_FRAME.getResetBtn().addActionListener(e -> resetData());
 
-        btn.getStopBtn().addActionListener(e -> stopClick());
+        MAIN_FRAME.getStopBtn().addActionListener(e -> stopClick());
 
-        btn.getConfirmBtn().addActionListener(e -> {
-            changeFrame(true, "");
+        SUB_FRAME.getConfirmBtn().addActionListener(e -> {
+            changeFrame(true);
         });
-    }
-
-    public void addToPanel(){
-        panel.addComponentsToPanel(panel.getBtnAddPanel(), btn.getAddClickBtn(), btn.getAddKeyBtn(), btn.getDeleteBtn(), btn.getResetBtn());
-        panel.addComponentsToPanel(panel.getBtnControlPanel(), btn.getStartBtn(), btn.getStopBtn(), btn.getSaveBtn(), btn.getLoadBtn());
-        panel.addComponentsToPanel(panel.getLoopPanel(), label.getRepeatTimesLabel(), label.getRepeatTimesTxt(), btn.getInfiniteRBtn(), btn.getHideMainFrameRBtn());
-
-        panel.getTopPanel().setLayout(new BorderLayout());
-        panel.getTopPanel().add(panel.getBtnAddPanel(), BorderLayout.NORTH);
-        panel.getTopPanel().add(panel.getBtnControlPanel(), BorderLayout.SOUTH);
-
-        MAIN_FRAME.getMainFrame().getContentPane().setLayout(new BorderLayout());
-        MAIN_FRAME.getMainFrame().getContentPane().add(panel.getTopPanel(), BorderLayout.NORTH);
-        MAIN_FRAME.getMainFrame().getContentPane().add(panel.getScrollPane(), BorderLayout.CENTER);
-
-        panel.getBottomPanel().setLayout(new BorderLayout());
-        panel.getBottomPanel().add(panel.getLoopPanel(), BorderLayout.NORTH);
-
-        MAIN_FRAME.getMainFrame().getContentPane().add(panel.getBottomPanel(), BorderLayout.SOUTH);
-        MAIN_FRAME.getMainFrame().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        panel.getMsgPanel().add(label.getMessageTxt(), BorderLayout.CENTER);
-        panel.getMsgPanel().add(btn.getConfirmBtn(), BorderLayout.SOUTH);
-        SUB_FRAME.getSubFrame().getContentPane().setLayout(new BorderLayout());
-        SUB_FRAME.getSubFrame().getContentPane().add(panel.getMsgPanel(), BorderLayout.CENTER);
     }
 
     @Override
@@ -161,22 +126,22 @@ public class AutoClicker implements ClickEvent {
 
     @Override
     public void resetData() {
-        if (table.getTable().isEditing()) {
-            table.getTable().getCellEditor().stopCellEditing();
+        if (MAIN_FRAME.getTableClickItems().getTable().isEditing()) {
+            MAIN_FRAME.getTableClickItems().getTable().getCellEditor().stopCellEditing();
         }
-        table.clearTable();;
+        MAIN_FRAME.getTableClickItems().clearTable();;
         infinite = false;
         repeatTimes = 0;
-        btn.getInfiniteRBtn().setSelected(false);
-        label.getRepeatTimesTxt().setText("");
-        table.getModel().setRowCount(0);
+        MAIN_FRAME.getInfiniteRBtn().setSelected(false);
+        MAIN_FRAME.getRepeatTimesTxt().setText("");
+        MAIN_FRAME.getTableClickItems().getModel().setRowCount(0);
     }
 
     @Override
     public void deleteSelected() {
-        if(table.getTable().getSelectedRows().length < 1){
+        if(MAIN_FRAME.getTableClickItems().getTable().getSelectedRows().length < 1){
             String msg = "";
-            if(table.getListItems().isEmpty()) {
+            if(MAIN_FRAME.getTableClickItems().getListItems().isEmpty()) {
                 msg = "Fuck you, list is empty";
             } else {
                 msg = "Fuck you, select row to delete";
@@ -184,22 +149,22 @@ public class AutoClicker implements ClickEvent {
             changeFrame(false, msg);
 
         }
-        table.deleteSelectedRows();
+        MAIN_FRAME.getTableClickItems().deleteSelectedRows();
     }
 
     @Override
     public void startClick() {
-        if(!table.getListItems().isEmpty()){
-            if(!infinite && ("").equals(label.getRepeatTimesTxt().getText())){
+        if(!MAIN_FRAME.getTableClickItems().getListItems().isEmpty()){
+            if(!infinite && ("").equals(MAIN_FRAME.getRepeatTimesTxt().getText())){
                 changeFrame(false, "Fuck you. Enter repeat times");
             } else if (infinite) {
-                label.getRepeatTimesTxt().setEnabled(false);
+                MAIN_FRAME.getRepeatTimesTxt().setEnabled(false);
                 isStopClick = false;
-                MAIN_FRAME.getMainFrame().setVisible(!MAIN_FRAME.isHideFrame());
-                btn.getInfiniteRBtn().setEnabled(false);
+                MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
+                MAIN_FRAME.getInfiniteRBtn().setEnabled(false);
                 infiniteAutoClick();
             } else {
-                String input = label.getRepeatTimesTxt().getText();
+                String input = MAIN_FRAME.getRepeatTimesTxt().getText();
                 try {
                     repeatTimes = Integer.parseInt(input);
                 } catch (NumberFormatException ex) {
@@ -207,9 +172,9 @@ public class AutoClicker implements ClickEvent {
                 }
                 if(repeatTimes > 0) {
                     isStopClick = false;
-                    label.getRepeatTimesTxt().setEnabled(false);
-                    MAIN_FRAME.getMainFrame().setVisible(!MAIN_FRAME.isHideFrame());
-                    btn.getInfiniteRBtn().setEnabled(false);
+                    MAIN_FRAME.getRepeatTimesTxt().setEnabled(false);
+                    MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
+                    MAIN_FRAME.getInfiniteRBtn().setEnabled(false);
                     limitedAutoClick();
                 }
             }
@@ -224,7 +189,7 @@ public class AutoClicker implements ClickEvent {
             try {
                 synchronized (lock) {
                     while (!isStopClick) {
-                        for (ClickItem item: table.getListItems()) {
+                        for (ClickItem item: MAIN_FRAME.getTableClickItems().getListItems()) {
                             if (isStopClick) {
                                 break;
                             }
@@ -233,8 +198,8 @@ public class AutoClicker implements ClickEvent {
                             lock.wait(item.getTimeToNext());
                         }
                     }
-                    btn.getInfiniteRBtn().setEnabled(true);
-                    label.getRepeatTimesLabel().setEnabled(true);
+                    MAIN_FRAME.getInfiniteRBtn().setEnabled(true);
+                    MAIN_FRAME.getRepeatTimesLabel().setEnabled(true);
                 }
             } catch (AWTException | InterruptedException ex) {
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
@@ -248,7 +213,7 @@ public class AutoClicker implements ClickEvent {
             try {
                 synchronized (lock) {
                     while (!isStopClick && repeatTimes > 0) {
-                        for (ClickItem item: table.getListItems()) {
+                        for (ClickItem item: MAIN_FRAME.getTableClickItems().getListItems()) {
                             if (isStopClick) {
                                 break;
                             }
@@ -261,10 +226,10 @@ public class AutoClicker implements ClickEvent {
                         }
                         repeatTimes--;
                     }
-                    btn.getInfiniteRBtn().setEnabled(true);
-                    label.getRepeatTimesLabel().setEnabled(true);
-                    MAIN_FRAME.getMainFrame().setVisible(true);
-                    label.getRepeatTimesTxt().setEnabled(true);
+                    MAIN_FRAME.getInfiniteRBtn().setEnabled(true);
+                    MAIN_FRAME.getRepeatTimesLabel().setEnabled(true);
+                    MAIN_FRAME.getFrame().setVisible(true);
+                    MAIN_FRAME.getRepeatTimesTxt().setEnabled(true);
                 }
             } catch (AWTException | InterruptedException ex) {
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
@@ -347,19 +312,14 @@ public class AutoClicker implements ClickEvent {
 
     @Override
     public void showAddPointFrame() {
-        JFrame transparentFrame = new JFrame();
-        transparentFrame.setUndecorated(true);
-        transparentFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        transparentFrame.setBackground(new Color(100, 100, 100, 100));
-
-        transparentFrame.addMouseListener(new MouseAdapter() {
+        ADD_POINT_FRAME.getAddPointFrame().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                table.addItem(new ClickItem(e.getX(), e.getY()));
-                transparentFrame.setVisible(false);
+                MAIN_FRAME.getTableClickItems().addItem(new ClickItem(e.getX(), e.getY()));
+                ADD_POINT_FRAME.getAddPointFrame().setVisible(false);
             }
         });
-        transparentFrame.setVisible(true);
+        ADD_POINT_FRAME.getAddPointFrame().setVisible(true);
     }
 
     @Override
@@ -381,7 +341,7 @@ public class AutoClicker implements ClickEvent {
                     startClick();
                 } else if (e.getKeyCode() == NativeKeyEvent.VC_F8) {
                     isStopClick = true;
-                    SwingUtilities.invokeLater(() -> MAIN_FRAME.getMainFrame().setVisible(true));
+                    SwingUtilities.invokeLater(() -> MAIN_FRAME.getFrame().setVisible(true));
                 }
             }
 
@@ -395,10 +355,14 @@ public class AutoClicker implements ClickEvent {
         });
     }
 
-    private void changeFrame(boolean isMainFrmae, String message) {
-        MAIN_FRAME.getMainFrame().setEnabled(isMainFrmae);
-        SUB_FRAME.getSubFrame().setVisible(!isMainFrmae);
-        label.getMessageTxt().setText(message);
+    private void changeFrame(boolean isMainFrame) {
+       this.changeFrame(isMainFrame, "");
+    }
+
+    private void changeFrame(boolean isMainFrame, String message) {
+        MAIN_FRAME.getFrame().setEnabled(isMainFrame);
+        SUB_FRAME.getFrame().setVisible(!isMainFrame);
+        SUB_FRAME.getMessageTxt().setText(message);
     }
 
     @Override
