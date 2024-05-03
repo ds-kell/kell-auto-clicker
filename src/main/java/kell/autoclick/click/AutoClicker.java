@@ -346,18 +346,22 @@ public class AutoClicker {
     }
 
     private void saveData() {
-        String filename = "data.txt";
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            System.out.println(MAIN_FRAME.getTableClickItems().getListItems().size());
-            for (ClickItem item : MAIN_FRAME.getTableClickItems().getListItems()) {
-                System.out.println(item);
-                String line = item.getName() + " / " + item.getXAxis() + " / " + item.getYAxis() + " / " + item.getHoldTime() + " / " + item.getTimeToNext();
-                writer.write(line);
-                writer.newLine();
+        if(MAIN_FRAME.getTableClickItems().getListItems().isEmpty()) {
+            changeFrame(false, "Fuck you, list is empty");
+        } else {
+            String filename = "data.txt";
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+                System.out.println(MAIN_FRAME.getTableClickItems().getListItems().size());
+                for (ClickItem item : MAIN_FRAME.getTableClickItems().getListItems()) {
+                    System.out.println(item);
+                    String line = item.getName() + " / " + item.getXAxis() + " / " + item.getYAxis() + " / " + item.getHoldTime() + " / " + item.getTimeToNext();
+                    writer.write(line);
+                    writer.newLine();
+                }
+            } catch (IOException e) {
+                Logger logger = Logger.getLogger(AutoClicker.class.getName());
+                logger.log(Level.SEVERE, "Error while saving data to file: ", e);
             }
-            System.out.println("Data has been successfully saved to file: " + filename);
-        } catch (IOException e) {
-            System.err.println("Error while saving data to file: " + e.getMessage());
         }
     }
 
