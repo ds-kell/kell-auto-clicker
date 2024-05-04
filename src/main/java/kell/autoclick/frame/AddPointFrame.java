@@ -9,11 +9,12 @@ import java.awt.*;
 @Getter
 @Setter
 public class AddPointFrame {
-    private final JFrame addPointFrame = new JFrame();
+
+    private final JFrame frame = new JFrame();
 
     public AddPointFrame(){
-        addPointFrame.setUndecorated(true);
-        addPointFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        addPointFrame.setBackground(new Color(100, 100, 100, 100));
+        frame.setUndecorated(true);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setBackground(new Color(100, 100, 100, 100));
     }
 }

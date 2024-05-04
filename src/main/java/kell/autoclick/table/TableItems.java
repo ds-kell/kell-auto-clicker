@@ -1,7 +1,7 @@
 package kell.autoclick.table;
 
 
-import kell.autoclick.model.ClickItem;
+import kell.autoclick.model.ItemClick;
 import kell.autoclick.model.Item;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +13,7 @@ import java.util.Vector;
 @Getter
 @Setter
 public class TableItems {
-    public final Vector<ClickItem> listItems = new Vector<>();
+    public final Vector<Item> listItems = new Vector<>();
 
     public final DefaultTableModel model = new DefaultTableModel();
 
@@ -21,9 +21,8 @@ public class TableItems {
 
     public TableItems(){
         model.addColumn("Name");
-        model.addColumn("xAxis");
-        model.addColumn("yAxis");
-        model.addColumn("Delay");
+        model.addColumn("press Time");
+        model.addColumn("Next Time");
     }
 
     public void deleteSelectedRows(){
@@ -46,19 +45,19 @@ public class TableItems {
         model.setRowCount(0);
     }
 
-    public void addItem(ClickItem item){
+    public void addItem(Item item){
         listItems.add(item);
         DefaultTableModel model = (DefaultTableModel) table.getModel();
-        model.addRow(new Object[]{ item.getName(), item.getXAxis(), item.getYAxis(), item.getTimeToNext()});
+        model.addRow(new Object[]{ item.getName(), item.getPressTime(), item.getNextTime()});
     };
 
-    public void setListItems(Vector<ClickItem> listItems) {
+    public void setListItems(Vector<Item> listItems) {
         this.listItems.clear();
         this.listItems.addAll(listItems);
         model.setRowCount(0);
-        for(ClickItem item : listItems){
+        for(Item item : listItems){
             DefaultTableModel model = (DefaultTableModel) table.getModel();
-            model.addRow(new Object[]{ item.getName(), item.getXAxis(), item.getYAxis(), item.getTimeToNext()});
+            model.addRow(new Object[]{ item.getName(), item.getPressTime(), item.getNextTime()});
         }
     }
 }

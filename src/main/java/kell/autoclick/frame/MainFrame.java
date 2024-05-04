@@ -11,19 +11,6 @@ import java.awt.*;
 @Setter
 public class MainFrame extends CustomFrame {
 
-//    Panel
-    private JScrollPane scrollPane;
-
-    private final  JPanel topPanel = new JPanel(new FlowLayout());
-
-    private final  JPanel controlPanel = new JPanel(new FlowLayout());
-
-    private final  JPanel addPanel = new JPanel(new FlowLayout());
-
-    private final  JPanel loopPanel = new JPanel(new FlowLayout());
-
-    private final  JPanel bottomPanel = new JPanel(new BorderLayout());
-
 //    Label
     private final JLabel repeatTimesLabel = new JLabel("Repeat times: ", JLabel.RIGHT);
 
@@ -53,32 +40,31 @@ public class MainFrame extends CustomFrame {
     private boolean isHideFrame = true;
 
 //    Table
-    private final TableItems tableClickItems = new TableItems();
+    private final TableItems tableItems = new TableItems();
 
     public MainFrame(){
         super(500, 400);
         frame.setTitle("Auto clicker");
     }
 
-    public void initMainFrame() {
-        scrollPane = new JScrollPane(tableClickItems.getTable())
-        ;
+    public void init() {
+        //    Panel
+        JScrollPane scrollPane = new JScrollPane(tableItems.getTable());
+        JPanel controlPanel = new JPanel(new FlowLayout());
+        JPanel addPanel = new JPanel(new FlowLayout());
+        JPanel loopPanel = new JPanel(new FlowLayout());
+
         addItemToPanel(addPanel, addClickBtn, addKeyBtn, deleteBtn, resetBtn);
         addItemToPanel(controlPanel, startBtn, stopBtn, saveBtn, loadBtn);
         addItemToPanel(loopPanel, repeatTimesLabel, repeatTimesTxt, infiniteRBtn, hideMainFrameRBtn);
 
-        topPanel.setLayout(new BorderLayout());
-        topPanel.add(addPanel, BorderLayout.NORTH);
-        topPanel.add(controlPanel, BorderLayout.SOUTH);
+        frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 
-        frame.getContentPane().setLayout(new BorderLayout());
-        frame.getContentPane().add(topPanel, BorderLayout.NORTH);
-        frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+        frame.getContentPane().add(addPanel);
+        frame.getContentPane().add(controlPanel);
+        frame.getContentPane().add(scrollPane);
+        frame.getContentPane().add(loopPanel);
 
-        bottomPanel.setLayout(new BorderLayout());
-        bottomPanel.add(loopPanel, BorderLayout.NORTH);
-
-        frame.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         hideMainFrameRBtn.setSelected(isHideFrame);

@@ -1,9 +1,12 @@
 package kell.autoclick.click;
 
 import kell.autoclick.frame.AddPointFrame;
-import kell.autoclick.model.ClickItem;
+import kell.autoclick.frame.AddPressKeyFrame;
+import kell.autoclick.model.ItemClick;
 import kell.autoclick.frame.MainFrame;
-import kell.autoclick.frame.SubFrame;
+import kell.autoclick.frame.MessageFrame;
+import kell.autoclick.model.Item;
+import kell.autoclick.model.ItemPress;
 import lombok.Getter;
 import lombok.Setter;
 import org.jnativehook.GlobalScreen;
@@ -29,9 +32,11 @@ public class AutoClicker {
 
     private MainFrame MAIN_FRAME = new MainFrame();
 
-    private SubFrame SUB_FRAME = new SubFrame();
+    private MessageFrame MSG_FRAME = new MessageFrame();
 
     private AddPointFrame ADD_POINT_FRAME = new AddPointFrame();
+
+    private AddPressKeyFrame ADD_PRESS_FRAME = new AddPressKeyFrame();
 
     private boolean isStopClick = false;
 
@@ -41,44 +46,27 @@ public class AutoClicker {
 
     public final Object lock = new Object();
 
+    private Vector<Thread> runningThreads = new Vector<>();
+
     public AutoClicker() {
-        MAIN_FRAME.initMainFrame();
-        SUB_FRAME.initSubFrame();
+        MAIN_FRAME.init();
+        MSG_FRAME.init();
+        ADD_PRESS_FRAME.init();
         MAIN_FRAME.getFrame().setVisible(true);
+
     }
 
     public void start() {
-        MAIN_FRAME.getTableClickItems().getModel().addTableModelListener(new TableModelListener() {
-            @Override
-            public void tableChanged(TableModelEvent e) {
-                int row = e.getFirstRow();
-                int column = e.getColumn();
-                if (row >= 0 && column >= 0) {
-                    Object data = MAIN_FRAME.getTableClickItems().getModel().getValueAt(row, column);
-                    switch (column) {
-                        case 0:
-                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setName((String) data);
-                            break;
-                        case 1:
-                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setXAxis(Integer.parseInt(((String) data).trim()));
-                            break;
-                        case 2:
-                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setYAxis(Integer.parseInt(((String) data).trim()));
-                            break;
-                        case 3:
-                            MAIN_FRAME.getTableClickItems().getListItems().get(row).setTimeToNext(Integer.parseInt(((String) data).trim()));
-                            break;
-                    }
-                }
-            }
-        });
 
-        btnListener();
+        eventListener();
+
+        tableListener();
 
         globalKeyListener();
     }
 
-    public void btnListener() {
+
+    private void eventListener() {
         MAIN_FRAME.getInfiniteRBtn().addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
                 infinite = e.getStateChange() == ItemEvent.SELECTED;
@@ -107,6 +95,11 @@ public class AutoClicker {
 
         MAIN_FRAME.getAddClickBtn().addActionListener(e -> showAddPointFrame());
 
+        MAIN_FRAME.getAddKeyBtn().addActionListener(e -> {
+            showAddPressFrame(true);
+            ADD_PRESS_FRAME.getKeyTxt().requestFocus();
+        });
+
         MAIN_FRAME.getStartBtn().addActionListener(e -> startClick());
 
         MAIN_FRAME.getDeleteBtn().addActionListener(e -> deleteSelected());
@@ -119,34 +112,54 @@ public class AutoClicker {
 
         MAIN_FRAME.getLoadBtn().addActionListener(e -> loadData());
 
-        SUB_FRAME.getConfirmBtn().addActionListener(e -> {
-            changeFrame(true);
+        MSG_FRAME.getConfirmBtn().addActionListener(e -> changeFrame(true));
+
+        ADD_PRESS_FRAME.getAddBtn().addActionListener(e -> addPressKey());
+
+        ADD_PRESS_FRAME.getCancelBtn().addActionListener(e -> showAddPressFrame(false));
+
+        ADD_PRESS_FRAME.getIsSinglePressRBtn().addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                ADD_PRESS_FRAME.setIsSinglePress(e.getStateChange() == ItemEvent.SELECTED);
+                ADD_PRESS_FRAME.getIsMultiPressRBtn().setSelected(!ADD_PRESS_FRAME.getIsSinglePress());
+            }
         });
+        ADD_PRESS_FRAME.getIsMultiPressRBtn().addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                ADD_PRESS_FRAME.setIsSinglePress(!(e.getStateChange() == ItemEvent.SELECTED));
+                ADD_PRESS_FRAME.getIsSinglePressRBtn().setSelected(ADD_PRESS_FRAME.getIsSinglePress());
+            }
+        });
+
     }
 
     public void stopClick() {
         isStopClick = true;
+        for (Thread thread : runningThreads) {
+            thread.interrupt();
+        }
+        runningThreads.clear();
         synchronized (lock) {
             lock.notifyAll();
         }
     }
 
     public void resetData() {
-        if (MAIN_FRAME.getTableClickItems().getTable().isEditing()) {
-            MAIN_FRAME.getTableClickItems().getTable().getCellEditor().stopCellEditing();
+        if (MAIN_FRAME.getTableItems().getTable().isEditing()) {
+            MAIN_FRAME.getTableItems().getTable().getCellEditor().stopCellEditing();
         }
         infinite = false;
         repeatTimes = 0;
-        MAIN_FRAME.getTableClickItems().clearTable();
+        MAIN_FRAME.getTableItems().clearTable();
         MAIN_FRAME.getInfiniteRBtn().setSelected(false);
         MAIN_FRAME.getRepeatTimesTxt().setText("");
-        MAIN_FRAME.getTableClickItems().getModel().setRowCount(0);
+        MAIN_FRAME.getTableItems().getModel().setRowCount(0);
     }
 
     public void deleteSelected() {
-        if (MAIN_FRAME.getTableClickItems().getTable().getSelectedRows().length < 1) {
+        if (MAIN_FRAME.getTableItems().getTable().getSelectedRows().length < 1) {
             String msg = "";
-            if (MAIN_FRAME.getTableClickItems().getListItems().isEmpty()) {
+            if (MAIN_FRAME.getTableItems().getListItems().isEmpty()) {
                 msg = "Fuck you, list is empty";
             } else {
                 msg = "Fuck you, select row to delete";
@@ -154,18 +167,19 @@ public class AutoClicker {
             changeFrame(false, msg);
 
         }
-        MAIN_FRAME.getTableClickItems().deleteSelectedRows();
+        MAIN_FRAME.getTableItems().deleteSelectedRows();
     }
 
     public void startClick() {
-        if (!MAIN_FRAME.getTableClickItems().getListItems().isEmpty()) {
+        if (!MAIN_FRAME.getTableItems().getListItems().isEmpty()) {
             if (!infinite && ("").equals(MAIN_FRAME.getRepeatTimesTxt().getText())) {
                 changeFrame(false, "Fuck you. Enter repeat times");
             } else if (infinite) {
                 MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
                 enableInput(false);
                 isStopClick = false;
-                infiniteAutoClick();
+                repeatTimes = Integer.MAX_VALUE;
+                performClick();
             } else {
                 String input = MAIN_FRAME.getRepeatTimesTxt().getText();
                 try {
@@ -177,7 +191,7 @@ public class AutoClicker {
                     MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
                     enableInput(false);
                     isStopClick = false;
-                    limitedAutoClick();
+                    performClick();
                 }
             }
         } else {
@@ -185,45 +199,25 @@ public class AutoClicker {
         }
     }
 
-    public void infiniteAutoClick() {
-        new Thread(() -> {
-            try {
-                synchronized (lock) {
-                    while (!isStopClick) {
-                        for (ClickItem item : MAIN_FRAME.getTableClickItems().getListItems()) {
-                            if (isStopClick) {
-                                break;
-                            }
-                            performClick(item);
-//                            CountDownLatch latch = new CountDownLatch(1);
-//                            performPress("AD", 300, latch);
-//                            latch.await();
-                            lock.wait(item.getTimeToNext());
-                        }
-                    }
-                    enableInput(true);
-                    MAIN_FRAME.getFrame().setVisible(true);
-                }
-            } catch (AWTException | InterruptedException ex) {
-                Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
-            }
-        }).start();
-    }
-
-    private void limitedAutoClick() {
-        new Thread(() -> {
+    private void performClick() {
+        Thread clickThread = new Thread(() -> {
             try {
                 synchronized (lock) {
                     while (!isStopClick && repeatTimes > 0) {
-                        for (ClickItem item : MAIN_FRAME.getTableClickItems().getListItems()) {
+                        for (Item item : MAIN_FRAME.getTableItems().getListItems()) {
                             if (isStopClick) {
                                 break;
                             }
-                            performClick(item);
-                            lock.wait(item.getTimeToNext());
-//                            CountDownLatch latch = new CountDownLatch(1);
-//                            performPress("Hello  World 123", 300, latch);
-//                            latch.await();
+                            if(item.getIsClick()){
+                                ItemClick itemClick = (ItemClick) item;
+                                clickEvent(itemClick);
+                            } else {
+                                CountDownLatch latch = new CountDownLatch(1);
+                                ItemPress itemPress = (ItemPress) item;
+                                singlePressEvent(itemPress,latch);
+                                latch.await();
+                            }
+                            lock.wait(item.getNextTime());
                         }
                         repeatTimes--;
                     }
@@ -233,13 +227,15 @@ public class AutoClicker {
             } catch (AWTException | InterruptedException ex) {
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
             }
-        }).start();
+        });
+        clickThread.start();
+        runningThreads.add(clickThread);
     }
 
-    private void performClick(ClickItem clickItem) throws AWTException {
+    private void clickEvent(ItemClick itemClick) throws AWTException {
         try {
             Robot robot = new Robot();
-            robot.mouseMove(clickItem.getXAxis(), clickItem.getYAxis());
+            robot.mouseMove(itemClick.getXAxis(), itemClick.getYAxis());
             robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
         } catch (AWTException e) {
@@ -249,37 +245,63 @@ public class AutoClicker {
         }
     }
 
-    private void performPress(String input, int delay, CountDownLatch latch) {
-        Timer timer = new Timer(delay, new ActionListener() {
+    private void singlePressEvent(ItemPress item, CountDownLatch latch) {
+        Timer timer = new Timer(item.getPressTime(), new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (isStopClick) {
+                    ((Timer) e.getSource()).stop();
+                    latch.countDown();
+                    return;
+                }
+                try {
+                    Robot robot = new Robot();
+                    if (Character.isLetterOrDigit(item.getKeyCode()) || Character.isSpaceChar(item.getKeyCode())) {
+                        robot.keyPress(item.getKeyCode());
+                        robot.keyRelease(item.getKeyCode());
+                    }
+                } catch (AWTException awtException) {
+                    stopClick();
+                    Logger logger = Logger.getLogger(AutoClicker.class.getName());
+                    logger.log(Level.SEVERE, "An InterruptedException ", e);
+                }
+                ((Timer) e.getSource()).stop();
+                latch.countDown();
+            }
+        });
+        timer.start();
+    }
+    private void multiPressEvent(ItemPress item, CountDownLatch latch) {
+        Timer timer = new Timer(item.getPressTime(), new ActionListener() {
+
             int index = 0;
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                int keyCode = 0;
-                if (index < input.length()) {
-                    char ch = input.charAt(index);
-                    Robot robot = null;
+                if (isStopClick) {
+                    ((Timer) e.getSource()).stop();
+                    latch.countDown();
+                    return;
+                }
+                if(index < item.getName().length()){
                     try {
-                        robot = new Robot();
-                        keyCode = KeyEvent.getExtendedKeyCodeForChar(ch);
-                        if (Character.isLetterOrDigit(ch) || Character.isSpaceChar(ch)) {
-                            robot.keyPress(keyCode);
-                            robot.keyRelease(keyCode);
+                        Robot robot = new Robot();
+                        if (Character.isLetterOrDigit(item.getKeyCode()) || Character.isSpaceChar(item.getKeyCode())) {
+                            robot.keyPress(item.getKeyCode());
+                            robot.keyRelease(item.getKeyCode());
                         }
                     } catch (AWTException awtException) {
                         stopClick();
                         Logger logger = Logger.getLogger(AutoClicker.class.getName());
                         logger.log(Level.SEVERE, "An InterruptedException ", e);
                     }
-                    index++;
-                } else {
+                } else{
                     ((Timer) e.getSource()).stop();
                     latch.countDown();
                 }
-                if (isStopClick) {
-                    ((Timer) e.getSource()).stop();
-                    latch.countDown();
-                }
+                ((Timer) e.getSource()).stop();
+                latch.countDown();
             }
         });
         timer.start();
@@ -289,13 +311,68 @@ public class AutoClicker {
         MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                MAIN_FRAME.getTableClickItems().addItem(new ClickItem(e.getX(), e.getY()));
-                ADD_POINT_FRAME.getAddPointFrame().setVisible(false);
-                ADD_POINT_FRAME.getAddPointFrame().removeMouseListener(this);
+                MAIN_FRAME.getTableItems().addItem(new ItemClick(e.getX(), e.getY()));
+                ADD_POINT_FRAME.getFrame().setVisible(false);
+                ADD_POINT_FRAME.getFrame().removeMouseListener(this);
             }
         };
-        ADD_POINT_FRAME.getAddPointFrame().addMouseListener(mouseAdapter);
-        ADD_POINT_FRAME.getAddPointFrame().setVisible(true);
+        ADD_POINT_FRAME.getFrame().addMouseListener(mouseAdapter);
+        ADD_POINT_FRAME.getFrame().setVisible(true);
+    }
+
+    private void showAddPressFrame(boolean showAddPressFrame) {
+        MAIN_FRAME.getFrame().setEnabled(!showAddPressFrame);
+        ADD_PRESS_FRAME.getFrame().setVisible(showAddPressFrame);
+    }
+
+    private void addPressKey() {
+        String input = ADD_PRESS_FRAME.getKeyTxt().getText();
+        if(input.isEmpty()) {
+            changeFrame(false, "Fuck, add key");
+            return;
+        }
+        int keyCode = KeyEvent.getExtendedKeyCodeForChar(input.charAt(0));
+        int pressTime = Integer.parseInt(ADD_PRESS_FRAME.getPressTimeTxt().getText());
+        int nextTime = Integer.parseInt(ADD_PRESS_FRAME.getNextTimeTxt().getText());
+        ItemPress item = new ItemPress(input, keyCode, pressTime, nextTime, ADD_PRESS_FRAME.getIsSinglePress());
+        MAIN_FRAME.getTableItems().addItem(item);
+        ADD_PRESS_FRAME.getKeyTxt().setText("");
+        MAIN_FRAME.getFrame().setEnabled(true);
+        ADD_PRESS_FRAME.getFrame().setVisible(false);
+    }
+
+    private void tableListener() {
+        MAIN_FRAME.getTableItems().getModel().addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                int row = e.getFirstRow();
+                int column = e.getColumn();
+                if (row >= 0 && column >= 0) {
+                    Object data = MAIN_FRAME.getTableItems().getModel().getValueAt(row, column);
+                    Item item = (Item) MAIN_FRAME.getTableItems().getListItems().get(row);
+                    switch (column) {
+                        case 0:
+                            item.setName((String) data);
+                            MAIN_FRAME.getTableItems().getListItems().remove(row);
+                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
+                            break;
+                        case 1:
+                            item.setPressTime(Integer.parseInt(((String) data).trim()));
+                            MAIN_FRAME.getTableItems().getListItems().remove(row);
+                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
+                            break;
+                        case 2:
+                            item.setNextTime(Integer.parseInt(((String) data).trim()));
+                            MAIN_FRAME.getTableItems().getListItems().remove(row);
+                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
+                            break;
+                    }
+
+                }
+            }
+        });
+
+
     }
 
     private void globalKeyListener() {
@@ -336,8 +413,11 @@ public class AutoClicker {
 
     private void changeFrame(boolean isMainFrame, String message) {
         MAIN_FRAME.getFrame().setEnabled(isMainFrame);
-        SUB_FRAME.getFrame().setVisible(!isMainFrame);
-        SUB_FRAME.getMessageTxt().setText(message);
+        if(ADD_PRESS_FRAME.getFrame().isVisible()) {
+            ADD_PRESS_FRAME.getFrame().setEnabled(isMainFrame);
+        }
+        MSG_FRAME.getFrame().setVisible(!isMainFrame);
+        MSG_FRAME.getMessageTxt().setText(message);
     }
 
     private void enableInput(boolean isShow) {
@@ -346,7 +426,7 @@ public class AutoClicker {
     }
 
     private void saveData() {
-        if (MAIN_FRAME.getTableClickItems().getListItems().isEmpty()) {
+        if (MAIN_FRAME.getTableItems().getListItems().isEmpty()) {
             changeFrame(false, "Fuck you, list is empty");
         } else {
             JFileChooser fileChooser = new JFileChooser();
@@ -356,8 +436,8 @@ public class AutoClicker {
                 String selectedFolder = fileChooser.getSelectedFile().getAbsolutePath();
                 String filename = selectedFolder + "/data.txt";
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-                    for (ClickItem item : MAIN_FRAME.getTableClickItems().getListItems()) {
-                        String line = item.getName() + " / " + item.getXAxis() + " / " + item.getYAxis() + " / " + item.getHoldTime() + " / " + item.getTimeToNext();
+                    for (Item item : MAIN_FRAME.getTableItems().getListItems()) {
+                        String line = getString(item);
                         writer.write(line);
                         writer.newLine();
                     }
@@ -370,8 +450,22 @@ public class AutoClicker {
         }
     }
 
+    private static String getString(Item item) {
+        String line = "";
+        if (item.getIsClick()){
+            ItemClick itemClick = (ItemClick) item;
+            line = true + "|" + itemClick.getName() + "|" + itemClick.getPressTime() + "|" + itemClick.getNextTime()
+                    + "|" + itemClick.getXAxis() + "|" + itemClick.getYAxis();
+        } else {
+            ItemPress itemPress = (ItemPress) item;
+            line = false + "|" + itemPress.getName() + "|" + itemPress.getPressTime() + "|" + itemPress.getNextTime()
+                    + "|" + itemPress.getKeyCodes() + "|" + itemPress.isMultiPress();
+        }
+        return line;
+    }
+
     private void loadData() {
-        Vector<ClickItem> listItems = new Vector<>();
+        Vector<Item> listItems = new Vector<>();
 
         JFileChooser fileChooser = new JFileChooser();
         int result = fileChooser.showOpenDialog(null);
@@ -380,18 +474,26 @@ public class AutoClicker {
             try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    String[] parts = line.split(" / ");
-                    if (parts.length == 5) {
-                        String name = parts[0];
-                        int xAxis = Integer.parseInt(parts[1]);
-                        int yAxis = Integer.parseInt(parts[2]);
-                        int holdTime = Integer.parseInt(parts[3]);
-                        int timeToNext = Integer.parseInt(parts[4]);
-                        ClickItem item = new ClickItem(name, xAxis, yAxis, holdTime, timeToNext);
-                        listItems.add(item);
+                    String[] parts = line.split("\\|");
+                    if (parts.length == 6) {
+                        boolean isClick = Boolean.parseBoolean(parts[0]);
+                        String name = parts[1];
+                        int pressTime = Integer.parseInt(parts[2]);
+                        int nextTime = Integer.parseInt(parts[3]);
+                        if (isClick) {
+                            int xAxis = Integer.parseInt(parts[4]);
+                            int yAxis = Integer.parseInt(parts[5]);
+                            ItemClick itemClick = new ItemClick(name, pressTime, nextTime, xAxis, yAxis);
+                            listItems.add(itemClick);
+                        } else {
+                            int keyCode = Integer.parseInt(parts[4]);
+                            boolean isMultiPress = Boolean.parseBoolean(parts[5]);
+                            ItemPress itemPress = new ItemPress(name, keyCode, pressTime, nextTime, isMultiPress);
+                            listItems.add(itemPress);
+                        }
                     }
                 }
-                MAIN_FRAME.getTableClickItems().setListItems(listItems);
+                MAIN_FRAME.getTableItems().setListItems(listItems);
                 changeFrame(false, "Data loaded");
             } catch (IOException e) {
                 Logger logger = Logger.getLogger(AutoClicker.class.getName());
@@ -399,4 +501,5 @@ public class AutoClicker {
             }
         }
     }
+
 }
