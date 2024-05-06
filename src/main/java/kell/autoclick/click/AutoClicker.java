@@ -36,7 +36,7 @@ public class AutoClicker {
 
     private AddPressKeyFrame ADD_PRESS_FRAME = new AddPressKeyFrame();
 
-    private boolean isStopClick = false;
+    private boolean isStopClick = true;
 
     private boolean infinite = false;
 
@@ -205,14 +205,19 @@ public class AutoClicker {
     }
 
     public void stopClick() {
+        synchronized (lock) {
+            lock.notifyAll();
+        }
         isStopClick = true;
         for (Thread thread : runningThreads) {
             thread.interrupt();
         }
         runningThreads.clear();
-        synchronized (lock) {
-            lock.notifyAll();
-        }
+        enableInput(true);
+        SwingUtilities.invokeLater(() -> {
+            MAIN_FRAME.getFrame().setVisible(true);
+            MAIN_FRAME.getFrame().setEnabled(true);
+        });
     }
 
     public void resetData() {
@@ -249,6 +254,7 @@ public class AutoClicker {
                 changeFrame(false, "Fuck you. Enter repeat times");
             } else if (infinite) {
                 MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
+                MAIN_FRAME.getFrame().setEnabled(false);
                 enableInput(false);
                 isStopClick = false;
                 repeatTimes = Integer.MAX_VALUE;
@@ -262,6 +268,7 @@ public class AutoClicker {
                 }
                 if (repeatTimes > 0) {
                     MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
+                    MAIN_FRAME.getFrame().setEnabled(false);
                     enableInput(false);
                     isStopClick = false;
                     performClick();
@@ -429,7 +436,6 @@ public class AutoClicker {
                     startClick();
                 } else if (e.getKeyCode() == NativeKeyEvent.VC_F8 && !isStopClick) {
                     stopClick();
-                    SwingUtilities.invokeLater(() -> MAIN_FRAME.getFrame().setVisible(true));
                 }
             }
 

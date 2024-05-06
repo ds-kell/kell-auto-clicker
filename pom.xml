@@ -97,7 +97,7 @@
                             </classPath>
                             <jre>
                                 <minVersion>1.8.0</minVersion>
-                                <jdkPreference>preferJre</jdkPreference>
+                                <requiresJdk>preferJre</requiresJdk>
                             </jre>
                             <versionInfo>
                                 <fileVersion>1.0.0.0</fileVersion>

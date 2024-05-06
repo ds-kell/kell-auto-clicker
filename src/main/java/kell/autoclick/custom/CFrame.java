@@ -8,7 +8,7 @@ import java.awt.*;
 
 @Getter
 @Setter
-public abstract class CFrame {
+public class CFrame {
 
     protected final JFrame frame = new JFrame();
 
@@ -24,7 +24,7 @@ public abstract class CFrame {
 
     }
 
-    protected void addItemToPanel(JPanel panel, JComponent... components) {
+    protected void addComponentToPanel(JPanel panel, JComponent... components) {
         for (JComponent component : components) {
             panel.add(component);
         }

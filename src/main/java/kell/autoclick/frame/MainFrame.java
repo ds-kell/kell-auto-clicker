@@ -57,9 +57,9 @@ public class MainFrame extends CFrame {
         JPanel addPanel = new JPanel(new FlowLayout());
         JPanel loopPanel = new JPanel(new FlowLayout());
 
-        addItemToPanel(addPanel, addClickBtn, addKeyBtn, deleteBtn, resetBtn);
-        addItemToPanel(controlPanel, startBtn, stopBtn, saveBtn, loadBtn);
-        addItemToPanel(loopPanel, repeatTimesLabel, repeatTimesTxt, infiniteRBtn, hideMainFrameRBtn);
+        addComponentToPanel(addPanel, addClickBtn, addKeyBtn, deleteBtn, resetBtn);
+        addComponentToPanel(controlPanel, startBtn, stopBtn, saveBtn, loadBtn);
+        addComponentToPanel(loopPanel, repeatTimesLabel, repeatTimesTxt, infiniteRBtn, hideMainFrameRBtn);
 
         frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 
