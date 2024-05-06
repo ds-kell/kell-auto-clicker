@@ -15,8 +15,6 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -119,29 +117,20 @@ public class AutoClicker {
     }
 
     private void eventListener() {
-        MAIN_FRAME.getInfiniteRBtn().addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-                infinite = e.getStateChange() == ItemEvent.SELECTED;
-                MAIN_FRAME.getRepeatTimesTxt().setEnabled(!(e.getStateChange() == ItemEvent.SELECTED));
-            }
+        MAIN_FRAME.getInfiniteRBtn().addItemListener(e -> {
+            infinite = e.getStateChange() == ItemEvent.SELECTED;
+            MAIN_FRAME.getRepeatTimesTxt().setEnabled(!(e.getStateChange() == ItemEvent.SELECTED));
         });
 
-        MAIN_FRAME.getHideMainFrameRBtn().addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-                MAIN_FRAME.setHideFrame(e.getStateChange() == ItemEvent.SELECTED);
-            }
-        });
+        MAIN_FRAME.getHideMainFrameRBtn().addItemListener(e -> MAIN_FRAME.setHideFrame(e.getStateChange() == ItemEvent.SELECTED));
 
-        MAIN_FRAME.getRepeatTimesTxt().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String input = MAIN_FRAME.getRepeatTimesTxt().getText();
-                try {
-                    repeatTimes = Integer.parseInt(input);
-                } catch (NumberFormatException ex) {
-                    Logger logger = Logger.getLogger(AutoClicker.class.getName());
-                    logger.log(Level.SEVERE, "\"Invalid input: Please enter a valid integer: ", e);
-                }
+        MAIN_FRAME.getRepeatTimesTxt().addActionListener(e -> {
+            String input = MAIN_FRAME.getRepeatTimesTxt().getText();
+            try {
+                repeatTimes = Integer.parseInt(input);
+            } catch (NumberFormatException ex) {
+                Logger logger = Logger.getLogger(AutoClicker.class.getName());
+                logger.log(Level.SEVERE, "\"Invalid input: Please enter a valid integer: ", e);
             }
         });
 
@@ -170,17 +159,13 @@ public class AutoClicker {
 
         ADD_PRESS_FRAME.getCancelBtn().addActionListener(e -> showAddPressFrame(false));
 
-        ADD_PRESS_FRAME.getIsSinglePressRBtn().addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-                ADD_PRESS_FRAME.setIsSinglePress(e.getStateChange() == ItemEvent.SELECTED);
-                ADD_PRESS_FRAME.getIsMultiPressRBtn().setSelected(!ADD_PRESS_FRAME.getIsSinglePress());
-            }
+        ADD_PRESS_FRAME.getIsSinglePressRBtn().addItemListener(e -> {
+            ADD_PRESS_FRAME.setIsSinglePress(e.getStateChange() == ItemEvent.SELECTED);
+            ADD_PRESS_FRAME.getIsMultiPressRBtn().setSelected(!ADD_PRESS_FRAME.getIsSinglePress());
         });
-        ADD_PRESS_FRAME.getIsMultiPressRBtn().addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-                ADD_PRESS_FRAME.setIsSinglePress(!(e.getStateChange() == ItemEvent.SELECTED));
-                ADD_PRESS_FRAME.getIsSinglePressRBtn().setSelected(ADD_PRESS_FRAME.getIsSinglePress());
-            }
+        ADD_PRESS_FRAME.getIsMultiPressRBtn().addItemListener(e -> {
+            ADD_PRESS_FRAME.setIsSinglePress(!(e.getStateChange() == ItemEvent.SELECTED));
+            ADD_PRESS_FRAME.getIsSinglePressRBtn().setSelected(ADD_PRESS_FRAME.getIsSinglePress());
         });
         ADD_PRESS_FRAME.getFrame().addWindowListener(new WindowAdapter() {
             @Override
@@ -191,33 +176,30 @@ public class AutoClicker {
     }
 
     private void tableListener() {
-        MAIN_FRAME.getTableItems().getModel().addTableModelListener(new TableModelListener() {
-            @Override
-            public void tableChanged(TableModelEvent e) {
-                int row = e.getFirstRow();
-                int column = e.getColumn();
-                if (row >= 0 && column >= 0) {
-                    Object data = MAIN_FRAME.getTableItems().getModel().getValueAt(row, column);
-                    Item item = (Item) MAIN_FRAME.getTableItems().getListItems().get(row);
-                    switch (column) {
-                        case 0:
-                            item.setName((String) data);
-                            MAIN_FRAME.getTableItems().getListItems().remove(row);
-                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
-                            break;
-                        case 1:
-                            item.setPressTime(Integer.parseInt(((String) data).trim()));
-                            MAIN_FRAME.getTableItems().getListItems().remove(row);
-                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
-                            break;
-                        case 2:
-                            item.setNextTime(Integer.parseInt(((String) data).trim()));
-                            MAIN_FRAME.getTableItems().getListItems().remove(row);
-                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
-                            break;
-                    }
-
+        MAIN_FRAME.getTableItems().getModel().addTableModelListener(e -> {
+            int row = e.getFirstRow();
+            int column = e.getColumn();
+            if (row >= 0 && column >= 0) {
+                Object data = MAIN_FRAME.getTableItems().getModel().getValueAt(row, column);
+                Item item = MAIN_FRAME.getTableItems().getListItems().get(row);
+                switch (column) {
+                    case 0:
+                        item.setName((String) data);
+                        MAIN_FRAME.getTableItems().getListItems().remove(row);
+                        MAIN_FRAME.getTableItems().getListItems().add(row, item);
+                        break;
+                    case 1:
+                        item.setPressTime(Integer.parseInt(((String) data).trim()));
+                        MAIN_FRAME.getTableItems().getListItems().remove(row);
+                        MAIN_FRAME.getTableItems().getListItems().add(row, item);
+                        break;
+                    case 2:
+                        item.setNextTime(Integer.parseInt(((String) data).trim()));
+                        MAIN_FRAME.getTableItems().getListItems().remove(row);
+                        MAIN_FRAME.getTableItems().getListItems().add(row, item);
+                        break;
                 }
+
             }
         });
     }
@@ -241,13 +223,15 @@ public class AutoClicker {
         repeatTimes = 0;
         MAIN_FRAME.getTableItems().clearTable();
         MAIN_FRAME.getInfiniteRBtn().setSelected(false);
+        MAIN_FRAME.setHideFrame(true);
+        MAIN_FRAME.getHideMainFrameRBtn().setSelected(true);
         MAIN_FRAME.getRepeatTimesTxt().setText("");
         MAIN_FRAME.getTableItems().getModel().setRowCount(0);
     }
 
     public void deleteSelected() {
         if (MAIN_FRAME.getTableItems().getTable().getSelectedRows().length < 1) {
-            String msg = "";
+            String msg;
             if (MAIN_FRAME.getTableItems().getListItems().isEmpty()) {
                 msg = "Fuck you, list is empty";
             } else {
@@ -335,29 +319,25 @@ public class AutoClicker {
     }
 
     private void singlePressEvent(ItemPress item, CountDownLatch latch) {
-        Timer timer = new Timer(item.getPressTime(), new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (isStopClick) {
-                    ((Timer) e.getSource()).stop();
-                    latch.countDown();
-                    return;
-                }
-                try {
-                    Robot robot = new Robot();
-                    if (Character.isLetterOrDigit(item.getKeyCode()) || Character.isSpaceChar(item.getKeyCode())) {
-                        robot.keyPress(item.getKeyCode());
-                        robot.keyRelease(item.getKeyCode());
-                    }
-                } catch (AWTException awtException) {
-                    stopClick();
-                    Logger logger = Logger.getLogger(AutoClicker.class.getName());
-                    logger.log(Level.SEVERE, "An InterruptedException ", e);
-                }
+        Timer timer = new Timer(item.getPressTime(), e -> {
+            if (isStopClick) {
                 ((Timer) e.getSource()).stop();
                 latch.countDown();
+                return;
             }
+            try {
+                Robot robot = new Robot();
+                if (Character.isLetterOrDigit(item.getKeyCode()) || Character.isSpaceChar(item.getKeyCode())) {
+                    robot.keyPress(item.getKeyCode());
+                    robot.keyRelease(item.getKeyCode());
+                }
+            } catch (AWTException awtException) {
+                stopClick();
+                Logger logger = Logger.getLogger(AutoClicker.class.getName());
+                logger.log(Level.SEVERE, "An InterruptedException ", e);
+            }
+            ((Timer) e.getSource()).stop();
+            latch.countDown();
         });
         timer.start();
     }
@@ -385,6 +365,7 @@ public class AutoClicker {
                         Logger logger = Logger.getLogger(AutoClicker.class.getName());
                         logger.log(Level.SEVERE, "An InterruptedException ", e);
                     }
+                    index++;
                 } else{
                     ((Timer) e.getSource()).stop();
                     latch.countDown();
@@ -506,7 +487,7 @@ public class AutoClicker {
     }
 
     private static String getString(Item item) {
-        String line = "";
+        String line;
         if (item.getIsClick()){
             ItemClick itemClick = (ItemClick) item;
             line = true + "|" + itemClick.getName() + "|" + itemClick.getPressTime() + "|" + itemClick.getNextTime()
