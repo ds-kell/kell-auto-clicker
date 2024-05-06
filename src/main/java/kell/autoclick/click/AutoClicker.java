@@ -63,8 +63,60 @@ public class AutoClicker {
         tableListener();
 
         globalKeyListener();
+
+        windowFocus();
     }
 
+    private void windowFocus(){
+        MAIN_FRAME.getFrame().addWindowFocusListener(new WindowFocusListener() {
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                if (ADD_PRESS_FRAME.getFrame().isVisible()) {
+                    ADD_PRESS_FRAME.getFrame().toFront();
+                }
+                if (MSG_FRAME.getFrame().isVisible()) {
+                    MSG_FRAME.getFrame().toFront();
+                }
+            }
+
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+            }
+        });
+
+        ADD_PRESS_FRAME.getFrame().addWindowFocusListener(new WindowFocusListener() {
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                if (MSG_FRAME.getFrame().isVisible()) {
+                    MSG_FRAME.getFrame().toFront();
+                }
+            }
+
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+                if (MAIN_FRAME.getFrame().isEnabled()) {
+                    MAIN_FRAME.getFrame().toFront();
+                }
+            }
+        });
+        MSG_FRAME.getFrame().addWindowFocusListener(new WindowFocusListener() {
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+            }
+
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+                if (ADD_PRESS_FRAME.getFrame().isEnabled()) {
+                    ADD_PRESS_FRAME.getFrame().toFront();
+                    ADD_PRESS_FRAME.getKeyTxt().requestFocus();
+                } else if (MAIN_FRAME.getFrame().isEnabled()) {
+                    MAIN_FRAME.getFrame().toFront();
+                }
+            }
+        });
+
+
+    }
 
     private void eventListener() {
         MAIN_FRAME.getInfiniteRBtn().addItemListener(new ItemListener() {
@@ -130,7 +182,44 @@ public class AutoClicker {
                 ADD_PRESS_FRAME.getIsSinglePressRBtn().setSelected(ADD_PRESS_FRAME.getIsSinglePress());
             }
         });
+        ADD_PRESS_FRAME.getFrame().addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                showAddPressFrame(false);
+            }
+        });
+    }
 
+    private void tableListener() {
+        MAIN_FRAME.getTableItems().getModel().addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                int row = e.getFirstRow();
+                int column = e.getColumn();
+                if (row >= 0 && column >= 0) {
+                    Object data = MAIN_FRAME.getTableItems().getModel().getValueAt(row, column);
+                    Item item = (Item) MAIN_FRAME.getTableItems().getListItems().get(row);
+                    switch (column) {
+                        case 0:
+                            item.setName((String) data);
+                            MAIN_FRAME.getTableItems().getListItems().remove(row);
+                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
+                            break;
+                        case 1:
+                            item.setPressTime(Integer.parseInt(((String) data).trim()));
+                            MAIN_FRAME.getTableItems().getListItems().remove(row);
+                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
+                            break;
+                        case 2:
+                            item.setNextTime(Integer.parseInt(((String) data).trim()));
+                            MAIN_FRAME.getTableItems().getListItems().remove(row);
+                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
+                            break;
+                    }
+
+                }
+            }
+        });
     }
 
     public void stopClick() {
@@ -341,40 +430,6 @@ public class AutoClicker {
         ADD_PRESS_FRAME.getFrame().setVisible(false);
     }
 
-    private void tableListener() {
-        MAIN_FRAME.getTableItems().getModel().addTableModelListener(new TableModelListener() {
-            @Override
-            public void tableChanged(TableModelEvent e) {
-                int row = e.getFirstRow();
-                int column = e.getColumn();
-                if (row >= 0 && column >= 0) {
-                    Object data = MAIN_FRAME.getTableItems().getModel().getValueAt(row, column);
-                    Item item = (Item) MAIN_FRAME.getTableItems().getListItems().get(row);
-                    switch (column) {
-                        case 0:
-                            item.setName((String) data);
-                            MAIN_FRAME.getTableItems().getListItems().remove(row);
-                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
-                            break;
-                        case 1:
-                            item.setPressTime(Integer.parseInt(((String) data).trim()));
-                            MAIN_FRAME.getTableItems().getListItems().remove(row);
-                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
-                            break;
-                        case 2:
-                            item.setNextTime(Integer.parseInt(((String) data).trim()));
-                            MAIN_FRAME.getTableItems().getListItems().remove(row);
-                            MAIN_FRAME.getTableItems().getListItems().add(row, item);
-                            break;
-                    }
-
-                }
-            }
-        });
-
-
-    }
-
     private void globalKeyListener() {
         Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
@@ -417,7 +472,7 @@ public class AutoClicker {
             ADD_PRESS_FRAME.getFrame().setEnabled(isMainFrame);
         }
         MSG_FRAME.getFrame().setVisible(!isMainFrame);
-        MSG_FRAME.getMessageTxt().setText(message);
+        MSG_FRAME.getMessageLabel().setText(message);
     }
 
     private void enableInput(boolean isShow) {

@@ -1,4 +1,4 @@
-package kell.autoclick.frame;
+package kell.autoclick.custom;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,11 +8,11 @@ import java.awt.*;
 
 @Getter
 @Setter
-public abstract class CustomFrame {
+public abstract class CFrame {
 
     protected final JFrame frame = new JFrame();
 
-    protected CustomFrame(int WIDTH, int HEIGHT) {
+    protected CFrame(int WIDTH, int HEIGHT) {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
         int screenWidth = (int) screenSize.getWidth();
@@ -20,6 +20,7 @@ public abstract class CustomFrame {
 
         frame.setSize(WIDTH, HEIGHT);
         frame.setLocation((screenWidth - WIDTH) / 2, (screenHeight - HEIGHT) / 2);
+        frame.getRootPane().setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.DARK_GRAY));
 
     }
 

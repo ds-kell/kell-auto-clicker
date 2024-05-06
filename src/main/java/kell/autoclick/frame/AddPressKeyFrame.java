@@ -1,5 +1,7 @@
 package kell.autoclick.frame;
 
+import kell.autoclick.custom.CButton;
+import kell.autoclick.custom.CFrame;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,7 +10,7 @@ import java.awt.*;
 
 @Getter
 @Setter
-public class AddPressKeyFrame extends CustomFrame{
+public class AddPressKeyFrame extends CFrame {
 
     private final  JPanel labelPanel = new JPanel();
 
@@ -32,21 +34,21 @@ public class AddPressKeyFrame extends CustomFrame{
 
     private final JRadioButton isSinglePressRBtn = new JRadioButton("Single");
 
-    private final JButton addBtn = new JButton("Add");
+    private final JButton addBtn = new CButton("Add");
 
-    private final JButton cancelBtn = new JButton("Cancel");
+    private final JButton cancelBtn = new CButton("Cancel");
 
     public AddPressKeyFrame(){
-        super(300, 200);
+        super(300, 300);
     }
 
     public void init(){
         frame.setTitle("Add Key Press");
-        frame.setUndecorated(true);
+//        frame.setUndecorated(true);
 
         isSinglePress = true;
-        isMultiPressRBtn.setSelected(!isSinglePress);
-        isSinglePressRBtn.setSelected(isSinglePress);
+        isMultiPressRBtn.setSelected(false);
+        isSinglePressRBtn.setSelected(true);
         nextTimeTxt.setText("500");
         pressTimeTxt.setText("100");
 
@@ -56,6 +58,7 @@ public class AddPressKeyFrame extends CustomFrame{
         labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.Y_AXIS));
         JPanel fieldPanel = new JPanel();
         fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
+        addPressPanel.setLayout(new BoxLayout(addPressPanel, BoxLayout.Y_AXIS));
 
         addPressPanel.add(createRow(titleLabel));
 
@@ -71,9 +74,7 @@ public class AddPressKeyFrame extends CustomFrame{
         addPressPanel.add(createRow(isSinglePressRBtn, isMultiPressRBtn));
         addPressPanel.add(createRow(cancelBtn, addBtn));
 
-        addPressPanel.setBackground(Color.darkGray);
         frame.getContentPane().add(addPressPanel, BorderLayout.CENTER);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     private JPanel createRow(JComponent... components) {

@@ -1,5 +1,7 @@
 package kell.autoclick.frame;
 
+import kell.autoclick.custom.CButton;
+import kell.autoclick.custom.CFrame;
 import kell.autoclick.table.TableItems;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +11,7 @@ import java.awt.*;
 
 @Getter
 @Setter
-public class MainFrame extends CustomFrame {
+public class MainFrame extends CFrame {
 
 //    Label
     private final JLabel repeatTimesLabel = new JLabel("Repeat times: ", JLabel.RIGHT);
@@ -17,21 +19,21 @@ public class MainFrame extends CustomFrame {
     public final JTextField repeatTimesTxt = new JTextField(8);
 
 //    Button
-    private final JButton addClickBtn = new JButton("Add Click");
+    private final JButton addClickBtn = new CButton("Add Click");
 
-    private final JButton addKeyBtn = new JButton("Add Key");
+    private final JButton addKeyBtn = new CButton("Add Key");
 
-    private final JButton startBtn = new JButton("Start-(F7)");
+    private final JButton startBtn = new CButton("Start-(F7)");
 
-    private final JButton stopBtn = new JButton("Stop-(F8)");
+    private final JButton stopBtn = new CButton("Stop-(F8)");
 
-    private final JButton resetBtn = new JButton("Reset");
+    private final JButton resetBtn = new CButton("Reset");
 
-    private final JButton deleteBtn = new JButton("Delete");
+    private final JButton deleteBtn = new CButton("Delete");
 
-    private final JButton saveBtn = new JButton("Save");
+    private final JButton saveBtn = new CButton("Save");
 
-    private final JButton loadBtn = new JButton("Load");
+    private final JButton loadBtn = new CButton("Load");
 
     private final JRadioButton hideMainFrameRBtn = new JRadioButton("Hide frame");
 
@@ -48,6 +50,7 @@ public class MainFrame extends CustomFrame {
     }
 
     public void init() {
+        hideMainFrameRBtn.setSelected(isHideFrame);
         //    Panel
         JScrollPane scrollPane = new JScrollPane(tableItems.getTable());
         JPanel controlPanel = new JPanel(new FlowLayout());
@@ -65,8 +68,7 @@ public class MainFrame extends CustomFrame {
         frame.getContentPane().add(scrollPane);
         frame.getContentPane().add(loopPanel);
 
+        frame.getContentPane().requestFocus();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        hideMainFrameRBtn.setSelected(isHideFrame);
     }
 }
