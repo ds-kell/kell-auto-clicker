@@ -5,7 +5,7 @@
 
     <groupId>kell.autoclick</groupId>
     <artifactId>auto-clicker</artifactId>
-    <version>3.0-SNAPSHOT</version>
+    <version>4.0-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -91,7 +91,7 @@
                             <icon>src/main/resources/static/images/click_pointer.ico</icon>
                             <headerType>gui</headerType>
                             <outfile>target/auto-clicker.exe</outfile>
-                            <jar>target/auto-clicker-3.0-SNAPSHOT-jar-with-dependencies.jar</jar>
+                            <jar>target/auto-clicker-4.0-SNAPSHOT-jar-with-dependencies.jar</jar>
                             <classPath>
                                 <mainClass>kell.autoclick.Main</mainClass>
                             </classPath>

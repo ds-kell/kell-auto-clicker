@@ -20,7 +20,7 @@ public abstract class Item {
     }
 
     public Item(String name, int pressTime, int nextTime) {
-        this.name = "Press(" + name.toUpperCase() + ")";
+        this.name = name;
         this.pressTime = pressTime;
         this.nextTime = nextTime;
     }

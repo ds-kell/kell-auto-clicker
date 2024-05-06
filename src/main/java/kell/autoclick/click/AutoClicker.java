@@ -459,7 +459,7 @@ public class AutoClicker {
         } else {
             ItemPress itemPress = (ItemPress) item;
             line = false + "|" + itemPress.getName() + "|" + itemPress.getPressTime() + "|" + itemPress.getNextTime()
-                    + "|" + itemPress.getKeyCodes() + "|" + itemPress.isMultiPress();
+                    + "|" + itemPress.getKeyCode() + "|" + itemPress.isMultiPress();
         }
         return line;
     }

@@ -4,17 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="save data, load data form explorer">
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemPress.java" afterDir="false" />
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="add press key">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPointFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPointFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPressKeyFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPressKeyFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/SubFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MessageFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ClickItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemClick.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/Item.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/Item.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/PressItem.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemClick.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemClick.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TableItems.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TableItems.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -279,7 +274,15 @@
       <option name="project" value="LOCAL" />
       <updated>1714733841105</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="add press key">
+      <option name="closed" value="true" />
+      <created>1714817443079</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1714817443079</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -322,6 +325,18 @@
     <MESSAGE value="add save data" />
     <MESSAGE value="add msg" />
     <MESSAGE value="save data, load data form explorer" />
-    <option name="LAST_COMMIT_MESSAGE" value="save data, load data form explorer" />
+    <MESSAGE value="add press key" />
+    <option name="LAST_COMMIT_MESSAGE" value="add press key" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java</url>
+          <line>336</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

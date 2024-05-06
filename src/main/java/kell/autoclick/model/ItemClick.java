@@ -12,7 +12,7 @@ public class ItemClick extends Item {
     private int yAxis;
 
     public ItemClick(int xAxis, int yAxis) {
-        super("Click("+ xAxis + ", " + yAxis +")");
+        super(xAxis + ", " + yAxis);
         this.xAxis = xAxis;
         this.yAxis = yAxis;
         this.isClick = true;

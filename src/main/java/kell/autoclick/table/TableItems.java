@@ -48,7 +48,11 @@ public class TableItems {
     public void addItem(Item item){
         listItems.add(item);
         DefaultTableModel model = (DefaultTableModel) table.getModel();
-        model.addRow(new Object[]{ item.getName(), item.getPressTime(), item.getNextTime()});
+        if(item.getIsClick()){
+            model.addRow(new Object[]{ "Click(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
+        } else{
+            model.addRow(new Object[]{ "Press(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
+        }
     };
 
     public void setListItems(Vector<Item> listItems) {
@@ -57,7 +61,11 @@ public class TableItems {
         model.setRowCount(0);
         for(Item item : listItems){
             DefaultTableModel model = (DefaultTableModel) table.getModel();
-            model.addRow(new Object[]{ item.getName(), item.getPressTime(), item.getNextTime()});
+            if(item.getIsClick()){
+                model.addRow(new Object[]{ "Click(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
+            } else{
+                model.addRow(new Object[]{ "Press(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
+            }
         }
     }
 }
