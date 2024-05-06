@@ -1,7 +1,6 @@
 package kell.autoclick.table;
 
 
-import kell.autoclick.model.ItemClick;
 import kell.autoclick.model.Item;
 import lombok.Getter;
 import lombok.Setter;
@@ -53,7 +52,7 @@ public class TableItems {
         } else{
             model.addRow(new Object[]{ "Press(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
         }
-    };
+    }
 
     public void setListItems(Vector<Item> listItems) {
         this.listItems.clear();

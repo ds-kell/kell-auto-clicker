@@ -104,10 +104,10 @@ public class AutoClicker {
 
             @Override
             public void windowLostFocus(WindowEvent e) {
-                if (ADD_PRESS_FRAME.getFrame().isEnabled()) {
+                if (ADD_PRESS_FRAME.getFrame().isEnabled() && ADD_PRESS_FRAME.getFrame().isVisible()) {
                     ADD_PRESS_FRAME.getFrame().toFront();
                     ADD_PRESS_FRAME.getKeyTxt().requestFocus();
-                } else if (MAIN_FRAME.getFrame().isEnabled()) {
+                } else if (MAIN_FRAME.getFrame().isEnabled() && MAIN_FRAME.getFrame().isVisible()) {
                     MAIN_FRAME.getFrame().toFront();
                 }
             }
