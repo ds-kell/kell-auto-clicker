@@ -548,7 +548,7 @@ public class AutoClicker {
             int result = fileChooser.showOpenDialog(null);
             if (result == JFileChooser.APPROVE_OPTION) {
                 String selectedFolder = fileChooser.getSelectedFile().getAbsolutePath();
-                String filename = selectedFolder + "/data.txt";
+                String filename = selectedFolder + "/data" + System.currentTimeMillis()  + ".txt";
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
                     for (Item item : MAIN_FRAME.getTableItems().getListItems()) {
                         String line = getString(item);
@@ -597,7 +597,7 @@ public class AutoClicker {
                         if (isClick) {
                             int xAxis = Integer.parseInt(parts[4]);
                             int yAxis = Integer.parseInt(parts[5]);
-                            ItemClick itemClick = new ItemClick(name, pressTime, nextTime, xAxis, yAxis);
+                            ItemClick itemClick = new ItemClick(name, xAxis, yAxis, pressTime, nextTime);
                             listItems.add(itemClick);
                         } else {
                             int keyCode = Integer.parseInt(parts[4]);
