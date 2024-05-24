@@ -47,6 +47,8 @@ public class AutoClicker {
 
     private Vector<Thread> runningThreads = new Vector<>();
 
+    Random random = new Random();
+
     public AutoClicker() {
         MAIN_FRAME.init();
         MSG_FRAME.init();
@@ -298,7 +300,7 @@ public class AutoClicker {
                                 singlePressEvent(itemPress,latch);
                                 latch.await();
                             }
-                            lock.wait(item.getNextTime());
+                            lock.wait(item.getNextTime() + random.nextInt(10) * 10);
                         }
                         repeatTimes--;
                     }
@@ -385,7 +387,6 @@ public class AutoClicker {
     private void clickEvent(ItemClick itemClick) throws AWTException {
         try {
             Robot robot = new Robot();
-            Random random = new Random();
             robot.mouseMove(itemClick.getXAxis() + (random.nextInt(10) - 5), itemClick.getYAxis() + (random.nextInt(10) - 5));
             robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
