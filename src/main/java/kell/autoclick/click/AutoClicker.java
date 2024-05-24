@@ -18,6 +18,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
@@ -311,11 +312,81 @@ public class AutoClicker {
         clickThread.start();
         runningThreads.add(clickThread);
     }
+    private void performVerticalClick() {
+        Thread clickThread = new Thread(() -> {
+            try {
+                synchronized (lock) {
+                    Robot robot = new Robot();
+                    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+                    int midWidth;
+                    int height = (int) screenSize.getWidth();
+                    while (!isStopClick && repeatTimes > 0) {
+                        if(repeatTimes % 2 == 0) {
+                            midWidth = (int) (screenSize.getWidth() / 2) - 15;
+                        } else {
+                            midWidth = (int) (screenSize.getWidth() / 2) + 15;
+                        }
+                        for(int i = 10; i < height; i += 20){
+                            robot.mouseMove(midWidth, i);
+                            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                        }
+                        lock.wait(10);
+                        repeatTimes--;
+                    }
+                    enableInput(true);
+                    MAIN_FRAME.getFrame().setVisible(true);
+                }
+            } catch (InterruptedException ex) {
+                Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
+            } catch (AWTException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        clickThread.start();
+        runningThreads.add(clickThread);
+    }
+
+    private void performHorizontalClick() {
+        Thread clickThread = new Thread(() -> {
+            try {
+                synchronized (lock) {
+                    Robot robot = new Robot();
+                    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+                    int width = (int) screenSize.getWidth() - 20;
+                    int midHeight;
+                    while (!isStopClick && repeatTimes > 0) {
+                        if(repeatTimes % 2 == 0) {
+                            midHeight = (int) (screenSize.getHeight() / 2) - 15;
+                        } else {
+                            midHeight = (int) (screenSize.getHeight() / 2) + 15;
+                        }
+                        for(int i = 10; i < width; i += 20){
+                            robot.mouseMove(i, midHeight);
+                            robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                        }
+                        lock.wait(10);
+                        repeatTimes--;
+                    }
+                    enableInput(true);
+                    MAIN_FRAME.getFrame().setVisible(true);
+                }
+            } catch (InterruptedException ex) {
+                Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
+            } catch (AWTException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        clickThread.start();
+        runningThreads.add(clickThread);
+    }
 
     private void clickEvent(ItemClick itemClick) throws AWTException {
         try {
             Robot robot = new Robot();
-            robot.mouseMove(itemClick.getXAxis(), itemClick.getYAxis());
+            Random random = new Random();
+            robot.mouseMove(itemClick.getXAxis() + (random.nextInt(10) - 5), itemClick.getYAxis() + (random.nextInt(10) - 5));
             robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
         } catch (AWTException e) {

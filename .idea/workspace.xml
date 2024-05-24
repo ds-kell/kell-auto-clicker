@@ -4,13 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="fix bug don't show main frame when close msg">
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="fix bug thread exception">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/Item.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/Item.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -314,7 +310,15 @@
       <option name="project" value="LOCAL" />
       <updated>1714980572855</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="fix bug thread exception">
+      <option name="closed" value="true" />
+      <created>1714992390357</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1714992390357</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -362,6 +366,7 @@
     <MESSAGE value="add border, show frame on focus" />
     <MESSAGE value="optimize code" />
     <MESSAGE value="fix bug don't show main frame when close msg" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix bug don't show main frame when close msg" />
+    <MESSAGE value="fix bug thread exception" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix bug thread exception" />
   </component>
 </project>
