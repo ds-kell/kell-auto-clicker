@@ -306,6 +306,7 @@ public class AutoClicker {
                     }
                     enableInput(true);
                     MAIN_FRAME.getFrame().setVisible(true);
+                    MAIN_FRAME.getFrame().setEnabled(true);
                 }
             } catch (AWTException | InterruptedException ex) {
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
@@ -338,6 +339,7 @@ public class AutoClicker {
                     }
                     enableInput(true);
                     MAIN_FRAME.getFrame().setVisible(true);
+                    MAIN_FRAME.getFrame().setEnabled(true);
                 }
             } catch (InterruptedException ex) {
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
@@ -373,6 +375,7 @@ public class AutoClicker {
                     }
                     enableInput(true);
                     MAIN_FRAME.getFrame().setVisible(true);
+                    MAIN_FRAME.getFrame().setEnabled(true);
                 }
             } catch (InterruptedException ex) {
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
