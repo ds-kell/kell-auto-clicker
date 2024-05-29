@@ -12,17 +12,22 @@ public class ItemClick extends Item {
     private int yAxis;
 
     public ItemClick(int xAxis, int yAxis) {
-        super(xAxis + ", " + yAxis);
+        super(xAxis + ", " + yAxis, GlobalConst.EVENT_CLICK);
         this.xAxis = xAxis;
         this.yAxis = yAxis;
-        this.isClick = true;
     }
     public ItemClick(String name, int xAxis, int yAxis, int pressTime, int nextTime) {
-        super(name, pressTime, nextTime);
+        super(name, pressTime, nextTime, GlobalConst.EVENT_CLICK);
         this.xAxis = xAxis;
         this.yAxis = yAxis;
-        this.isClick = true;
     }
+
+    public ItemClick(String name, int xAxis, int yAxis, int pressTime, int nextTime, int typeEvent) {
+        super(name, pressTime, nextTime, typeEvent);
+        this.xAxis = xAxis;
+        this.yAxis = yAxis;
+    }
+
 
     @Override
     public String toString() {

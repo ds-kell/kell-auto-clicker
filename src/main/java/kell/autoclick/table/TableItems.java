@@ -1,6 +1,7 @@
 package kell.autoclick.table;
 
 
+import kell.autoclick.model.GlobalConst;
 import kell.autoclick.model.Item;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,10 +48,12 @@ public class TableItems {
     public void addItem(Item item){
         listItems.add(item);
         DefaultTableModel model = (DefaultTableModel) table.getModel();
-        if(item.getIsClick()){
+        if(item.getTypeEvent() == GlobalConst.EVENT_CLICK){
             model.addRow(new Object[]{ "Click(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
-        } else{
+        } else if(item.getTypeEvent() == GlobalConst.EVENT_PRESS){
             model.addRow(new Object[]{ "Press(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
+        } else {
+            model.addRow(new Object[]{ "Scroll(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
         }
     }
 
@@ -60,10 +63,12 @@ public class TableItems {
         model.setRowCount(0);
         for(Item item : listItems){
             DefaultTableModel model = (DefaultTableModel) table.getModel();
-            if(item.getIsClick()){
+            if(item.getTypeEvent() == GlobalConst.EVENT_CLICK){
                 model.addRow(new Object[]{ "Click(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
-            } else{
+            } else if(item.getTypeEvent() == GlobalConst.EVENT_PRESS){
                 model.addRow(new Object[]{ "Press(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
+            } else {
+                model.addRow(new Object[]{ "Scroll(" + item.getName() + ")", item.getPressTime(), item.getNextTime()});
             }
         }
     }

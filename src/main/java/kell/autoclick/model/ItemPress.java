@@ -17,9 +17,14 @@ public class ItemPress extends Item {
     private boolean isMultiPress;
 
     public ItemPress(String name, int keyCode, int pressTime, int nextTime, boolean isMultiPress) {
-        super(name, pressTime, nextTime);
+        super(name, pressTime, nextTime, GlobalConst.EVENT_PRESS);
         this.keyCode = keyCode;
-        this.isClick = false;
+        this.isMultiPress = isMultiPress;
+    }
+
+    public ItemPress(String name, int keyCode, int pressTime, int nextTime, boolean isMultiPress, int typeEvent) {
+        super(name, pressTime, nextTime, typeEvent);
+        this.keyCode = keyCode;
         this.isMultiPress = isMultiPress;
     }
     public ItemPress(String name, int pressTime, int nextTime, boolean isMultiPress) {
@@ -30,7 +35,6 @@ public class ItemPress extends Item {
                 keyCodes.add(keyCode);
             }
         }
-        this.isClick = false;
         this.isMultiPress = isMultiPress;
     }
 }

@@ -23,6 +23,8 @@ public class MainFrame extends CFrame {
 
     private final JButton addKeyBtn = new CButton("Add Key");
 
+    private final JButton addScrollBtn = new CButton("Add Scroll");
+
     private final JButton startBtn = new CButton("Start-(F7)");
 
     private final JButton stopBtn = new CButton("Stop-(F8)");
@@ -57,7 +59,7 @@ public class MainFrame extends CFrame {
         JPanel addPanel = new JPanel(new FlowLayout());
         JPanel loopPanel = new JPanel(new FlowLayout());
 
-        addComponentToPanel(addPanel, addClickBtn, addKeyBtn, deleteBtn, resetBtn);
+        addComponentToPanel(addPanel, addClickBtn, addKeyBtn, addScrollBtn, deleteBtn, resetBtn);
         addComponentToPanel(controlPanel, startBtn, stopBtn, saveBtn, loadBtn);
         addComponentToPanel(loopPanel, repeatTimesLabel, repeatTimesTxt, infiniteRBtn, hideMainFrameRBtn);
 

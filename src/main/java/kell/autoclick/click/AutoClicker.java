@@ -1,10 +1,8 @@
 package kell.autoclick.click;
 
-import kell.autoclick.frame.AddPointFrame;
-import kell.autoclick.frame.AddPressKeyFrame;
+import kell.autoclick.frame.*;
+import kell.autoclick.model.GlobalConst;
 import kell.autoclick.model.ItemClick;
-import kell.autoclick.frame.MainFrame;
-import kell.autoclick.frame.MessageFrame;
 import kell.autoclick.model.Item;
 import kell.autoclick.model.ItemPress;
 import lombok.Getter;
@@ -37,6 +35,8 @@ public class AutoClicker {
 
     private AddPressKeyFrame ADD_PRESS_FRAME = new AddPressKeyFrame();
 
+    private AddScrollFrame ADD_SCROLL_FRAME = new AddScrollFrame();
+
     private boolean isStopClick = true;
 
     private boolean infinite = false;
@@ -53,8 +53,8 @@ public class AutoClicker {
         MAIN_FRAME.init();
         MSG_FRAME.init();
         ADD_PRESS_FRAME.init();
+        ADD_SCROLL_FRAME.init();
         MAIN_FRAME.getFrame().setVisible(true);
-
     }
 
     public void start() {
@@ -74,6 +74,9 @@ public class AutoClicker {
             public void windowGainedFocus(WindowEvent e) {
                 if (ADD_PRESS_FRAME.getFrame().isVisible()) {
                     ADD_PRESS_FRAME.getFrame().toFront();
+                }
+                if (ADD_SCROLL_FRAME.getFrame().isVisible()) {
+                    ADD_SCROLL_FRAME.getFrame().toFront();
                 }
                 if (MSG_FRAME.getFrame().isVisible()) {
                     MSG_FRAME.getFrame().toFront();
@@ -100,6 +103,23 @@ public class AutoClicker {
                 }
             }
         });
+
+        ADD_SCROLL_FRAME.getFrame().addWindowFocusListener(new WindowFocusListener() {
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                if (MSG_FRAME.getFrame().isVisible()) {
+                    MSG_FRAME.getFrame().toFront();
+                }
+            }
+
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+                if (MAIN_FRAME.getFrame().isEnabled()) {
+                    MAIN_FRAME.getFrame().toFront();
+                }
+            }
+        });
+
         MSG_FRAME.getFrame().addWindowFocusListener(new WindowFocusListener() {
             @Override
             public void windowGainedFocus(WindowEvent e) {
@@ -110,13 +130,14 @@ public class AutoClicker {
                 if (ADD_PRESS_FRAME.getFrame().isEnabled() && ADD_PRESS_FRAME.getFrame().isVisible()) {
                     ADD_PRESS_FRAME.getFrame().toFront();
                     ADD_PRESS_FRAME.getKeyTxt().requestFocus();
+                } else if (ADD_SCROLL_FRAME.getFrame().isEnabled() && ADD_SCROLL_FRAME.getFrame().isVisible()) {
+                    ADD_SCROLL_FRAME.getFrame().toFront();
+                    ADD_SCROLL_FRAME.getWheelAmtTxt().requestFocus();
                 } else if (MAIN_FRAME.getFrame().isEnabled() && MAIN_FRAME.getFrame().isVisible()) {
                     MAIN_FRAME.getFrame().toFront();
                 }
             }
         });
-
-
     }
 
     private void eventListener() {
@@ -144,6 +165,11 @@ public class AutoClicker {
             ADD_PRESS_FRAME.getKeyTxt().requestFocus();
         });
 
+        MAIN_FRAME.getAddScrollBtn().addActionListener(e -> {
+            showAddScrollFrame(true);
+            ADD_SCROLL_FRAME.getWheelAmtTxt().requestFocus();
+        });
+
         MAIN_FRAME.getStartBtn().addActionListener(e -> startClick());
 
         MAIN_FRAME.getDeleteBtn().addActionListener(e -> deleteSelected());
@@ -161,6 +187,10 @@ public class AutoClicker {
         ADD_PRESS_FRAME.getAddBtn().addActionListener(e -> addPressKey());
 
         ADD_PRESS_FRAME.getCancelBtn().addActionListener(e -> showAddPressFrame(false));
+
+        ADD_SCROLL_FRAME.getAddBtn().addActionListener(e -> addScrollEvent());
+
+        ADD_SCROLL_FRAME.getCancelBtn().addActionListener(e -> showAddScrollFrame(false));
 
         ADD_PRESS_FRAME.getIsSinglePressRBtn().addItemListener(e -> {
             ADD_PRESS_FRAME.setIsSinglePress(e.getStateChange() == ItemEvent.SELECTED);
@@ -291,24 +321,25 @@ public class AutoClicker {
                             if (isStopClick) {
                                 break;
                             }
-                            if(item.getIsClick()){
+                            if(item.getTypeEvent() == GlobalConst.EVENT_CLICK){
                                 ItemClick itemClick = (ItemClick) item;
                                 clickEvent(itemClick);
-                            } else {
+                            } else if(item.getTypeEvent() == GlobalConst.EVENT_PRESS) {
                                 CountDownLatch latch = new CountDownLatch(1);
                                 ItemPress itemPress = (ItemPress) item;
                                 singlePressEvent(itemPress,latch);
                                 latch.await();
+                            } else {
+                                performScroll(item);
                             }
                             lock.wait(item.getNextTime() + random.nextInt(10) * 10);
                         }
                         repeatTimes--;
                     }
-                    enableInput(true);
-                    MAIN_FRAME.getFrame().setVisible(true);
-                    MAIN_FRAME.getFrame().setEnabled(true);
+                    stopClick();
                 }
             } catch (AWTException | InterruptedException ex) {
+                stopClick();
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
             }
         });
@@ -337,11 +368,10 @@ public class AutoClicker {
                         lock.wait(10);
                         repeatTimes--;
                     }
-                    enableInput(true);
-                    MAIN_FRAME.getFrame().setVisible(true);
-                    MAIN_FRAME.getFrame().setEnabled(true);
+                    stopClick();
                 }
             } catch (InterruptedException ex) {
+                stopClick();
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
             } catch (AWTException e) {
                 throw new RuntimeException(e);
@@ -373,11 +403,10 @@ public class AutoClicker {
                         lock.wait(10);
                         repeatTimes--;
                     }
-                    enableInput(true);
-                    MAIN_FRAME.getFrame().setVisible(true);
-                    MAIN_FRAME.getFrame().setEnabled(true);
+                    stopClick();
                 }
             } catch (InterruptedException ex) {
+                stopClick();
                 Logger.getLogger(AutoClicker.class.getName()).log(Level.SEVERE, "Error in auto click", ex);
             } catch (AWTException e) {
                 throw new RuntimeException(e);
@@ -425,9 +454,7 @@ public class AutoClicker {
     }
     private void multiPressEvent(ItemPress item, CountDownLatch latch) {
         Timer timer = new Timer(item.getPressTime(), new ActionListener() {
-
             int index = 0;
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (isStopClick) {
@@ -459,6 +486,17 @@ public class AutoClicker {
         timer.start();
     }
 
+    private void performScroll(Item item) throws AWTException {
+        try {
+            Robot robot = new Robot();
+            robot.mouseWheel(item.getPressTime());
+        } catch (AWTException awtException) {
+            stopClick();
+            Logger logger = Logger.getLogger(AutoClicker.class.getName());
+            logger.log(Level.SEVERE, "Exception ", awtException);
+        }
+    }
+
     private void showAddPointFrame() {
         MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
@@ -476,6 +514,10 @@ public class AutoClicker {
         MAIN_FRAME.getFrame().setEnabled(!showAddPressFrame);
         ADD_PRESS_FRAME.getFrame().setVisible(showAddPressFrame);
     }
+    private void showAddScrollFrame(boolean showAddScrollFrame) {
+        MAIN_FRAME.getFrame().setEnabled(!showAddScrollFrame);
+        ADD_SCROLL_FRAME.getFrame().setVisible(showAddScrollFrame);
+    }
 
     private void addPressKey() {
         String input = ADD_PRESS_FRAME.getKeyTxt().getText();
@@ -491,6 +533,20 @@ public class AutoClicker {
         ADD_PRESS_FRAME.getKeyTxt().setText("");
         MAIN_FRAME.getFrame().setEnabled(true);
         ADD_PRESS_FRAME.getFrame().setVisible(false);
+    }
+
+    private void addScrollEvent() {
+        String input = ADD_SCROLL_FRAME.getWheelAmtTxt().getText();
+        if(input.isEmpty()) {
+            changeFrame(false, "Fuck, add wheel amt");
+            return;
+        }
+        int nextTime = Integer.parseInt(ADD_SCROLL_FRAME.getNextTimeTxt().getText());
+        Item item = new Item(input, Integer.parseInt(input), nextTime, GlobalConst.EVENT_SCROLL);
+        MAIN_FRAME.getTableItems().addItem(item);
+        ADD_SCROLL_FRAME.getWheelAmtTxt().setText("");
+        MAIN_FRAME.getFrame().setEnabled(true);
+        ADD_SCROLL_FRAME.getFrame().setVisible(false);
     }
 
     private void globalKeyListener() {
@@ -568,15 +624,17 @@ public class AutoClicker {
     }
 
     private static String getString(Item item) {
-        String line;
-        if (item.getIsClick()){
+        String line = "";
+        if (item.getTypeEvent() == GlobalConst.EVENT_CLICK){
             ItemClick itemClick = (ItemClick) item;
-            line = true + "|" + itemClick.getName() + "|" + itemClick.getPressTime() + "|" + itemClick.getNextTime()
+            line = GlobalConst.EVENT_CLICK + "|" + itemClick.getName() + "|" + itemClick.getPressTime() + "|" + itemClick.getNextTime()
                     + "|" + itemClick.getXAxis() + "|" + itemClick.getYAxis();
-        } else {
+        } else if (item.getTypeEvent() == GlobalConst.EVENT_PRESS) {
             ItemPress itemPress = (ItemPress) item;
-            line = false + "|" + itemPress.getName() + "|" + itemPress.getPressTime() + "|" + itemPress.getNextTime()
+            line = GlobalConst.EVENT_PRESS + "|" + itemPress.getName() + "|" + itemPress.getPressTime() + "|" + itemPress.getNextTime()
                     + "|" + itemPress.getKeyCode() + "|" + itemPress.isMultiPress();
+        } else {
+            line = GlobalConst.EVENT_SCROLL + "|" + item.getName() + "|" + item.getPressTime() + "|" + item.getNextTime();
         }
         return line;
     }
@@ -592,21 +650,24 @@ public class AutoClicker {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String[] parts = line.split("\\|");
-                    if (parts.length == 6) {
-                        boolean isClick = Boolean.parseBoolean(parts[0]);
+                    if (parts.length > 0) {
+                        int event = Integer.parseInt(parts[0]);
                         String name = parts[1];
                         int pressTime = Integer.parseInt(parts[2]);
                         int nextTime = Integer.parseInt(parts[3]);
-                        if (isClick) {
+                        if (event == GlobalConst.EVENT_CLICK) {
                             int xAxis = Integer.parseInt(parts[4]);
                             int yAxis = Integer.parseInt(parts[5]);
                             ItemClick itemClick = new ItemClick(name, xAxis, yAxis, pressTime, nextTime);
                             listItems.add(itemClick);
-                        } else {
+                        } else if (event == GlobalConst.EVENT_PRESS){
                             int keyCode = Integer.parseInt(parts[4]);
                             boolean isMultiPress = Boolean.parseBoolean(parts[5]);
                             ItemPress itemPress = new ItemPress(name, keyCode, pressTime, nextTime, isMultiPress);
                             listItems.add(itemPress);
+                        } else {
+                            Item item = new Item(name, pressTime, nextTime, GlobalConst.EVENT_SCROLL);
+                            listItems.add(item);
                         }
                     }
                 }
@@ -618,5 +679,4 @@ public class AutoClicker {
             }
         }
     }
-
 }
