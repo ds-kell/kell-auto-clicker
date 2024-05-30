@@ -154,7 +154,7 @@ public class AutoClicker {
                 repeatTimes = Integer.parseInt(input);
             } catch (NumberFormatException ex) {
                 Logger logger = Logger.getLogger(AutoClicker.class.getName());
-                logger.log(Level.SEVERE, "\"Invalid input: Please enter a valid integer: ", e);
+                logger.log(Level.SEVERE, "Invalid input: Please enter a valid integer: ", e);
             }
         });
 
@@ -419,6 +419,27 @@ public class AutoClicker {
     private void clickEvent(ItemClick itemClick) throws AWTException {
         try {
             Robot robot = new Robot();
+            Point startPoint = java.awt.MouseInfo.getPointerInfo().getLocation();
+            int startX = startPoint.x;
+            int startY = startPoint.y;
+            int steps = random.nextInt(10)*10 + 800;
+            double deltaX = (itemClick.getXAxis() - startX) / (double) steps;
+            double deltaY = (itemClick.getYAxis() - startY) / (double) steps;
+            int temp = 0;
+            int bfX = 0;
+            int bfY = 0;
+            for (int i = 1; i <= steps; i++) {
+                int newX = startX + (int) (deltaX * i);
+                    if(random.nextInt(11) % 3 == 0 && i % 50 == 0){
+                    temp = (random.nextInt(6) - 3);
+                }
+                int newY = startY + (int) (deltaY * i) + temp;
+                if(newX != bfX || newY != bfY){
+                    robot.mouseMove(newX, newY);
+                }
+                bfX = newX;
+                bfY = newY;
+            }
             robot.mouseMove(itemClick.getXAxis() + (random.nextInt(10) - 5), itemClick.getYAxis() + (random.nextInt(10) - 5));
             robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -595,6 +616,7 @@ public class AutoClicker {
 
     private void enableInput(boolean isShow) {
         MAIN_FRAME.getInfiniteRBtn().setEnabled(isShow);
+        MAIN_FRAME.getHideMainFrameRBtn().setEnabled(isShow);
         MAIN_FRAME.getRepeatTimesTxt().setEnabled(isShow);
     }
 
