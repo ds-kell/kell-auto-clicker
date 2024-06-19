@@ -37,6 +37,8 @@ public class AutoClicker {
 
     private AddScrollFrame ADD_SCROLL_FRAME = new AddScrollFrame();
 
+    private AddDADFrame ADD_DAD_FRAME = new AddDADFrame();
+
     private boolean isStopClick = true;
 
     private boolean infinite = false;
@@ -54,6 +56,7 @@ public class AutoClicker {
         MSG_FRAME.init();
         ADD_PRESS_FRAME.init();
         ADD_SCROLL_FRAME.init();
+        ADD_DAD_FRAME.init();
         MAIN_FRAME.getFrame().setVisible(true);
     }
 
@@ -168,6 +171,11 @@ public class AutoClicker {
         MAIN_FRAME.getAddScrollBtn().addActionListener(e -> {
             showAddScrollFrame(true);
             ADD_SCROLL_FRAME.getWheelAmtTxt().requestFocus();
+        });
+
+        MAIN_FRAME.getAddDADBtn().addActionListener(e -> {
+            showAddDADFrame(true);
+            ADD_DAD_FRAME.getNextTimeTxt().requestFocus();
         });
 
         MAIN_FRAME.getStartBtn().addActionListener(e -> startClick());
@@ -539,6 +547,10 @@ public class AutoClicker {
         MAIN_FRAME.getFrame().setEnabled(!showAddScrollFrame);
         ADD_SCROLL_FRAME.getFrame().setVisible(showAddScrollFrame);
     }
+    private void showAddDADFrame(boolean showAddDADFrame) {
+        MAIN_FRAME.getFrame().setEnabled(!showAddDADFrame);
+        ADD_SCROLL_FRAME.getFrame().setVisible(showAddDADFrame);
+    }
 
     private void addPressKey() {
         String input = ADD_PRESS_FRAME.getKeyTxt().getText();
@@ -673,16 +685,20 @@ public class AutoClicker {
                 while ((line = reader.readLine()) != null) {
                     String[] parts = line.split("\\|");
                     if (parts.length > 0) {
-                        int event = Integer.parseInt(parts[0]);
+                        if (convertStringToInt(parts[0]) < 0 || convertStringToInt(parts[2]) < 0 || convertStringToInt(parts[3]) < 0 || convertStringToInt(parts[4]) < 0) {
+                            changeFrame(false, "fuk you, data is invalid");
+                            return;
+                        }
+                        int typeEvent = convertStringToInt(parts[0]);
                         String name = parts[1];
                         int pressTime = Integer.parseInt(parts[2]);
                         int nextTime = Integer.parseInt(parts[3]);
-                        if (event == GlobalConst.EVENT_CLICK) {
+                        if (typeEvent == GlobalConst.EVENT_CLICK) {
                             int xAxis = Integer.parseInt(parts[4]);
                             int yAxis = Integer.parseInt(parts[5]);
                             ItemClick itemClick = new ItemClick(name, xAxis, yAxis, pressTime, nextTime);
                             listItems.add(itemClick);
-                        } else if (event == GlobalConst.EVENT_PRESS){
+                        } else if (typeEvent == GlobalConst.EVENT_PRESS){
                             int keyCode = Integer.parseInt(parts[4]);
                             boolean isMultiPress = Boolean.parseBoolean(parts[5]);
                             ItemPress itemPress = new ItemPress(name, keyCode, pressTime, nextTime, isMultiPress);
@@ -701,4 +717,27 @@ public class AutoClicker {
             }
         }
     }
+
+    private int convertStringToInt(String input) {
+        if (input == null || input.isEmpty()) {
+            return Integer.MIN_VALUE;
+        }
+        try {
+            return Integer.parseInt(input);
+        } catch (NumberFormatException ex) {
+            return Integer.MIN_VALUE;
+        }
+    }
+
+    private int checkInput(String input) {
+        if (input == null || input.isEmpty()) {
+            return Integer.MIN_VALUE;
+        }
+        try {
+            return Integer.parseInt(input);
+        } catch (NumberFormatException ex) {
+            return Integer.MIN_VALUE;
+        }
+    }
+
 }

@@ -26,7 +26,7 @@ public class AddScrollFrame extends CFrame {
 
     private Boolean isSinglePress;
 
-    private final JButton addBtn = new CButton("Add");
+    private final JButton addBtn = new CButton("Add", 80, 25);
 
     private final JButton cancelBtn = new CButton("Cancel");
 

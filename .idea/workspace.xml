@@ -4,9 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="add scroll event">
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="add move mouse event">
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddDADFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemDAD.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CButton.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddScrollFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddScrollFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/GlobalConst.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/GlobalConst.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,14 +51,12 @@
     <option name="currentCommit" value="1" />
     <option name="onto" value="6ffe53bb58cfc8bdc19d5286f743cb6e2936a51c" />
   </component>
-  <component name="GithubPullRequestsUISettings">
-    <option name="selectedUrlAndAccountId">
-      <UrlAndAccount>
-        <option name="accountId" value="32dde2d5-deff-4aaa-b558-84944aa68b37" />
-        <option name="url" value="https://github.com/ds-kell/auto-clicker" />
-      </UrlAndAccount>
-    </option>
-  </component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/ds-kell/auto-clicker&quot;,
+    &quot;accountId&quot;: &quot;32dde2d5-deff-4aaa-b558-84944aa68b37&quot;
+  }
+}</component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -95,20 +99,7 @@
       <recent name="kell.autoclick.frame" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Main">
-    <configuration name="AutoClickerApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="SOS.AutoClickerApp" />
-      <module name="auto-clicker" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="SOS.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="kell.autoclick.Main" />
       <module name="auto-clicker" />
@@ -125,18 +116,9 @@
     <recent_temporary>
       <list>
         <item itemvalue="Application.Main" />
-        <item itemvalue="Application.AutoClickerApp" />
         <item itemvalue="Application.Main" />
-        <item itemvalue="Application.AutoClickerApp" />
       </list>
     </recent_temporary>
-  </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="jdk-17.0.10-corretto-17.0.10-4caba194b151-5cd809f4" />
-      </set>
-    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -363,7 +345,15 @@
       <option name="project" value="LOCAL" />
       <updated>1716977607397</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="add move mouse event">
+      <option name="closed" value="true" />
+      <created>1717064874425</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1717064874427</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -419,7 +409,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="create app" />
     <MESSAGE value="config stop when hide app" />
     <MESSAGE value="update git ignore" />
     <MESSAGE value="update aaaa" />
@@ -444,6 +433,7 @@
     <MESSAGE value="random position click to like person" />
     <MESSAGE value="random time click to like person" />
     <MESSAGE value="add scroll event" />
-    <option name="LAST_COMMIT_MESSAGE" value="add scroll event" />
+    <MESSAGE value="add move mouse event" />
+    <option name="LAST_COMMIT_MESSAGE" value="add move mouse event" />
   </component>
 </project>

@@ -25,6 +25,8 @@ public class MainFrame extends CFrame {
 
     private final JButton addScrollBtn = new CButton("Add Scroll");
 
+    private final JButton addDADBtn = new CButton("Add DAD");
+
     private final JButton startBtn = new CButton("Start-(F7)");
 
     private final JButton stopBtn = new CButton("Stop-(F8)");
