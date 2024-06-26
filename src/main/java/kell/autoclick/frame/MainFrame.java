@@ -14,7 +14,7 @@ import java.awt.*;
 public class MainFrame extends CFrame {
 
 //    Label
-    private final JLabel repeatTimesLabel = new JLabel("Repeat times: ", JLabel.RIGHT);
+    private final JLabel repeatTimesLabel = new JLabel("Repeat times: ", SwingConstants.RIGHT);
 
     public final JTextField repeatTimesTxt = new JTextField(8);
 
@@ -73,6 +73,6 @@ public class MainFrame extends CFrame {
         frame.getContentPane().add(loopPanel);
 
         frame.getContentPane().requestFocus();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 }
