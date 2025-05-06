@@ -279,9 +279,9 @@ public class AutoClicker {
         if (MAIN_FRAME.getTableItems().getTable().getSelectedRows().length < 1) {
             String msg;
             if (MAIN_FRAME.getTableItems().getListItems().isEmpty()) {
-                msg = "Fuck you, list is empty";
+                msg = "No data selected";
             } else {
-                msg = "Fuck you, select row to delete";
+                msg = "Select row to delete";
             }
             changeFrame(false, msg);
 
@@ -292,7 +292,7 @@ public class AutoClicker {
     public void startClick() {
         if (!MAIN_FRAME.getTableItems().getListItems().isEmpty()) {
             if (!infinite && ("").equals(MAIN_FRAME.getRepeatTimesTxt().getText())) {
-                changeFrame(false, "Fuck you. Enter repeat times");
+                changeFrame(false, "Enter repeat times");
             } else if (infinite) {
                 MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
                 MAIN_FRAME.getFrame().setEnabled(false);
@@ -304,8 +304,11 @@ public class AutoClicker {
                 String input = MAIN_FRAME.getRepeatTimesTxt().getText();
                 try {
                     repeatTimes = Integer.parseInt(input);
+                    if (repeatTimes < 1){
+                        changeFrame(false, "Enter a number larger than 0");
+                    }
                 } catch (NumberFormatException ex) {
-                    changeFrame(false, "Fuck you. Enter a valid integer");
+                    changeFrame(false, "Enter a valid integer");
                 }
                 if (repeatTimes > 0) {
                     MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
@@ -316,7 +319,7 @@ public class AutoClicker {
                 }
             }
         } else {
-            changeFrame(false, "Fuck, add position");
+            changeFrame(false, "OOP, add position");
         }
     }
 
@@ -343,6 +346,7 @@ public class AutoClicker {
                             lock.wait(item.getNextTime() + random.nextInt(10) * 10);
                         }
                         repeatTimes--;
+                        MAIN_FRAME.getRepeatTimesTxt().setText(String.valueOf(repeatTimes));
                     }
                     stopClick();
                 }
@@ -555,7 +559,7 @@ public class AutoClicker {
     private void addPressKey() {
         String input = ADD_PRESS_FRAME.getKeyTxt().getText();
         if(input.isEmpty()) {
-            changeFrame(false, "Fuck, add key");
+            changeFrame(false, "OOP, add key");
             return;
         }
         int keyCode = KeyEvent.getExtendedKeyCodeForChar(input.charAt(0));
@@ -571,7 +575,7 @@ public class AutoClicker {
     private void addScrollEvent() {
         String input = ADD_SCROLL_FRAME.getWheelAmtTxt().getText();
         if(input.isEmpty()) {
-            changeFrame(false, "Fuck, add wheel amt");
+            changeFrame(false, "OOP, add wheel amt");
             return;
         }
         int nextTime = Integer.parseInt(ADD_SCROLL_FRAME.getNextTimeTxt().getText());
@@ -634,7 +638,7 @@ public class AutoClicker {
 
     private void saveData() {
         if (MAIN_FRAME.getTableItems().getListItems().isEmpty()) {
-            changeFrame(false, "Fuck you, list is empty");
+            changeFrame(false, "OOP, list is empty");
         } else {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -686,7 +690,7 @@ public class AutoClicker {
                     String[] parts = line.split("\\|");
                     if (parts.length > 0) {
                         if (convertStringToInt(parts[0]) < 0 || convertStringToInt(parts[2]) < 0 || convertStringToInt(parts[3]) < 0 || convertStringToInt(parts[4]) < 0) {
-                            changeFrame(false, "fuk you, data is invalid");
+                            changeFrame(false, "OOP, data is invalid");
                             return;
                         }
                         int typeEvent = convertStringToInt(parts[0]);
