@@ -5,9 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="create dad event">
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CDialog.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddCommentFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemComment.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CButton.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddDADFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddDADFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPointFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPointFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPressKeyFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPressKeyFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddScrollFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddScrollFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MessageFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MessageFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/GlobalConst.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/GlobalConst.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/Item.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/Item.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemClick.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemClick.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemDAD.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemDAD.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemPress.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemPress.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TableItems.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TableItems.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,12 +64,12 @@
     <option name="currentCommit" value="1" />
     <option name="onto" value="6ffe53bb58cfc8bdc19d5286f743cb6e2936a51c" />
   </component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/ds-kell/kell-auto-clicker.git",
-    "accountId": "32dde2d5-deff-4aaa-b558-84944aa68b37"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/ds-kell/kell-auto-clicker.git&quot;,
+    &quot;accountId&quot;: &quot;32dde2d5-deff-4aaa-b558-84944aa68b37&quot;
   }
-}]]></component>
+}</component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -59,7 +77,6 @@
   &quot;associatedIndex&quot;: 1
 }</component>
   <component name="ProjectId" id="2dtJSGqFa4IDD7mXA4PxUqGHvQF" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -80,7 +97,7 @@
     "UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/eclipse_wp/Osakafukei/ebunsyomigrate",
+    "last_opened_file_path": "D:/DEV/kell/kell-auto-clicker",
     "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",
@@ -119,6 +136,13 @@
         <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.31033.145" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">

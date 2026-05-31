@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -5,55 +6,43 @@
 
     <groupId>kell.autoclick</groupId>
     <artifactId>auto-clicker</artifactId>
-    <version>4.1-SNAPSHOT</version>
+    <version>5.0</version>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>com.1stleg</groupId>
+            <groupId>com.github.kwhat</groupId>
             <artifactId>jnativehook</artifactId>
-            <version>2.0.2</version>
+            <version>2.2.2</version>
         </dependency>
         <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-java</artifactId>
-            <version>4.19.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.32</version>
-            <scope>provided</scope>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Plugin to create a jar file -->
+            <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>kell.autoclick.Main</mainClass>
-                        </manifest>
-                    </archive>
+                    <release>11</release>
                 </configuration>
             </plugin>
 
-            <!-- Plugin to create an executable jar with dependencies -->
+            <!-- Fat JAR with all dependencies -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.6.0</version>
                 <configuration>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -62,20 +51,34 @@
                         <manifest>
                             <mainClass>kell.autoclick.Main</mainClass>
                         </manifest>
+                        <manifestEntries>
+                            <!-- Required for jnativehook on JDK 17+ -->
+                            <Add-Opens>java.base/java.lang=ALL-UNNAMED</Add-Opens>
+                        </manifestEntries>
                     </archive>
+                    <finalName>auto-clicker</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
                 <executions>
                     <execution>
                         <id>make-assembly</id>
                         <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
+                        <goals><goal>single</goal></goals>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- Plugin to create an executable exe -->
+            <!--
+                Launch4j wraps the fat JAR into a Windows .exe.
+                To bundle a JRE so the app runs WITHOUT Java installed:
+                  1. Download a JRE (e.g. Eclipse Temurin 11 JRE for Windows x64)
+                  2. Extract it to a folder, e.g. "jre" next to pom.xml
+                  3. Set <path> below to that folder (relative to project root)
+                  4. Distribute the exe + the jre folder together
+
+                If you want a fully self-contained single exe, use jpackage (JDK 14+)
+                or GraalVM native-image instead.
+            -->
             <plugin>
                 <groupId>com.akathist.maven.plugins.launch4j</groupId>
                 <artifactId>launch4j-maven-plugin</artifactId>
@@ -84,31 +87,38 @@
                     <execution>
                         <id>l4j-clui</id>
                         <phase>package</phase>
-                        <goals>
-                            <goal>launch4j</goal>
-                        </goals>
+                        <goals><goal>launch4j</goal></goals>
                         <configuration>
                             <icon>src/main/resources/static/images/click_pointer.ico</icon>
                             <headerType>gui</headerType>
                             <outfile>target/auto-clicker.exe</outfile>
-                            <jar>target/auto-clicker-4.1-SNAPSHOT-jar-with-dependencies.jar</jar>
+                            <jar>target/auto-clicker.jar</jar>
                             <classPath>
                                 <mainClass>kell.autoclick.Main</mainClass>
                             </classPath>
                             <jre>
-                                <minVersion>1.8.0</minVersion>
-                                <requiresJdk>preferJre</requiresJdk>
+                                <!--
+                                    Bundled JRE path (relative to the exe location at runtime).
+                                    If the folder doesn't exist, Launch4j falls back to system Java.
+                                    Set this to "jre" and ship a JRE folder next to the exe.
+                                -->
+                                <path>./jre</path>
+                                <minVersion>11</minVersion>
+                                <requiresJdk>false</requiresJdk>
+                                <opts>
+                                    <opt>--enable-native-access=ALL-UNNAMED</opt>
+                                </opts>
                             </jre>
                             <versionInfo>
-                                <fileVersion>1.1.0.0</fileVersion>
-                                <txtFileVersion>1.1.0.0</txtFileVersion>
-                                <fileDescription>Auto Clicker</fileDescription>
+                                <fileVersion>5.0.0.0</fileVersion>
+                                <txtFileVersion>5.0.0.0</txtFileVersion>
+                                <fileDescription>Kell Auto Clicker</fileDescription>
                                 <copyright>Copyright 2024</copyright>
-                                <productVersion>1.1.0.0</productVersion>
-                                <txtProductVersion>1.1.0.0</txtProductVersion>
-                                <productName>Auto Clicker</productName>
+                                <productVersion>5.0.0.0</productVersion>
+                                <txtProductVersion>5.0.0.0</txtProductVersion>
+                                <productName>Kell Auto Clicker</productName>
                                 <internalName>auto-clicker</internalName>
-                                <originalFilename>Auto-clicker.exe</originalFilename>
+                                <originalFilename>auto-clicker.exe</originalFilename>
                             </versionInfo>
                         </configuration>
                     </execution>

@@ -2,35 +2,45 @@ package kell.autoclick.frame;
 
 import kell.autoclick.custom.CButton;
 import kell.autoclick.custom.CFrame;
-import lombok.Getter;
-import lombok.Setter;
 
 import javax.swing.*;
 import java.awt.*;
 
-@Getter
-@Setter
+/**
+ * Simple message popup — uses JFrame (not JDialog) so it never blocks EDT.
+ * Main frame is disabled via setEnabled(false) while this is visible.
+ */
 public class MessageFrame extends CFrame {
 
-    public final JLabel messageLabel = new JLabel();
+    private static final Font UI_FONT = new Font("Segoe UI", Font.BOLD, 13);
 
-    private final JButton confirmBtn = new CButton("OK");
+    public  final JLabel  messageLabel = new JLabel("", SwingConstants.CENTER);
+    private final JButton confirmBtn   = new CButton("OK");
 
-    public MessageFrame(){
-        super(200, 100);
+    public MessageFrame() {
+        super(300, 120);
         frame.setUndecorated(true);
     }
 
     public void init() {
-        messageLabel.setHorizontalAlignment(JLabel.CENTER);
-        Font unBoldFont=new Font(messageLabel.getFont().getName(), Font.PLAIN, messageLabel.getFont().getSize());
-        messageLabel.setFont(unBoldFont);
-        confirmBtn.setSize(80, 20);
+        messageLabel.setFont(UI_FONT);
+        messageLabel.setFocusable(false);
+        messageLabel.setBorder(BorderFactory.createEmptyBorder(8, 12, 4, 12));
 
-        JPanel msgPanel = new JPanel(new BorderLayout());
-        msgPanel.add(messageLabel, BorderLayout.CENTER);
-        msgPanel.add(confirmBtn, BorderLayout.SOUTH);
+        JPanel root = new JPanel(new BorderLayout(0, 6));
+        root.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(0x99, 0x99, 0x99)),
+            BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+        root.add(messageLabel, BorderLayout.CENTER);
+
+        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        btnRow.add(confirmBtn);
+        root.add(btnRow, BorderLayout.SOUTH);
+
         frame.getContentPane().setLayout(new BorderLayout());
-        frame.getContentPane().add(msgPanel, BorderLayout.CENTER);
+        frame.getContentPane().add(root, BorderLayout.CENTER);
     }
+
+    public JLabel  getMessageLabel() { return messageLabel; }
+    public JButton getConfirmBtn()   { return confirmBtn; }
 }

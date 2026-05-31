@@ -2,72 +2,24 @@ package kell.autoclick.custom;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 
 public class CButton extends JButton {
-    public CButton(String name) {
-        super(name);
+
+    private static final Font UI_FONT   = new Font("Segoe UI", Font.PLAIN, 13);
+    private static final int  BTN_HEIGHT = 28;
+
+    public CButton(String text) {
+        super(text);
+        setFont(UI_FONT);
         setFocusPainted(false);
-
-        Dimension size = new Dimension(getPreferredSize().width, 25);
-        setPreferredSize(size);
-        setMinimumSize(size);
-        setMaximumSize(size);
-
-        Color oldBg = getBackground();
-        addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-//                setBackground(Color.GREEN);
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-//                setBackground(oldBg);
-            }
-        });
+        Dimension pref = getPreferredSize();
+        setPreferredSize(new Dimension(pref.width + 10, BTN_HEIGHT));
     }
 
-    public CButton(String name, int width, int height) {
-        super(name);
+    public CButton(String text, int width, int height) {
+        super(text);
+        setFont(UI_FONT);
         setFocusPainted(false);
-
-        Dimension size = new Dimension(width, height);
-        setPreferredSize(size);
-        setMinimumSize(size);
-        setMaximumSize(size);
-
-        Color oldBg = getBackground();
-        addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-            }
-        });
-    }
-
-    public CButton(String name, int width) {
-        super(name);
-        setFocusPainted(false);
-
-        Dimension size = new Dimension(width, 25);
-        setPreferredSize(size);
-        setMinimumSize(size);
-        setMaximumSize(size);
-
-        Color oldBg = getBackground();
-        addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-            }
-        });
+        setPreferredSize(new Dimension(width, height));
     }
 }

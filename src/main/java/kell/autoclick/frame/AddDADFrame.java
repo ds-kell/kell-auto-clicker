@@ -1,67 +1,76 @@
 package kell.autoclick.frame;
 
 import kell.autoclick.custom.CButton;
-import kell.autoclick.custom.CFrame;
-import lombok.Getter;
-import lombok.Setter;
+import kell.autoclick.custom.CDialog;
 
 import javax.swing.*;
 import java.awt.*;
 
-@Getter
-@Setter
-public class AddDADFrame extends CFrame {
+public class AddDADFrame extends CDialog {
 
-    private final  JPanel labelPanel = new JPanel();
+    public  final JTextField nextTimeTxt = input(6);
+    private final JLabel     fromLabel   = new JLabel("Start: (not set)");
+    private final JLabel     toLabel     = new JLabel("End:   (not set)");
+    private final JButton    fromBtn     = new CButton("Pick Start");
+    private final JButton    toBtn       = new CButton("Pick End");
+    private final JButton    addBtn      = new CButton("Add");
+    private final JButton    cancelBtn   = new CButton("Cancel");
 
-    private final JLabel titleLabel = new JLabel("Add DAD Event", JLabel.CENTER);
+    private int fromX = -1, fromY = -1, toX = -1, toY = -1;
 
-    private final JLabel nextTimeLabel = new JLabel("Time to next: ", JLabel.RIGHT);
-
-    public final JTextField nextTimeTxt = new JTextField(8);
-
-    private final JButton fromBtn = new CButton("From", 100, 50);
-
-    private final JButton toBtn = new CButton("To", 100, 50);
-
-    private final JButton addBtn = new CButton("Add");
-
-    private final JButton cancelBtn = new CButton("Cancel");
-
-    public AddDADFrame(){
-        super(300, 300);
-    }
-
-    public void init(){
-        frame.setTitle("Add DAD Event");
-
+    public AddDADFrame(JFrame owner) {
+        super(owner, "Add Drag & Drop Action", 360, 280);
         nextTimeTxt.setText("500");
 
-        JPanel addPressPanel = new JPanel();
-        addPressPanel.setLayout(new BoxLayout(addPressPanel, BoxLayout.Y_AXIS));
-        JPanel labelPanel = new JPanel();
-        labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.Y_AXIS));
-        JPanel fieldPanel = new JPanel();
-        fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
-        addPressPanel.setLayout(new BoxLayout(addPressPanel, BoxLayout.Y_AXIS));
+        fromLabel.setFont(FONT_LABEL);
+        fromLabel.setFocusable(false);
+        toLabel.setFont(FONT_LABEL);
+        toLabel.setFocusable(false);
 
-        addPressPanel.add(createRow(titleLabel));
+        JPanel pickPanel = new JPanel(new GridBagLayout());
+        pickPanel.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+        GridBagConstraints bc = new GridBagConstraints();
+        bc.insets = new Insets(4, 4, 4, 8);
+        bc.anchor = GridBagConstraints.LINE_START;
 
-        labelPanel.add(createRow(nextTimeLabel));
+        bc.gridx = 0; bc.gridy = 0; pickPanel.add(fromBtn, bc);
+        bc.gridx = 1; bc.gridy = 0; bc.weightx = 1; pickPanel.add(fromLabel, bc);
+        bc.gridx = 0; bc.gridy = 1; bc.weightx = 0; pickPanel.add(toBtn, bc);
+        bc.gridx = 1; bc.gridy = 1; bc.weightx = 1; pickPanel.add(toLabel, bc);
 
-        fieldPanel.add(createRow(nextTimeTxt));
+        JPanel root = new JPanel(new BorderLayout(0, 6));
+        root.setBorder(BorderFactory.createEmptyBorder(12, 12, 10, 12));
+        root.add(title("Add Drag & Drop Action"), BorderLayout.NORTH);
 
-        addPressPanel.add(createRow(labelPanel, fieldPanel));
-        addPressPanel.add(createRow(cancelBtn, addBtn));
+        JPanel center = new JPanel(new BorderLayout(0, 4));
+        center.add(formPanel(label("Delay after (ms):"), nextTimeTxt), BorderLayout.NORTH);
+        center.add(pickPanel, BorderLayout.CENTER);
+        root.add(center, BorderLayout.CENTER);
+        root.add(btnRow(cancelBtn, addBtn), BorderLayout.SOUTH);
 
-        frame.getContentPane().add(addPressPanel, BorderLayout.CENTER);
+        dialog.getContentPane().add(root);
     }
 
-    private JPanel createRow(JComponent... components) {
-        JPanel rowPanel = new JPanel(new FlowLayout());
-        for (JComponent component : components) {
-            rowPanel.add(component);
-        }
-        return rowPanel;
+    public void resetCoords() {
+        fromX = fromY = toX = toY = -1;
+        fromLabel.setText("Start: (not set)");
+        toLabel.setText("End:   (not set)");
     }
+
+    public boolean isFromSet() { return fromX >= 0; }
+    public boolean isToSet()   { return toX >= 0; }
+
+    public void setFrom(int x, int y) { fromX = x; fromY = y; fromLabel.setText("Start: (" + x + ", " + y + ")"); }
+    public void setTo(int x, int y)   { toX = x;   toY = y;   toLabel.setText("End:   (" + x + ", " + y + ")"); }
+
+    public int getFromX() { return fromX; }
+    public int getFromY() { return fromY; }
+    public int getToX()   { return toX; }
+    public int getToY()   { return toY; }
+
+    public JTextField getNextTimeTxt() { return nextTimeTxt; }
+    public JButton    getFromBtn()     { return fromBtn; }
+    public JButton    getToBtn()       { return toBtn; }
+    public JButton    getAddBtn()      { return addBtn; }
+    public JButton    getCancelBtn()   { return cancelBtn; }
 }

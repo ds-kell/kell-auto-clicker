@@ -1,19 +1,12 @@
 package kell.autoclick.model;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
 public class Item {
 
     protected String name;
-
     protected int pressTime = 0;
-
-    protected int nextTime = 100;
-
+    protected int nextTime  = 100;
     protected int typeEvent = 0;
+    protected String sourceFile = null;
 
     public Item(String name, int typeEvent) {
         this.typeEvent = typeEvent;
@@ -32,4 +25,19 @@ public class Item {
         this.nextTime = nextTime;
         this.typeEvent = typeEvent;
     }
+
+    public String getName()          { return name; }
+    public void   setName(String n)  { this.name = n; }
+
+    public int  getPressTime()       { return pressTime; }
+    public void setPressTime(int t)  { this.pressTime = t; }
+
+    public int  getNextTime()        { return nextTime; }
+    public void setNextTime(int t)   { this.nextTime = t; }
+
+    public int  getTypeEvent()       { return typeEvent; }
+    public void setTypeEvent(int t)  { this.typeEvent = t; }
+
+    public String getSourceFile()          { return sourceFile; }
+    public void   setSourceFile(String sf) { this.sourceFile = sf; }
 }

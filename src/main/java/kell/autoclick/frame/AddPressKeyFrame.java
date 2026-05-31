@@ -1,87 +1,63 @@
 package kell.autoclick.frame;
 
 import kell.autoclick.custom.CButton;
-import kell.autoclick.custom.CFrame;
-import lombok.Getter;
-import lombok.Setter;
+import kell.autoclick.custom.CDialog;
 
 import javax.swing.*;
 import java.awt.*;
 
-@Getter
-@Setter
-public class AddPressKeyFrame extends CFrame {
+public class AddPressKeyFrame extends CDialog {
 
-    private final  JPanel labelPanel = new JPanel();
+    public  final JTextField   keyTxt           = input(6);
+    public  final JTextField   pressTimeTxt     = input(6);
+    public  final JTextField   nextTimeTxt      = input(6);
+    private final JRadioButton isSinglePressRBtn = new JRadioButton("Single press", true);
+    private final JRadioButton isMultiPressRBtn  = new JRadioButton("Hold & repeat", false);
+    private final JButton      addBtn            = new CButton("Add");
+    private final JButton      cancelBtn         = new CButton("Cancel");
+    private boolean isSinglePress = true;
 
-    private final JLabel titleLabel = new JLabel("Add press key", JLabel.CENTER);
-
-    private final JLabel keyLabel = new JLabel("Press Key: ", JLabel.RIGHT);
-
-    public final JTextField keyTxt = new JTextField(8);
-
-    private final JLabel pressTimeLabel = new JLabel("Press time: ", JLabel.RIGHT);
-
-    public final JTextField pressTimeTxt = new JTextField(8);
-
-    private final JLabel nextTimeLabel = new JLabel("Time to next: ", JLabel.RIGHT);
-
-    public final JTextField nextTimeTxt = new JTextField(8);
-
-    private Boolean isSinglePress;
-
-    private final JRadioButton isMultiPressRBtn = new JRadioButton("Multi");
-
-    private final JRadioButton isSinglePressRBtn = new JRadioButton("Single");
-
-    private final JButton addBtn = new CButton("Add");
-
-    private final JButton cancelBtn = new CButton("Cancel");
-
-    public AddPressKeyFrame(){
-        super(300, 300);
-    }
-
-    public void init(){
-        frame.setTitle("Add Key Press");
-//        frame.setUndecorated(true);
-
-        isSinglePress = true;
-        isMultiPressRBtn.setSelected(false);
-        isSinglePressRBtn.setSelected(true);
-        nextTimeTxt.setText("500");
+    public AddPressKeyFrame(JFrame owner) {
+        super(owner, "Add Key Press Action", 340, 280);
         pressTimeTxt.setText("100");
+        nextTimeTxt.setText("500");
 
-        JPanel addPressPanel = new JPanel();
-        addPressPanel.setLayout(new BoxLayout(addPressPanel, BoxLayout.Y_AXIS));
-        JPanel labelPanel = new JPanel();
-        labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.Y_AXIS));
-        JPanel fieldPanel = new JPanel();
-        fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
-        addPressPanel.setLayout(new BoxLayout(addPressPanel, BoxLayout.Y_AXIS));
+        ButtonGroup bg = new ButtonGroup();
+        bg.add(isSinglePressRBtn);
+        bg.add(isMultiPressRBtn);
+        isSinglePressRBtn.setFont(FONT_LABEL);
+        isSinglePressRBtn.setFocusable(false);
+        isMultiPressRBtn.setFont(FONT_LABEL);
+        isMultiPressRBtn.setFocusable(false);
 
-        addPressPanel.add(createRow(titleLabel));
+        JPanel radioRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 2));
+        radioRow.add(isSinglePressRBtn);
+        radioRow.add(isMultiPressRBtn);
 
-        labelPanel.add(createRow(keyLabel));
-        labelPanel.add(createRow(pressTimeLabel));
-        labelPanel.add(createRow(nextTimeLabel));
+        JPanel root = new JPanel(new BorderLayout(0, 6));
+        root.setBorder(BorderFactory.createEmptyBorder(12, 12, 10, 12));
+        root.add(title("Add Key Press Action"), BorderLayout.NORTH);
 
-        fieldPanel.add(createRow(keyTxt));
-        fieldPanel.add(createRow(pressTimeTxt));
-        fieldPanel.add(createRow(nextTimeTxt));
+        JPanel center = new JPanel(new BorderLayout(0, 4));
+        center.add(formPanel(
+            label("Key:"),               keyTxt,
+            label("Hold duration (ms):"), pressTimeTxt,
+            label("Delay after (ms):"),   nextTimeTxt
+        ), BorderLayout.CENTER);
+        center.add(radioRow, BorderLayout.SOUTH);
+        root.add(center, BorderLayout.CENTER);
+        root.add(btnRow(cancelBtn, addBtn), BorderLayout.SOUTH);
 
-        addPressPanel.add(createRow(labelPanel, fieldPanel));
-        addPressPanel.add(createRow(isSinglePressRBtn, isMultiPressRBtn));
-        addPressPanel.add(createRow(cancelBtn, addBtn));
-
-        frame.getContentPane().add(addPressPanel, BorderLayout.CENTER);
+        dialog.getContentPane().add(root);
     }
 
-    private JPanel createRow(JComponent... components) {
-        JPanel rowPanel = new JPanel(new FlowLayout());
-        for (JComponent component : components) {
-            rowPanel.add(component);
-        }
-        return rowPanel;
-    }
+    public JTextField   getKeyTxt()            { return keyTxt; }
+    public JTextField   getPressTimeTxt()      { return pressTimeTxt; }
+    public JTextField   getNextTimeTxt()       { return nextTimeTxt; }
+    public JRadioButton getIsSinglePressRBtn() { return isSinglePressRBtn; }
+    public JRadioButton getIsMultiPressRBtn()  { return isMultiPressRBtn; }
+    public JButton      getAddBtn()            { return addBtn; }
+    public JButton      getCancelBtn()         { return cancelBtn; }
+    public boolean      getIsSinglePress()     { return isSinglePress; }
+    public void         setIsSinglePress(boolean b) { this.isSinglePress = b; }
 }
