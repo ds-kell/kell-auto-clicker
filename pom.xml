@@ -26,6 +26,14 @@
             Override these on the command line if you need a specific version.
         -->
         <jre.win.url>https://api.adoptium.net/v3/binary/latest/25/ga/windows/x64/jre/hotspot/normal/eclipse?project=jdk</jre.win.url>
+
+        <!--
+            Modules our app actually uses. Detected by running:
+              jdeps print-module-deps multi-release 25 ignore-missing-deps target/auto-clicker.jar
+            Re-run when adding a new dependency that pulls in extra JDK APIs.
+        -->
+        <jlink.modules>java.base,java.compiler,java.desktop,java.management,java.sql</jlink.modules>
+        <jlink.image.dir>${project.build.directory}/runtime-image</jlink.image.dir>
     </properties>
 
     <dependencies>
@@ -225,7 +233,7 @@
             </build>
         </profile>
 
-        <!-- ───────── macOS: build .app and .dmg via jpackage ───────── -->
+        <!-- ───────── macOS: jlink slim runtime + jpackage .app/.dmg ───────── -->
         <profile>
             <id>mac</id>
             <activation>
@@ -238,6 +246,23 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <version>3.5.0</version>
                         <executions>
+                            <!--
+                                jlink: build a stripped-down JRE that contains
+                                only the modules we actually use. Cuts the bundled
+                                runtime from ~180MB (full JDK) to ~50MB.
+                            -->
+                            <execution>
+                                <id>jlink-mac-runtime</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>sh</executable>
+                                    <arguments>
+                                        <argument>-c</argument>
+                                        <argument>rm -rf "${jlink.image.dir}" "${project.build.directory}/jpackage-input" &amp;&amp; jlink --add-modules ${jlink.modules} --output "${jlink.image.dir}" --strip-debug --no-header-files --no-man-pages --compress=zip-6 &amp;&amp; mkdir -p "${project.build.directory}/jpackage-input" &amp;&amp; cp "${project.build.directory}/auto-clicker.jar" "${project.build.directory}/jpackage-input/"</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
                             <execution>
                                 <id>jpackage-mac-app-image</id>
                                 <phase>package</phase>
@@ -249,9 +274,10 @@
                                         <argument>--name</argument><argument>${app.name}</argument>
                                         <argument>--app-version</argument><argument>${project.version}</argument>
                                         <argument>--vendor</argument><argument>${app.vendor}</argument>
-                                        <argument>--input</argument><argument>${project.build.directory}</argument>
+                                        <argument>--input</argument><argument>${project.build.directory}/jpackage-input</argument>
                                         <argument>--main-jar</argument><argument>auto-clicker.jar</argument>
                                         <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                        <argument>--runtime-image</argument><argument>${jlink.image.dir}</argument>
                                         <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
                                         <argument>--java-options</argument><argument>--enable-native-access=ALL-UNNAMED</argument>
                                     </arguments>
@@ -268,9 +294,10 @@
                                         <argument>--name</argument><argument>${app.name}</argument>
                                         <argument>--app-version</argument><argument>${project.version}</argument>
                                         <argument>--vendor</argument><argument>${app.vendor}</argument>
-                                        <argument>--input</argument><argument>${project.build.directory}</argument>
+                                        <argument>--input</argument><argument>${project.build.directory}/jpackage-input</argument>
                                         <argument>--main-jar</argument><argument>auto-clicker.jar</argument>
                                         <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                        <argument>--runtime-image</argument><argument>${jlink.image.dir}</argument>
                                         <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
                                         <argument>--java-options</argument><argument>--enable-native-access=ALL-UNNAMED</argument>
                                     </arguments>
@@ -282,7 +309,7 @@
             </build>
         </profile>
 
-        <!-- ───────── Windows host: also build app-image / .msi via jpackage ───────── -->
+        <!-- ───────── Windows host: jlink + jpackage app-image / .msi ───────── -->
         <profile>
             <id>windows</id>
             <activation>
@@ -295,6 +322,22 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <version>3.5.0</version>
                         <executions>
+                            <!--
+                                jlink: stripped-down JRE for Windows. Same idea as
+                                macOS but uses cmd.exe so it works on Windows hosts.
+                            -->
+                            <execution>
+                                <id>jlink-win-runtime</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>cmd</executable>
+                                    <arguments>
+                                        <argument>/c</argument>
+                                        <argument>if exist "${jlink.image.dir}" rmdir /s /q "${jlink.image.dir}" &amp; if exist "${project.build.directory}\jpackage-input" rmdir /s /q "${project.build.directory}\jpackage-input" &amp; jlink --add-modules ${jlink.modules} --output "${jlink.image.dir}" --strip-debug --no-header-files --no-man-pages --compress=zip-6 &amp; mkdir "${project.build.directory}\jpackage-input" &amp; copy "${project.build.directory}\auto-clicker.jar" "${project.build.directory}\jpackage-input\"</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
                             <execution>
                                 <id>jpackage-win-app-image</id>
                                 <phase>package</phase>
@@ -306,9 +349,10 @@
                                         <argument>--name</argument><argument>${app.name}</argument>
                                         <argument>--app-version</argument><argument>${project.version}</argument>
                                         <argument>--vendor</argument><argument>${app.vendor}</argument>
-                                        <argument>--input</argument><argument>${project.build.directory}</argument>
+                                        <argument>--input</argument><argument>${project.build.directory}/jpackage-input</argument>
                                         <argument>--main-jar</argument><argument>auto-clicker.jar</argument>
                                         <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                        <argument>--runtime-image</argument><argument>${jlink.image.dir}</argument>
                                         <argument>--icon</argument><argument>${app.icon.win}</argument>
                                         <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
                                         <argument>--java-options</argument><argument>--enable-native-access=ALL-UNNAMED</argument>
@@ -326,9 +370,10 @@
                                         <argument>--name</argument><argument>${app.name}</argument>
                                         <argument>--app-version</argument><argument>${project.version}</argument>
                                         <argument>--vendor</argument><argument>${app.vendor}</argument>
-                                        <argument>--input</argument><argument>${project.build.directory}</argument>
+                                        <argument>--input</argument><argument>${project.build.directory}/jpackage-input</argument>
                                         <argument>--main-jar</argument><argument>auto-clicker.jar</argument>
                                         <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                        <argument>--runtime-image</argument><argument>${jlink.image.dir}</argument>
                                         <argument>--icon</argument><argument>${app.icon.win}</argument>
                                         <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
                                         <argument>--win-shortcut</argument>
