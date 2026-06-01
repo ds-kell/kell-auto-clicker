@@ -1,5 +1,7 @@
 package kell.autoclick.model;
 
+import kell.autoclick.contants.GlobalConst;
+
 public class ItemPress extends Item {
 
     private int     keyCode;

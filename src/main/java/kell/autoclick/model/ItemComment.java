@@ -1,5 +1,7 @@
 package kell.autoclick.model;
 
+import kell.autoclick.contants.GlobalConst;
+
 /**
  * A comment row — displayed in the table but skipped during execution.
  * The name field stores the full comment text (including the leading '#').

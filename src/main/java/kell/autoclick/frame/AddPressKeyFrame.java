@@ -1,16 +1,25 @@
 package kell.autoclick.frame;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+
 import kell.autoclick.custom.CButton;
 import kell.autoclick.custom.CDialog;
-
-import javax.swing.*;
-import java.awt.*;
+import kell.autoclick.custom.CDigitField;
+import kell.autoclick.custom.CTextField;
 
 public class AddPressKeyFrame extends CDialog {
 
-    public  final JTextField   keyTxt           = input(6);
-    public  final JTextField   pressTimeTxt     = input(6);
-    public  final JTextField   nextTimeTxt      = input(6);
+    public  final CTextField   keyTxt            = textInput(6);
+    public  final CDigitField  pressTimeTxt      = digitInput(6);
+    public  final CDigitField  nextTimeTxt       = digitInput(6);
     private final JRadioButton isSinglePressRBtn = new JRadioButton("Single press", true);
     private final JRadioButton isMultiPressRBtn  = new JRadioButton("Hold & repeat", false);
     private final JButton      addBtn            = new CButton("Add");
@@ -40,9 +49,9 @@ public class AddPressKeyFrame extends CDialog {
 
         JPanel center = new JPanel(new BorderLayout(0, 4));
         center.add(formPanel(
-            label("Key:"),               keyTxt,
+            label("Key:"),                keyTxt,
             label("Hold duration (ms):"), pressTimeTxt,
-            label("Delay after (ms):"),   nextTimeTxt
+            label("Pause after (ms):"),   nextTimeTxt
         ), BorderLayout.CENTER);
         center.add(radioRow, BorderLayout.SOUTH);
         root.add(center, BorderLayout.CENTER);
@@ -51,9 +60,9 @@ public class AddPressKeyFrame extends CDialog {
         dialog.getContentPane().add(root);
     }
 
-    public JTextField   getKeyTxt()            { return keyTxt; }
-    public JTextField   getPressTimeTxt()      { return pressTimeTxt; }
-    public JTextField   getNextTimeTxt()       { return nextTimeTxt; }
+    public CTextField   getKeyTxt()            { return keyTxt; }
+    public CDigitField  getPressTimeTxt()      { return pressTimeTxt; }
+    public CDigitField  getNextTimeTxt()       { return nextTimeTxt; }
     public JRadioButton getIsSinglePressRBtn() { return isSinglePressRBtn; }
     public JRadioButton getIsMultiPressRBtn()  { return isMultiPressRBtn; }
     public JButton      getAddBtn()            { return addBtn; }

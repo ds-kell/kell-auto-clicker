@@ -1,5 +1,7 @@
 package kell.autoclick.model;
 
+import kell.autoclick.contants.GlobalConst;
+
 public class ItemDAD extends Item {
 
     private int xAxis1, yAxis1, xAxis2, yAxis2;

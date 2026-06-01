@@ -1,7 +1,21 @@
 package kell.autoclick.custom;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Toolkit;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 /**
  * Base class for all popup dialogs.
@@ -40,6 +54,20 @@ public class CDialog {
         JTextField f = new JTextField(cols);
         f.setFont(FONT_INPUT);
         f.setHorizontalAlignment(JTextField.RIGHT);
+        f.setPreferredSize(new Dimension(INPUT_W, INPUT_H));
+        return f;
+    }
+
+    /** Digit-only input. Caller can wire {@link CDigitField#setOnInvalid}. */
+    protected CDigitField digitInput(int cols) {
+        var f = new CDigitField(cols);
+        f.setPreferredSize(new Dimension(INPUT_W, INPUT_H));
+        return f;
+    }
+
+    /** Free-text input (digits + letters). */
+    protected CTextField textInput(int cols) {
+        var f = new CTextField(cols);
         f.setPreferredSize(new Dimension(INPUT_W, INPUT_H));
         return f;
     }

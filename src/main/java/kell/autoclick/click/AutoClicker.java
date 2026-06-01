@@ -1,23 +1,66 @@
 package kell.autoclick.click;
 
-import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
-import kell.autoclick.frame.*;
-import kell.autoclick.model.*;
+import java.awt.AWTException;
+import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.MouseInfo;
+import java.awt.PopupMenu;
+import java.awt.Robot;
+import java.awt.SystemTray;
+import java.awt.Toolkit;
+import java.awt.TrayIcon;
+import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Vector;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.lang.reflect.Type;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.*;
+import kell.autoclick.contants.GlobalConst;
+import kell.autoclick.frame.AddCommentFrame;
+import kell.autoclick.frame.AddDADFrame;
+import kell.autoclick.frame.AddPointFrame;
+import kell.autoclick.frame.AddPressKeyFrame;
+import kell.autoclick.frame.AddScrollFrame;
+import kell.autoclick.frame.MainFrame;
+import kell.autoclick.frame.MessageFrame;
+import kell.autoclick.model.Item;
+import kell.autoclick.model.ItemClick;
+import kell.autoclick.model.ItemComment;
+import kell.autoclick.model.ItemDAD;
+import kell.autoclick.model.ItemPress;
 
 public class AutoClicker {
 
@@ -47,6 +90,12 @@ public class AutoClicker {
 
     private static final Logger LOG = Logger.getLogger(AutoClicker.class.getName());
 
+    private static final boolean IS_WINDOWS =
+            System.getProperty("os.name", "").toLowerCase().contains("win");
+
+    /** Tray icon used to hide/restore the window while clicking on Windows. */
+    private TrayIcon trayIcon;
+
     // ── Gson (JSON serialization) ─────────────────────────────────────────────
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
@@ -62,26 +111,39 @@ public class AutoClicker {
         ADD_SCROLL_FRAME  = new AddScrollFrame(owner);
         ADD_DAD_FRAME     = new AddDADFrame(owner);
         ADD_COMMENT_FRAME = new AddCommentFrame(owner);
-        MSG_FRAME.init();
+        MSG_FRAME.initWithOwner(owner);
         MAIN_FRAME.getFrame().setVisible(true);
     }
 
     public void start() {
         eventListener();
         tableListener();
+        // Always wire the in-window F7/F8 fallback BEFORE attempting the
+        // global native hook. If the native hook fails (Windows AV, macOS
+        // Accessibility not granted, etc.), users still have the hotkeys
+        // when the main window is focused.
+        MAIN_FRAME.setHotkeyHandlers(this::onF7, this::onF8);
         globalKeyListener();
         windowFocus();
+    }
+
+    private void onF7() {
+        if (isStopClick) startClick();
+    }
+
+    private void onF8() {
+        if (!isStopClick) stopClick();
     }
 
     // ── Logger ────────────────────────────────────────────────────────────────
     private void setupFileLogger() {
         try {
-            FileHandler fh = new FileHandler(GlobalConst.LOG_FILE, 5 * 1024 * 1024, 3, true);
+            var fh = new FileHandler(GlobalConst.LOG_FILE, 5 * 1024 * 1024, 3, true);
             fh.setFormatter(new SimpleFormatter());
-            Logger root = Logger.getLogger("");
+            var root = Logger.getLogger("");
             root.addHandler(fh);
             root.setLevel(Level.INFO);
-            Logger.getLogger(GlobalScreen.class.getPackage().getName()).setLevel(Level.OFF);
+            Logger.getLogger(GlobalScreen.class.getPackageName()).setLevel(Level.OFF);
         } catch (IOException e) {
             LOG.warning("Could not set up file logger: " + e.getMessage());
         }
@@ -170,18 +232,19 @@ public class AutoClicker {
             int row = e.getFirstRow();
             int col = e.getColumn();
             if (row < 0 || col < 0) return;
-            java.util.List<Item> items = MAIN_FRAME.getTableItems().getListItems();
+            var items = MAIN_FRAME.getTableItems().getListItems();
             if (row >= items.size()) return;
-            Object data = MAIN_FRAME.getTableItems().getModel().getValueAt(row, col);
+            var data = MAIN_FRAME.getTableItems().getModel().getValueAt(row, col);
             if (data == null) return;
-            Item item = items.get(row);
+            var item = items.get(row);
             try {
                 switch (col) {
-                    case 1: item.setName((String) data); break;          // Action label
-                    case 4: item.setPressTime(Integer.parseInt(((String) data).trim())); break; // Hold
-                    case 5: item.setNextTime(Integer.parseInt(((String) data).trim())); break;  // Delay
+                    case 1 -> item.setName((String) data);                              // Action label
+                    case 4 -> item.setPressTime(Integer.parseInt(((String) data).trim())); // Hold
+                    case 5 -> item.setNextTime(Integer.parseInt(((String) data).trim()));  // Delay
+                    default -> { /* no-op */ }
                 }
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) { /* keep previous value */ }
         });
     }
 
@@ -199,8 +262,17 @@ public class AutoClicker {
     /** EDT only: update UI after stopping. */
     private void stopClickUI() {
         enableInput(true);
-        MAIN_FRAME.getFrame().setVisible(true);
-        MAIN_FRAME.getFrame().setEnabled(true);
+        var f = MAIN_FRAME.getFrame();
+
+        // Restore from tray (Windows). Safe no-op on other platforms.
+        removeTrayIcon();
+        if (!f.isVisible()) {
+            f.setVisible(true);
+        }
+        f.setEnabled(true);
+        f.toFront();
+        f.requestFocus();
+
         MAIN_FRAME.getTableItems().setHighlightRow(-1);
         MAIN_FRAME.setProgressText("Stopped. Done: " + doneCount);
     }
@@ -266,47 +338,114 @@ public class AutoClicker {
             totalRepeat = repeatTimes;
         }
         doneCount = 0;
-        MAIN_FRAME.getFrame().setVisible(!MAIN_FRAME.isHideFrame());
-        MAIN_FRAME.getFrame().setEnabled(false);
+        // Hide-while-running:
+        //   * Windows: hide the JFrame and install a system tray icon. F8 or
+        //     double-click on the tray icon stops and restores the window.
+        //   * macOS: setVisible(false)/setVisible(true) cycle has known
+        //     NSWindow bugs (focus chain breaks, "getApplicationProperty"
+        //     warnings, F8 sometimes auto-closes the restored window). The
+        //     user explicitly accepts those bugs in exchange for the hide
+        //     behavior, so we honor the checkbox here.
+        var f = MAIN_FRAME.getFrame();
+        if (MAIN_FRAME.isHideFrame()) {
+            if (IS_WINDOWS) {
+                installTrayIcon();
+            }
+            f.setVisible(false);
+        }
+        f.setEnabled(false);
         enableInput(false);
         isStopClick = false;
         performClick();
     }
 
+    /**
+     * Install a tray icon (Windows only). Clicking the icon stops the run
+     * and restores the window. The action mirrors F8 / the Stop button.
+     */
+    private void installTrayIcon() {
+        if (trayIcon != null) return; // already installed
+        if (!SystemTray.isSupported()) {
+            LOG.warning("SystemTray not supported on this platform");
+            return;
+        }
+        try {
+            Image image = Toolkit.getDefaultToolkit().createImage(
+                    AutoClicker.class.getResource("/static/images/click_pointer.ico"));
+            // Fallback to a generic image if the resource isn't found.
+            if (image == null) {
+                image = Toolkit.getDefaultToolkit().createImage(new byte[0]);
+            }
+
+            var popup = new PopupMenu();
+            var stopItem = new MenuItem("Stop & Restore");
+            stopItem.addActionListener(e -> stopClick());
+            popup.add(stopItem);
+            var exitItem = new MenuItem("Exit");
+            exitItem.addActionListener(e -> System.exit(0));
+            popup.add(exitItem);
+
+            trayIcon = new TrayIcon(image, "Kell Auto Clicker — running", popup);
+            trayIcon.setImageAutoSize(true);
+            trayIcon.addActionListener(e -> stopClick()); // double-click on Windows
+            SystemTray.getSystemTray().add(trayIcon);
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Failed to install tray icon — keeping window visible", ex);
+            trayIcon = null;
+            MAIN_FRAME.getFrame().setVisible(true);
+        }
+    }
+
+    /** Remove the tray icon if installed. Safe to call any time. */
+    private void removeTrayIcon() {
+        if (trayIcon != null && SystemTray.isSupported()) {
+            try {
+                SystemTray.getSystemTray().remove(trayIcon);
+            } catch (Exception ignored) { /* tray may already be gone */ }
+            trayIcon = null;
+        }
+    }
+
 
     // ── Main click loop ───────────────────────────────────────────────────────
     private void performClick() {
-        Thread clickThread = new Thread(() -> {
+        var clickThread = new Thread(() -> {
             try {
                 synchronized (lock) {
                     // Snapshot the list to avoid ConcurrentModification
-                    List<Item> items = new ArrayList<>(MAIN_FRAME.getTableItems().getListItems());
+                    var items = new ArrayList<>(MAIN_FRAME.getTableItems().getListItems());
                     while (!isStopClick && repeatTimes > 0) {
                         // Time-based stop check
                         if (repeatByTime && System.currentTimeMillis() >= endTimeMs) break;
 
                         for (int i = 0; i < items.size(); i++) {
                             if (isStopClick) break;
-                            if (repeatByTime && System.currentTimeMillis() >= endTimeMs) { isStopClick = true; break; }
+                            if (repeatByTime && System.currentTimeMillis() >= endTimeMs) {
+                                isStopClick = true;
+                                break;
+                            }
 
-                            Item item = items.get(i);
+                            var item = items.get(i);
                             if (item.getTypeEvent() == GlobalConst.EVENT_COMMENT) continue;
 
                             final int rowIdx = i;
                             SwingUtilities.invokeLater(() -> MAIN_FRAME.getTableItems().setHighlightRow(rowIdx));
 
-                            if (item.getTypeEvent() == GlobalConst.EVENT_CLICK) {
-                                clickEvent((ItemClick) item);
-                            } else if (item.getTypeEvent() == GlobalConst.EVENT_PRESS) {
-                                CountDownLatch latch = new CountDownLatch(1);
-                                singlePressEvent((ItemPress) item, latch);
-                                latch.await();
-                            } else if (item.getTypeEvent() == GlobalConst.EVENT_SCROLL) {
-                                performScroll(item);
-                            } else if (item.getTypeEvent() == GlobalConst.EVENT_DAD) {
-                                performDAD((ItemDAD) item);
+                            switch (item) {
+                                case ItemClick click -> clickEvent(click);
+                                case ItemPress press -> {
+                                    var latch = new CountDownLatch(1);
+                                    singlePressEvent(press, latch);
+                                    latch.await();
+                                }
+                                case ItemDAD dad -> performDAD(dad);
+                                default -> {
+                                    if (item.getTypeEvent() == GlobalConst.EVENT_SCROLL) {
+                                        performScroll(item);
+                                    }
+                                }
                             }
-                            lock.wait(item.getNextTime() + random.nextInt(10) * 10);
+                            lock.wait(item.getNextTime() + random.nextInt(10) * 10L);
                         }
 
                         if (!infinite && !repeatByTime) repeatTimes--;
@@ -322,11 +461,11 @@ public class AutoClicker {
                         }
                     }
                     stopClickThreads();
-                    SwingUtilities.invokeLater(AutoClicker.this::stopClickUI);
+                    SwingUtilities.invokeLater(this::stopClickUI);
                 }
             } catch (AWTException | InterruptedException ex) {
                 stopClickThreads();
-                SwingUtilities.invokeLater(AutoClicker.this::stopClickUI);
+                SwingUtilities.invokeLater(this::stopClickUI);
                 LOG.log(Level.SEVERE, "Error in click loop", ex);
             }
         });
@@ -344,12 +483,11 @@ public class AutoClicker {
      * Reuses the smooth-move algorithm from the original code.
      */
     private void clickEvent(ItemClick item) throws AWTException {
-        Robot robot = new Robot();
-        Point cur = MouseInfo.getPointerInfo().getLocation();
-        int startX = cur.x, startY = cur.y;
+        var robot = new Robot();
+        var cur = MouseInfo.getPointerInfo().getLocation();
         int targetX = item.getXAxis(), targetY = item.getYAxis();
 
-        smoothMouseMove(robot, startX, startY, targetX, targetY);
+        smoothMouseMove(robot, cur.x, cur.y, targetX, targetY);
 
         // Small random offset to look human
         robot.mouseMove(targetX + random.nextInt(7) - 3, targetY + random.nextInt(7) - 3);
@@ -363,9 +501,9 @@ public class AutoClicker {
      * DAD: smooth move to From, press, smooth move to To, release.
      */
     private void performDAD(ItemDAD item) throws AWTException {
-        Robot robot = new Robot();
+        var robot = new Robot();
         // Move to start position first
-        Point cur = MouseInfo.getPointerInfo().getLocation();
+        var cur = MouseInfo.getPointerInfo().getLocation();
         smoothMouseMove(robot, cur.x, cur.y, item.getXAxis1(), item.getYAxis1());
 
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
@@ -405,16 +543,21 @@ public class AutoClicker {
     }
 
     private void singlePressEvent(ItemPress item, CountDownLatch latch) {
-        javax.swing.Timer timer = new javax.swing.Timer(item.getPressTime(), e -> {
-            if (isStopClick) { ((javax.swing.Timer) e.getSource()).stop(); latch.countDown(); return; }
+        var timer = new javax.swing.Timer(item.getPressTime(), null);
+        timer.addActionListener(e -> {
+            if (isStopClick) {
+                timer.stop();
+                latch.countDown();
+                return;
+            }
             try {
-                Robot robot = new Robot();
+                var robot = new Robot();
                 robot.keyPress(item.getKeyCode());
                 robot.keyRelease(item.getKeyCode());
             } catch (AWTException ex) {
                 LOG.log(Level.SEVERE, "Key press error", ex);
             }
-            ((javax.swing.Timer) e.getSource()).stop();
+            timer.stop();
             latch.countDown();
         });
         timer.setRepeats(false);
@@ -422,18 +565,31 @@ public class AutoClicker {
     }
 
     private void performScroll(Item item) {
-        try { new Robot().mouseWheel(item.getPressTime()); }
-        catch (AWTException e) { LOG.log(Level.SEVERE, "Scroll error", e); }
+        try {
+            new Robot().mouseWheel(item.getPressTime());
+        } catch (AWTException e) {
+            LOG.log(Level.SEVERE, "Scroll error", e);
+        }
     }
 
 
     // ── Show/hide sub-frames ──────────────────────────────────────────────────
     private void showAddPointFrame() {
         ADD_POINT_FRAME.reset();
-        MouseAdapter ma = new MouseAdapter() {
+        var ma = new MouseAdapter() {
             @Override public void mouseReleased(MouseEvent e) {
-                if (ADD_POINT_FRAME.topPanel.getBounds().contains(e.getPoint())) return;
-                String btn = ADD_POINT_FRAME.getSelectedButton();
+                // Ignore clicks on the hint badge so users can click "through" it
+                // by accident without creating a bad item.
+                if (ADD_POINT_FRAME.hintBounds().contains(e.getPoint())) return;
+
+                String btn;
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    btn = "Right";
+                } else if (SwingUtilities.isLeftMouseButton(e)) {
+                    btn = "Left";
+                } else {
+                    return; // ignore middle/extra buttons
+                }
                 MAIN_FRAME.getTableItems().addItem(new ItemClick(e.getX(), e.getY(), btn));
                 ADD_POINT_FRAME.getFrame().setVisible(false);
                 ADD_POINT_FRAME.getFrame().removeMouseListener(this);
@@ -441,15 +597,6 @@ public class AutoClicker {
         };
         ADD_POINT_FRAME.getFrame().addMouseListener(ma);
         ADD_POINT_FRAME.getFrame().setVisible(true);
-    }
-
-    private boolean isDescendantOf(Component child, Component ancestor) {
-        Component c = child;
-        while (c != null) {
-            if (c == ancestor) return true;
-            c = c.getParent();
-        }
-        return false;
     }
 
     private void showAddPressFrame(boolean show) {
@@ -475,7 +622,7 @@ public class AutoClicker {
 
     private void pickDADPoint(boolean isFrom) {
         ADD_DAD_FRAME.getDialog().setVisible(false);
-        MouseAdapter picker = new MouseAdapter() {
+        var picker = new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 ADD_POINT_FRAME.getFrame().setVisible(false);
                 ADD_POINT_FRAME.getFrame().removeMouseListener(this);
@@ -542,15 +689,26 @@ public class AutoClicker {
 
     // ── Global hotkey ─────────────────────────────────────────────────────────
     private void globalKeyListener() {
-        Logger.getLogger(GlobalScreen.class.getPackage().getName()).setLevel(Level.OFF);
-        try { GlobalScreen.registerNativeHook(); }
-        catch (NativeHookException ex) { LOG.severe("Native hook failed: " + ex.getMessage()); System.exit(1); }
+        Logger.getLogger(GlobalScreen.class.getPackageName()).setLevel(Level.OFF);
+        try {
+            GlobalScreen.registerNativeHook();
+        } catch (NativeHookException ex) {
+            // Common reasons:
+            //   - macOS: app needs Accessibility permission (System Settings).
+            //   - Windows: AV/Defender blocking jnativehook's temp DLL.
+            //   - Linux:  X11 access not allowed (Wayland often blocks too).
+            // Don't kill the app — the in-window F7/F8 fallback still works.
+            LOG.log(Level.WARNING, "Global hotkeys disabled (native hook failed): " + ex.getMessage(), ex);
+            SwingUtilities.invokeLater(() ->
+                MAIN_FRAME.showToast("Global F7/F8 disabled — focus the window to use hotkeys"));
+            return;
+        }
         GlobalScreen.addNativeKeyListener(new NativeKeyListener() {
             @Override public void nativeKeyPressed(NativeKeyEvent e) {
-                if (e.getKeyCode() == NativeKeyEvent.VC_F7 && isStopClick) {
-                    startClick();
-                } else if (e.getKeyCode() == NativeKeyEvent.VC_F8 && !isStopClick) {
-                    stopClick();
+                if (e.getKeyCode() == NativeKeyEvent.VC_F7) {
+                    SwingUtilities.invokeLater(AutoClicker.this::onF7);
+                } else if (e.getKeyCode() == NativeKeyEvent.VC_F8) {
+                    SwingUtilities.invokeLater(AutoClicker.this::onF8);
                 }
             }
             @Override public void nativeKeyReleased(NativeKeyEvent e) {}
@@ -563,14 +721,13 @@ public class AutoClicker {
     private void changeFrame(boolean isMainFrame, String message) {
         MAIN_FRAME.getFrame().setEnabled(isMainFrame);
         if (ADD_PRESS_FRAME.getDialog().isVisible()) ADD_PRESS_FRAME.getDialog().setEnabled(isMainFrame);
-        MSG_FRAME.getFrame().setVisible(!isMainFrame);
-        MSG_FRAME.getMessageLabel().setText(message);
+        if (isMainFrame) {
+            MSG_FRAME.hideMessage();
+        } else {
+            MSG_FRAME.showMessage(message);
+        }
     }
 
-    /** Non-blocking toast — delegates to MainFrame. */
-    private void showToast(String message) {
-        MAIN_FRAME.showToast(message);
-    }
     private void enableInput(boolean enabled) {
         MAIN_FRAME.getInfiniteRBtn().setEnabled(enabled);
         MAIN_FRAME.getRepeatByCountRBtn().setEnabled(enabled);
@@ -587,28 +744,43 @@ public class AutoClicker {
 
     // ── Save (JSON) ───────────────────────────────────────────────────────────
     private void saveData() {
-        List<Item> items = MAIN_FRAME.getTableItems().getListItems();
+        var items = MAIN_FRAME.getTableItems().getListItems();
         if (items.isEmpty()) { changeFrame(false, "List is empty"); return; }
 
-        String name = JOptionPane.showInputDialog(MAIN_FRAME.getFrame(),
-            "Enter file name (without extension):", "Save As", JOptionPane.PLAIN_MESSAGE);
-        if (name == null) return;
-        name = name.trim();
-        if (name.isEmpty()) name = "data_" + System.currentTimeMillis();
+        var fc = new JFileChooser();
+        fc.setDialogTitle("Save As");
+        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.setFileFilter(new FileNameExtensionFilter("JSON files (*.json)", "json"));
+        fc.setSelectedFile(new File("data_" + System.currentTimeMillis() + ".json"));
 
-        JFileChooser fc = new JFileChooser();
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fc.setDialogTitle("Choose save folder");
         if (fc.showSaveDialog(MAIN_FRAME.getFrame()) != JFileChooser.APPROVE_OPTION) return;
 
-        String path = fc.getSelectedFile().getAbsolutePath() + File.separator + name + ".json";
-        try (Writer w = new BufferedWriter(new FileWriter(path))) {
-            // Serialize as a JsonArray of typed objects
-            JsonArray arr = new JsonArray();
-            for (Item item : items) {
-                arr.add(itemToJson(item));
+        var chosen = fc.getSelectedFile();
+        // Make sure the file ends with .json (the filter doesn't enforce it on
+        // every L&F — Aqua in particular lets the user type any name).
+        if (!chosen.getName().toLowerCase().endsWith(".json")) {
+            chosen = new File(chosen.getParentFile(), chosen.getName() + ".json");
+        }
+
+        // Confirm overwrite. JFileChooser doesn't ask by default on Linux/macOS.
+        if (chosen.exists()) {
+            int ans = JOptionPane.showConfirmDialog(MAIN_FRAME.getFrame(),
+                    chosen.getName() + " already exists. Overwrite?",
+                    "Confirm Overwrite", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (ans != JOptionPane.YES_OPTION) return;
+        }
+
+        var path = chosen.toPath();
+        try {
+            // Create the parent directory if it doesn't exist (safer than failing).
+            if (path.getParent() != null) Files.createDirectories(path.getParent());
+
+            try (Writer w = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+                var arr = new JsonArray();
+                for (var item : items) arr.add(itemToJson(item));
+                GSON.toJson(arr, w);
             }
-            GSON.toJson(arr, w);
             changeFrame(false, "Saved: " + path);
             LOG.info("Saved to: " + path);
         } catch (IOException e) {
@@ -618,46 +790,46 @@ public class AutoClicker {
     }
 
     private JsonObject itemToJson(Item item) {
-        JsonObject o = new JsonObject();
+        var o = new JsonObject();
         o.addProperty("type", item.getTypeEvent());
         o.addProperty("name", item.getName());
         o.addProperty("pressTime", item.getPressTime());
         o.addProperty("nextTime", item.getNextTime());
-        switch (item.getTypeEvent()) {
-            case GlobalConst.EVENT_CLICK: {
-                ItemClick ic = (ItemClick) item;
+        switch (item) {
+            case ItemClick ic -> {
                 o.addProperty("x", ic.getXAxis());
                 o.addProperty("y", ic.getYAxis());
                 o.addProperty("mouseButton", ic.getButton());
-                break;
             }
-            case GlobalConst.EVENT_PRESS: {
-                ItemPress ip = (ItemPress) item;
+            case ItemPress ip -> {
                 o.addProperty("keyCode", ip.getKeyCode());
                 o.addProperty("multiPress", ip.isMultiPress());
-                break;
             }
-            case GlobalConst.EVENT_DAD: {
-                ItemDAD id = (ItemDAD) item;
+            case ItemDAD id -> {
                 o.addProperty("x1", id.getXAxis1());
                 o.addProperty("y1", id.getYAxis1());
                 o.addProperty("x2", id.getXAxis2());
                 o.addProperty("y2", id.getYAxis2());
-                break;
             }
             // SCROLL and COMMENT only need the base fields already added
+            default -> { /* base fields suffice */ }
         }
         return o;
     }
 
     // ── Load / Append (JSON) ──────────────────────────────────────────────────
     private void loadData(boolean append) {
-        JFileChooser fc = new JFileChooser();
+        var fc = new JFileChooser();
         fc.setDialogTitle(append ? "Append file" : "Load file");
+        fc.setFileFilter(new FileNameExtensionFilter("Auto-clicker files (*.json, *.txt)", "json", "txt"));
         if (fc.showOpenDialog(MAIN_FRAME.getFrame()) != JFileChooser.APPROVE_OPTION) return;
 
-        File file = fc.getSelectedFile();
-        List<Item> loaded = parseFile(file);
+        var file = fc.getSelectedFile();
+        if (file == null || !file.exists()) {
+            changeFrame(false, "File not found: " + (file == null ? "(none)" : file.getName()));
+            return;
+        }
+        var loaded = parseFile(file);
         if (loaded == null) return;
 
         if (append) {
@@ -674,13 +846,9 @@ public class AutoClicker {
      * Returns null on error (error message already shown).
      */
     private List<Item> parseFile(File file) {
-        String fname = file.getName().toLowerCase();
+        var fname = file.getName().toLowerCase();
         try {
-            if (fname.endsWith(".json")) {
-                return parseJson(file);
-            } else {
-                return parseLegacyTxt(file);
-            }
+            return fname.endsWith(".json") ? parseJson(file) : parseLegacyTxt(file);
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Load error", e);
             changeFrame(false, "Load failed: " + e.getMessage());
@@ -689,43 +857,36 @@ public class AutoClicker {
     }
 
     private List<Item> parseJson(File file) throws IOException {
-        List<Item> items = new ArrayList<>();
-        try (Reader r = new BufferedReader(new FileReader(file))) {
-            JsonArray arr = JsonParser.parseReader(r).getAsJsonArray();
-            for (JsonElement el : arr) {
-                JsonObject o = el.getAsJsonObject();
+        var items = new ArrayList<Item>();
+        try (Reader r = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+            var arr = JsonParser.parseReader(r).getAsJsonArray();
+            for (var el : arr) {
+                var o = el.getAsJsonObject();
                 int type      = o.get("type").getAsInt();
                 String name   = o.get("name").getAsString();
                 int pressTime = o.has("pressTime") ? o.get("pressTime").getAsInt() : 0;
                 int nextTime  = o.has("nextTime")  ? o.get("nextTime").getAsInt()  : 100;
 
-                switch (type) {
-                    case GlobalConst.EVENT_CLICK: {
+                Item parsed = switch (type) {
+                    case GlobalConst.EVENT_CLICK -> {
                         int x      = o.get("x").getAsInt();
                         int y      = o.get("y").getAsInt();
                         String btn = o.has("mouseButton") ? o.get("mouseButton").getAsString() : "Left";
-                        items.add(new ItemClick(name, x, y, pressTime, nextTime, btn));
-                        break;
+                        yield new ItemClick(name, x, y, pressTime, nextTime, btn);
                     }
-                    case GlobalConst.EVENT_PRESS: {
-                        int kc      = o.get("keyCode").getAsInt();
-                        boolean mp  = o.has("multiPress") && o.get("multiPress").getAsBoolean();
-                        items.add(new ItemPress(name, kc, pressTime, nextTime, mp));
-                        break;
+                    case GlobalConst.EVENT_PRESS -> {
+                        int kc     = o.get("keyCode").getAsInt();
+                        boolean mp = o.has("multiPress") && o.get("multiPress").getAsBoolean();
+                        yield new ItemPress(name, kc, pressTime, nextTime, mp);
                     }
-                    case GlobalConst.EVENT_DAD: {
-                        items.add(new ItemDAD(
+                    case GlobalConst.EVENT_DAD -> new ItemDAD(
                             o.get("x1").getAsInt(), o.get("y1").getAsInt(),
                             o.get("x2").getAsInt(), o.get("y2").getAsInt(),
-                            pressTime, nextTime));
-                        break;
-                    }
-                    case GlobalConst.EVENT_COMMENT:
-                        items.add(new ItemComment(name));
-                        break;
-                    default:
-                        items.add(new Item(name, pressTime, nextTime, type));
-                }
+                            pressTime, nextTime);
+                    case GlobalConst.EVENT_COMMENT -> new ItemComment(name);
+                    default -> new Item(name, pressTime, nextTime, type);
+                };
+                items.add(parsed);
             }
         }
         return items;
@@ -733,35 +894,42 @@ public class AutoClicker {
 
     /** Backward-compatible reader for old pipe-delimited .txt files. */
     private List<Item> parseLegacyTxt(File file) throws IOException {
-        List<Item> items = new ArrayList<>();
-        try (BufferedReader r = new BufferedReader(new FileReader(file))) {
+        var items = new ArrayList<Item>();
+        try (var r = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             String line;
             while ((line = r.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) continue;
-                if (line.startsWith(GlobalConst.COMMENT_PREFIX)) { items.add(new ItemComment(line)); continue; }
-                String[] p = line.split("\\|");
+                if (line.startsWith(GlobalConst.COMMENT_PREFIX)) {
+                    items.add(new ItemComment(line));
+                    continue;
+                }
+                var p = line.split("\\|");
                 if (p.length < 2) continue;
-                int type = toInt(p[0]); if (type < 0) continue;
-                String name = p[1];
+                int type = toInt(p[0]);
+                if (type < 0) continue;
+                var name = p[1];
                 int pressTime = p.length > 2 ? toInt(p[2]) : 0;
                 int nextTime  = p.length > 3 ? toInt(p[3]) : 100;
                 switch (type) {
-                    case GlobalConst.EVENT_CLICK:
+                    case GlobalConst.EVENT_CLICK -> {
                         if (p.length >= 6) items.add(new ItemClick(name, toInt(p[4]), toInt(p[5]), pressTime, nextTime));
-                        break;
-                    case GlobalConst.EVENT_PRESS:
+                    }
+                    case GlobalConst.EVENT_PRESS -> {
                         if (p.length >= 6) items.add(new ItemPress(name, toInt(p[4]), pressTime, nextTime, Boolean.parseBoolean(p[5])));
-                        break;
-                    case GlobalConst.EVENT_DAD:
+                    }
+                    case GlobalConst.EVENT_DAD -> {
                         if (p.length >= 8) items.add(new ItemDAD(toInt(p[4]), toInt(p[5]), toInt(p[6]), toInt(p[7]), pressTime, nextTime));
-                        break;
-                    default: items.add(new Item(name, pressTime, nextTime, type));
+                    }
+                    default -> items.add(new Item(name, pressTime, nextTime, type));
                 }
             }
         }
         return items;
     }
 
-    private int toInt(String s) { try { return Integer.parseInt(s.trim()); } catch (NumberFormatException e) { return -1; } }
+    private int toInt(String s) {
+        try { return Integer.parseInt(s.trim()); }
+        catch (NumberFormatException e) { return -1; }
+    }
 }

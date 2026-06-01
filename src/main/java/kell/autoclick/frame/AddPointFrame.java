@@ -1,33 +1,36 @@
 package kell.autoclick.frame;
 
-import kell.autoclick.custom.CFrame;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Rectangle;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+
+import kell.autoclick.custom.CFrame;
 
 /**
  * Full-screen transparent overlay for picking a click point.
- * User selects Left or Right via toggle buttons, then clicks anywhere on screen.
+ * The user simply left-clicks or right-clicks anywhere on the overlay; the
+ * mouse button used is captured automatically by the caller (AutoClicker).
  */
 public class AddPointFrame extends CFrame {
 
-    private static final Font  FONT_HINT = new Font("Segoe UI", Font.PLAIN,  13);
-    private static final Font  FONT_BTN  = new Font("Segoe UI", Font.BOLD,   14);
+    private static final Font FONT_HINT = new Font("Segoe UI", Font.BOLD, 13);
 
-    // Active = highlighted, inactive = gray
-    private static final Color COLOR_LEFT_ON   = new Color(0x1E, 0x88, 0xE5); // blue
-    private static final Color COLOR_RIGHT_ON  = new Color(0xE5, 0x39, 0x35); // red
-    private static final Color COLOR_OFF       = new Color(0x55, 0x55, 0x55); // dark gray
-    private static final Color COLOR_OFF_TEXT  = new Color(0xAA, 0xAA, 0xAA);
-    private static final Color COLOR_ON_TEXT   = Color.WHITE;
+    private final JLabel hint = new JLabel(
+            "Left-click or right-click anywhere to set the point  •  Esc to cancel");
 
-    private final JButton leftBtn  = new JButton("  Left Click  ");
-    private final JButton rightBtn = new JButton("  Right Click  ");
-    private final JLabel  hint     = new JLabel("Click anywhere on screen to set the point");
-
-    private boolean isRight = false; // default: left
-
-    /** The top panel — clicks here must NOT register as point picks. */
+    /** The hint panel — clicks here must NOT register as point picks. */
     public final JPanel topPanel;
 
     public AddPointFrame() {
@@ -38,61 +41,46 @@ public class AddPointFrame extends CFrame {
 
         topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 10));
         topPanel.setBackground(new Color(25, 25, 25, 230));
-        topPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(60, 60, 60)));
+        topPanel.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, new Color(60, 60, 60)));
 
         hint.setFont(FONT_HINT);
-        hint.setForeground(new Color(180, 180, 180));
+        hint.setForeground(new Color(220, 220, 220));
         hint.setFocusable(false);
-
-        styleToggleBtn(leftBtn);
-        styleToggleBtn(rightBtn);
-
-        leftBtn.addActionListener(e -> select(false));
-        rightBtn.addActionListener(e -> select(true));
-
         topPanel.add(hint);
-        topPanel.add(leftBtn);
-        topPanel.add(rightBtn);
+
+        // Center the hint bar in the middle of the screen via a GridBagLayout
+        // wrapper. Same look as before, just relocated.
+        var wrapper = new JPanel(new GridBagLayout());
+        wrapper.setOpaque(false);
+        wrapper.add(topPanel, new GridBagConstraints());
 
         frame.setLayout(new BorderLayout());
-        frame.add(topPanel, BorderLayout.NORTH);
+        frame.add(wrapper, BorderLayout.CENTER);
 
-        // Apply initial selection state
-        select(false);
+        // Esc cancels the pick.
+        var root = frame.getRootPane();
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("ESCAPE"), "cancel-pick");
+        root.getActionMap().put("cancel-pick", new AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                frame.setVisible(false);
+            }
+        });
     }
 
-    private void styleToggleBtn(JButton btn) {
-        btn.setFont(FONT_BTN);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setOpaque(true);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        Dimension d = btn.getPreferredSize();
-        btn.setPreferredSize(new Dimension(Math.max(d.width, 140), 36));
+    /**
+     * Screen-relative bounds of the hint bar in frame coordinates. Caller
+     * compares the click point against these bounds to ignore clicks that
+     * fall on the hint.
+     */
+    public Rectangle hintBounds() {
+        if (!topPanel.isShowing()) return new Rectangle(0, 0, 0, 0);
+        var loc = topPanel.getLocationOnScreen();
+        var fl  = frame.getLocationOnScreen();
+        var sz  = topPanel.getSize();
+        return new Rectangle(loc.x - fl.x, loc.y - fl.y, sz.width, sz.height);
     }
 
-    private void select(boolean right) {
-        isRight = right;
-
-        // Left button
-        leftBtn.setBackground(right ? COLOR_OFF : COLOR_LEFT_ON);
-        leftBtn.setForeground(right ? COLOR_OFF_TEXT : COLOR_ON_TEXT);
-
-        // Right button
-        rightBtn.setBackground(right ? COLOR_RIGHT_ON : COLOR_OFF);
-        rightBtn.setForeground(right ? COLOR_ON_TEXT : COLOR_OFF_TEXT);
-
-        topPanel.revalidate();
-        topPanel.repaint();
-    }
-
-    /** Reset to default (left) each time the overlay is shown. */
-    public void reset() {
-        select(false);
-    }
-
-    /** Returns "Left" or "Right". */
-    public String getSelectedButton() {
-        return isRight ? "Right" : "Left";
-    }
+    /** Reset hook kept for API compatibility; nothing to reset anymore. */
+    public void reset() { /* no-op */ }
 }

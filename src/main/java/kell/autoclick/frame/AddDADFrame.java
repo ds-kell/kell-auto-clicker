@@ -1,20 +1,29 @@
 package kell.autoclick.frame;
 
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import kell.autoclick.custom.CButton;
 import kell.autoclick.custom.CDialog;
-
-import javax.swing.*;
-import java.awt.*;
+import kell.autoclick.custom.CDigitField;
 
 public class AddDADFrame extends CDialog {
 
-    public  final JTextField nextTimeTxt = input(6);
-    private final JLabel     fromLabel   = new JLabel("Start: (not set)");
-    private final JLabel     toLabel     = new JLabel("End:   (not set)");
-    private final JButton    fromBtn     = new CButton("Pick Start");
-    private final JButton    toBtn       = new CButton("Pick End");
-    private final JButton    addBtn      = new CButton("Add");
-    private final JButton    cancelBtn   = new CButton("Cancel");
+    public  final CDigitField nextTimeTxt = digitInput(6);
+    private final JLabel      fromLabel   = new JLabel("Start: (not set)");
+    private final JLabel      toLabel     = new JLabel("End:   (not set)");
+    private final JButton     fromBtn     = new CButton("Pick Start");
+    private final JButton     toBtn       = new CButton("Pick End");
+    private final JButton     addBtn      = new CButton("Add");
+    private final JButton     cancelBtn   = new CButton("Cancel");
 
     private int fromX = -1, fromY = -1, toX = -1, toY = -1;
 
@@ -43,7 +52,7 @@ public class AddDADFrame extends CDialog {
         root.add(title("Add Drag & Drop Action"), BorderLayout.NORTH);
 
         JPanel center = new JPanel(new BorderLayout(0, 4));
-        center.add(formPanel(label("Delay after (ms):"), nextTimeTxt), BorderLayout.NORTH);
+        center.add(formPanel(label("Pause after (ms):"), nextTimeTxt), BorderLayout.NORTH);
         center.add(pickPanel, BorderLayout.CENTER);
         root.add(center, BorderLayout.CENTER);
         root.add(btnRow(cancelBtn, addBtn), BorderLayout.SOUTH);
@@ -68,9 +77,9 @@ public class AddDADFrame extends CDialog {
     public int getToX()   { return toX; }
     public int getToY()   { return toY; }
 
-    public JTextField getNextTimeTxt() { return nextTimeTxt; }
-    public JButton    getFromBtn()     { return fromBtn; }
-    public JButton    getToBtn()       { return toBtn; }
-    public JButton    getAddBtn()      { return addBtn; }
-    public JButton    getCancelBtn()   { return cancelBtn; }
+    public CDigitField getNextTimeTxt() { return nextTimeTxt; }
+    public JButton     getFromBtn()     { return fromBtn; }
+    public JButton     getToBtn()       { return toBtn; }
+    public JButton     getAddBtn()      { return addBtn; }
+    public JButton     getCancelBtn()   { return cancelBtn; }
 }

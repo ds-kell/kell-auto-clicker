@@ -1,21 +1,32 @@
 package kell.autoclick.table;
 
-import kell.autoclick.model.*;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.util.Vector;
 
+import javax.swing.BorderFactory;
+import javax.swing.DropMode;
+import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.TransferHandler;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+
+import kell.autoclick.contants.GlobalConst;
+import kell.autoclick.model.Item;
+import kell.autoclick.model.ItemClick;
+import kell.autoclick.model.ItemComment;
+import kell.autoclick.model.ItemDAD;
+
 /**
- * Columns: # | Action | X | Y | Hold (ms) | Delay (ms)
+ * Columns: # | Action | X | Y | Hold (ms) | Pause (ms)
  * X and Y are only populated for Click and DAD items.
  */
-@SuppressWarnings("unchecked")
 public class TableItems {
 
     // col indices
@@ -64,7 +75,7 @@ public class TableItems {
         model.addColumn("X");
         model.addColumn("Y");
         model.addColumn("Hold (ms)");
-        model.addColumn("Delay (ms)");
+        model.addColumn("Pause (ms)");
 
         // column widths
         table.getColumnModel().getColumn(COL_IDX).setPreferredWidth(36);
@@ -185,42 +196,38 @@ public class TableItems {
             return row;
         }
         row[COL_IDX]   = String.valueOf(displayIdx);
-        row[COL_HOLD]  = String.valueOf(item.getPressTime());
+        row[COL_HOLD]  =    String.valueOf(item.getPressTime());
         row[COL_DELAY] = String.valueOf(item.getNextTime());
 
-        switch (item.getTypeEvent()) {
-            case GlobalConst.EVENT_CLICK: {
-                ItemClick ic = (ItemClick) item;
+        switch (item) {
+            case ItemClick ic -> {
                 row[COL_ACTION] = ic.isRightClick() ? "Right Click" : "Left Click";
                 row[COL_X]      = String.valueOf(ic.getXAxis());
                 row[COL_Y]      = String.valueOf(ic.getYAxis());
-                break;
             }
-            case GlobalConst.EVENT_DAD: {
-                ItemDAD id = (ItemDAD) item;
+            case ItemDAD id -> {
                 row[COL_ACTION] = "Drag & Drop";
                 row[COL_X]      = id.getXAxis1() + " → " + id.getXAxis2();
                 row[COL_Y]      = id.getYAxis1() + " → " + id.getYAxis2();
-                break;
             }
-            case GlobalConst.EVENT_PRESS:
-                row[COL_ACTION] = "Key Press (" + item.getName() + ")";
-                break;
-            case GlobalConst.EVENT_SCROLL:
-                row[COL_ACTION] = "Scroll (" + item.getName() + ")";
-                break;
-            default:
-                row[COL_ACTION] = item.getName();
+            default -> {
+                row[COL_ACTION] = switch (item.getTypeEvent()) {
+                    case GlobalConst.EVENT_PRESS  -> "Key Press (" + item.getName() + ")";
+                    case GlobalConst.EVENT_SCROLL -> "Scroll (" + item.getName() + ")";
+                    default                       -> item.getName();
+                };
+            }
         }
         return row;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    /** Pattern-matching helper: an Item that's a file header marker. */
     private boolean isFileHeader(Item item) {
-        return item instanceof ItemComment
-                && item.getName() != null
-                && item.getName().startsWith("§FILE§");
+        return item instanceof ItemComment ic
+                && ic.getName() != null
+                && ic.getName().startsWith("§FILE§");
     }
 
     private Item safeGet(int row) {

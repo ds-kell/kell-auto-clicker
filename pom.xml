@@ -9,20 +9,35 @@
     <version>5.0</version>
 
     <properties>
-        <maven.compiler.release>11</maven.compiler.release>
+        <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jnativehook.version>2.2.2</jnativehook.version>
+        <gson.version>2.11.0</gson.version>
+
+        <app.name>Kell Auto Clicker</app.name>
+        <app.vendor>Kell</app.vendor>
+        <app.main-class>kell.autoclick.Main</app.main-class>
+        <app.icon.win>${project.basedir}/src/main/resources/static/images/click_pointer.ico</app.icon.win>
+        <app.icon.mac>${project.basedir}/src/main/resources/static/images/click_pointer.icns</app.icon.mac>
+
+        <!--
+            Bundled Windows JRE for the portable .exe distribution. The Adoptium
+            API picks the latest Temurin 25 GA build for the requested platform.
+            Override these on the command line if you need a specific version.
+        -->
+        <jre.win.url>https://api.adoptium.net/v3/binary/latest/25/ga/windows/x64/jre/hotspot/normal/eclipse?project=jdk</jre.win.url>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.github.kwhat</groupId>
             <artifactId>jnativehook</artifactId>
-            <version>2.2.2</version>
+            <version>${jnativehook.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.10.1</version>
+            <version>${gson.version}</version>
         </dependency>
     </dependencies>
 
@@ -34,26 +49,23 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <release>11</release>
+                    <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
 
-            <!-- Fat JAR with all dependencies -->
+            <!-- Fat JAR with all dependencies (works on any platform) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.7.1</version>
                 <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>kell.autoclick.Main</mainClass>
+                            <mainClass>${app.main-class}</mainClass>
                         </manifest>
                         <manifestEntries>
-                            <!-- Required for jnativehook on JDK 17+ -->
-                            <Add-Opens>java.base/java.lang=ALL-UNNAMED</Add-Opens>
+                            <!-- JEP 472: grant native access for jnativehook on Java 24+ -->
+                            <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
                         </manifestEntries>
                     </archive>
                     <finalName>auto-clicker</finalName>
@@ -61,49 +73,48 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
+                        <id>fat-jar</id>
                         <phase>package</phase>
                         <goals><goal>single</goal></goals>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
 
             <!--
-                Launch4j wraps the fat JAR into a Windows .exe.
-                To bundle a JRE so the app runs WITHOUT Java installed:
-                  1. Download a JRE (e.g. Eclipse Temurin 11 JRE for Windows x64)
-                  2. Extract it to a folder, e.g. "jre" next to pom.xml
-                  3. Set <path> below to that folder (relative to project root)
-                  4. Distribute the exe + the jre folder together
-
-                If you want a fully self-contained single exe, use jpackage (JDK 14+)
-                or GraalVM native-image instead.
+                Launch4j wraps the fat JAR into a Windows .exe. Runs on any host
+                OS so we always get a working Windows .exe even when building
+                on macOS.
             -->
             <plugin>
                 <groupId>com.akathist.maven.plugins.launch4j</groupId>
                 <artifactId>launch4j-maven-plugin</artifactId>
-                <version>2.5.0</version>
+                <version>2.5.2</version>
                 <executions>
                     <execution>
                         <id>l4j-clui</id>
                         <phase>package</phase>
                         <goals><goal>launch4j</goal></goals>
                         <configuration>
-                            <icon>src/main/resources/static/images/click_pointer.ico</icon>
+                            <icon>${app.icon.win}</icon>
                             <headerType>gui</headerType>
-                            <outfile>target/auto-clicker.exe</outfile>
-                            <jar>target/auto-clicker.jar</jar>
+                            <outfile>${project.build.directory}/auto-clicker.exe</outfile>
+                            <jar>${project.build.directory}/auto-clicker.jar</jar>
                             <classPath>
-                                <mainClass>kell.autoclick.Main</mainClass>
+                                <mainClass>${app.main-class}</mainClass>
                             </classPath>
                             <jre>
                                 <!--
-                                    Bundled JRE path (relative to the exe location at runtime).
-                                    If the folder doesn't exist, Launch4j falls back to system Java.
-                                    Set this to "jre" and ship a JRE folder next to the exe.
+                                    Path is relative to the .exe at runtime.
+                                    The "windows-portable" profile drops a JRE into
+                                    target/dist/windows-portable/jre next to the exe.
                                 -->
-                                <path>./jre</path>
-                                <minVersion>11</minVersion>
+                                <path>jre</path>
+                                <minVersion>25</minVersion>
                                 <requiresJdk>false</requiresJdk>
                                 <opts>
                                     <opt>--enable-native-access=ALL-UNNAMED</opt>
@@ -112,11 +123,11 @@
                             <versionInfo>
                                 <fileVersion>5.0.0.0</fileVersion>
                                 <txtFileVersion>5.0.0.0</txtFileVersion>
-                                <fileDescription>Kell Auto Clicker</fileDescription>
+                                <fileDescription>${app.name}</fileDescription>
                                 <copyright>Copyright 2024</copyright>
                                 <productVersion>5.0.0.0</productVersion>
                                 <txtProductVersion>5.0.0.0</txtProductVersion>
-                                <productName>Kell Auto Clicker</productName>
+                                <productName>${app.name}</productName>
                                 <internalName>auto-clicker</internalName>
                                 <originalFilename>auto-clicker.exe</originalFilename>
                             </versionInfo>
@@ -126,4 +137,210 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+            ───────── Windows portable ZIP (cross-platform build) ─────────
+            Always active. Downloads a Windows JRE from Adoptium, unpacks it,
+            and assembles target/dist/auto-clicker-windows-portable.zip
+            containing auto-clicker.exe + jre/. The end user just unzips and
+            double-clicks the .exe — no Java installation required.
+
+            Skip with: mvn package -Dskip.win.portable
+        -->
+        <profile>
+            <id>windows-portable</id>
+            <activation>
+                <property>
+                    <name>!skip.win.portable</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <!--
+                                Download + extract the Windows JRE.
+                                The download is cached in ~/.m2/cache/jre so it
+                                happens only once per JRE version.
+                            -->
+                            <execution>
+                                <id>fetch-windows-jre</id>
+                                <phase>package</phase>
+                                <goals><goal>run</goal></goals>
+                                <configuration>
+                                    <target>
+                                        <property name="jre.cache.dir"
+                                                  value="${user.home}/.m2/cache/temurin-jre/win-x64-25"/>
+                                        <property name="jre.cache.zip"
+                                                  value="${jre.cache.dir}/jre.zip"/>
+                                        <property name="jre.staging.dir"
+                                                  value="${project.build.directory}/jre-win-x64"/>
+                                        <property name="dist.dir"
+                                                  value="${project.build.directory}/dist/windows-portable"/>
+
+                                        <mkdir dir="${jre.cache.dir}"/>
+                                        <!-- skipexisting handles caching: re-uses jre.zip if already present -->
+                                        <get src="${jre.win.url}"
+                                             dest="${jre.cache.zip}"
+                                             usetimestamp="true"
+                                             skipexisting="true"/>
+
+                                        <delete dir="${jre.staging.dir}" quiet="true"/>
+                                        <mkdir dir="${jre.staging.dir}"/>
+                                        <unzip src="${jre.cache.zip}" dest="${jre.staging.dir}"/>
+
+                                        <!--
+                                            Adoptium archives unpack to a single
+                                            jdk-25.x.x+x-jre/ directory. Find it
+                                            and copy its contents into dist/.../jre/.
+                                        -->
+                                        <pathconvert property="jre.extracted.root" setonempty="false">
+                                            <dirset dir="${jre.staging.dir}" includes="jdk-*-jre"/>
+                                        </pathconvert>
+                                        <fail message="Adoptium archive layout changed — could not find jdk-*-jre directory inside ${jre.staging.dir}"
+                                              unless="jre.extracted.root"/>
+
+                                        <delete dir="${dist.dir}" quiet="true"/>
+                                        <mkdir dir="${dist.dir}/jre"/>
+                                        <copy todir="${dist.dir}/jre">
+                                            <fileset dir="${jre.extracted.root}"/>
+                                        </copy>
+                                        <copy file="${project.build.directory}/auto-clicker.exe"
+                                              todir="${dist.dir}"/>
+
+                                        <!-- Final deliverable: single zip the user downloads. -->
+                                        <zip destfile="${project.build.directory}/dist/auto-clicker-windows-portable.zip"
+                                             basedir="${project.build.directory}/dist"
+                                             includes="windows-portable/**"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- ───────── macOS: build .app and .dmg via jpackage ───────── -->
+        <profile>
+            <id>mac</id>
+            <activation>
+                <os><family>mac</family></os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage-mac-app-image</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument><argument>app-image</argument>
+                                        <argument>--name</argument><argument>${app.name}</argument>
+                                        <argument>--app-version</argument><argument>${project.version}</argument>
+                                        <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                        <argument>--input</argument><argument>${project.build.directory}</argument>
+                                        <argument>--main-jar</argument><argument>auto-clicker.jar</argument>
+                                        <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                        <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
+                                        <argument>--java-options</argument><argument>--enable-native-access=ALL-UNNAMED</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>jpackage-mac-dmg</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument><argument>dmg</argument>
+                                        <argument>--name</argument><argument>${app.name}</argument>
+                                        <argument>--app-version</argument><argument>${project.version}</argument>
+                                        <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                        <argument>--input</argument><argument>${project.build.directory}</argument>
+                                        <argument>--main-jar</argument><argument>auto-clicker.jar</argument>
+                                        <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                        <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
+                                        <argument>--java-options</argument><argument>--enable-native-access=ALL-UNNAMED</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- ───────── Windows host: also build app-image / .msi via jpackage ───────── -->
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os><family>windows</family></os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage-win-app-image</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument><argument>app-image</argument>
+                                        <argument>--name</argument><argument>${app.name}</argument>
+                                        <argument>--app-version</argument><argument>${project.version}</argument>
+                                        <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                        <argument>--input</argument><argument>${project.build.directory}</argument>
+                                        <argument>--main-jar</argument><argument>auto-clicker.jar</argument>
+                                        <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                        <argument>--icon</argument><argument>${app.icon.win}</argument>
+                                        <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
+                                        <argument>--java-options</argument><argument>--enable-native-access=ALL-UNNAMED</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>jpackage-win-msi</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument><argument>msi</argument>
+                                        <argument>--name</argument><argument>${app.name}</argument>
+                                        <argument>--app-version</argument><argument>${project.version}</argument>
+                                        <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                        <argument>--input</argument><argument>${project.build.directory}</argument>
+                                        <argument>--main-jar</argument><argument>auto-clicker.jar</argument>
+                                        <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                        <argument>--icon</argument><argument>${app.icon.win}</argument>
+                                        <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
+                                        <argument>--win-shortcut</argument>
+                                        <argument>--win-menu</argument>
+                                        <argument>--java-options</argument><argument>--enable-native-access=ALL-UNNAMED</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

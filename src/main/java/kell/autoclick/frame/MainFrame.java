@@ -1,14 +1,43 @@
 package kell.autoclick.frame;
 
-import kell.autoclick.custom.CButton;
-import kell.autoclick.custom.CFrame;
-import kell.autoclick.table.TableItems;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JWindow;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicButtonUI;
+
+import kell.autoclick.custom.CButton;
+import kell.autoclick.custom.CDigitField;
+import kell.autoclick.custom.CFrame;
+import kell.autoclick.table.TableItems;
 
 public class MainFrame extends CFrame {
 
@@ -38,15 +67,15 @@ public class MainFrame extends CFrame {
     private final JButton appendBtn = new CButton("Append File");
 
     // ── Repeat mode ───────────────────────────────────────────────────────────
-    private final JRadioButton repeatByCountRBtn = new JRadioButton("Repeat:", true);
-    private final JRadioButton repeatByTimeRBtn  = new JRadioButton("Run for:");
-    private final JRadioButton infiniteRBtn      = new JRadioButton("Run until stopped");
+    private final JRadioButton repeatByCountRBtn = new JRadioButton("Repeat", true);
+    private final JRadioButton repeatByTimeRBtn  = new JRadioButton("For");
+    private final JRadioButton infiniteRBtn      = new JRadioButton("Forever");
     private final JRadioButton hideMainFrameRBtn = new JRadioButton("Hide window while running");
 
-    public final JTextField repeatTimesTxt = new JTextField(7);
-    public final JTextField hoursField     = new JTextField(3);
-    public final JTextField minutesField   = new JTextField(3);
-    public final JTextField secondsField   = new JTextField(3);
+    public final CDigitField repeatTimesTxt = new CDigitField(7);
+    public final CDigitField hoursField     = new CDigitField(3);
+    public final CDigitField minutesField   = new CDigitField(3);
+    public final CDigitField secondsField   = new CDigitField(3);
 
     // ── Status bar ────────────────────────────────────────────────────────────
     private final JLabel progressLabel = new JLabel("Ready");
@@ -163,6 +192,38 @@ public class MainFrame extends CFrame {
 
         frame.getContentPane().requestFocus();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+        // Swing key bindings as a fallback for F7/F8 when the global native
+        // hook isn't available (e.g. Windows AV blocking jnativehook, or
+        // macOS Accessibility permission not granted). These work whenever
+        // the main window has focus.
+        installHotkeys();
+    }
+
+    /**
+     * Reusable hotkey wiring on the root pane. The runnables are wired in
+     * AutoClicker via {@link #setHotkeyHandlers}.
+     */
+    private Runnable onF7 = () -> {};
+    private Runnable onF8 = () -> {};
+
+    public void setHotkeyHandlers(Runnable f7, Runnable f8) {
+        if (f7 != null) this.onF7 = f7;
+        if (f8 != null) this.onF8 = f8;
+    }
+
+    private void installHotkeys() {
+        JComponent root = frame.getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+        im.put(KeyStroke.getKeyStroke("F7"), "kell-start");
+        im.put(KeyStroke.getKeyStroke("F8"), "kell-stop");
+        am.put("kell-start", new AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) { onF7.run(); }
+        });
+        am.put("kell-stop", new AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) { onF8.run(); }
+        });
     }
 
     // ── Progress updates ──────────────────────────────────────────────────────
@@ -184,8 +245,9 @@ public class MainFrame extends CFrame {
 
     // ── Theme ─────────────────────────────────────────────────────────────────
     private void applyTheme() {
-        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
-        catch (Exception ignored) {}
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) { /* fall back to cross-platform L&F */ }
 
         // Uniform font BOLD for radio buttons
         for (JRadioButton rb : new JRadioButton[]{
@@ -208,31 +270,60 @@ public class MainFrame extends CFrame {
             f.setPreferredSize(new Dimension(f.getPreferredSize().width, 28));
         }
 
-        startBtn.setBackground(new Color(0x2E, 0x7D, 0x32));
-        startBtn.setForeground(Color.WHITE);
-        startBtn.setOpaque(true);
-
-        stopBtn.setBackground(new Color(0xC6, 0x28, 0x28));
-        stopBtn.setForeground(Color.WHITE);
-        stopBtn.setOpaque(true);
+        // Colored action buttons — paint flat so they look identical on Aqua/Windows/GTK.
+        paintAsFlat(startBtn, new Color(0x2E, 0x7D, 0x32), Color.WHITE); // green
+        paintAsFlat(stopBtn,  new Color(0xC6, 0x28, 0x28), Color.WHITE); // red
 
         Color blue = new Color(0x15, 0x65, 0xC0);
         for (JButton btn : new JButton[]{saveBtn, loadBtn, appendBtn}) {
-            btn.setBackground(blue);
-            btn.setForeground(Color.WHITE);
-            btn.setOpaque(true);
+            paintAsFlat(btn, blue, Color.WHITE);
         }
 
-        // Add Key: show as grayed-out (NOT disabled — disabled hides text on Windows L&F)
-        // Use gray color to signal WIP, MouseListener handles toast
-        addKeyBtn.setForeground(new Color(0x99, 0x99, 0x99));
-        addKeyBtn.setBackground(new Color(0xE0, 0xE0, 0xE0));
-        addKeyBtn.setOpaque(true);
+        // Add Key: WIP placeholder (disabled-look but still clickable to show toast).
+        paintAsFlat(addKeyBtn, new Color(0xE0, 0xE0, 0xE0), new Color(0x99, 0x99, 0x99));
         addKeyBtn.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 showToast("Key Press feature is coming soon!");
             }
         });
+    }
+
+    /**
+     * Force a flat painted button with the given base/text colors plus
+     * hover & pressed states. Bypasses the native L&F button delegate so
+     * the colors show identically on macOS Aqua, Windows, and GTK.
+     */
+    private static void paintAsFlat(JButton btn, Color base, Color textColor) {
+        btn.setUI(new BasicButtonUI());
+        btn.setOpaque(true);
+        btn.setBorderPainted(true);
+        btn.setContentAreaFilled(true);
+        btn.setFocusPainted(false);
+        btn.setForeground(textColor);
+        btn.setBackground(base);
+        // Slightly darker border so it stands out on light backgrounds.
+        btn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(darken(base, 0.75f), 1, true),
+                BorderFactory.createEmptyBorder(4, 12, 4, 12)));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        Color hover   = darken(base, 0.92f);
+        Color pressed = darken(base, 0.80f);
+        btn.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { btn.setBackground(hover); }
+            @Override public void mouseExited (MouseEvent e) { btn.setBackground(base);  }
+            @Override public void mousePressed(MouseEvent e) { btn.setBackground(pressed); }
+            @Override public void mouseReleased(MouseEvent e) {
+                btn.setBackground(btn.getMousePosition() != null ? hover : base);
+            }
+        });
+    }
+
+    private static Color darken(Color c, float factor) {
+        return new Color(
+                Math.max(0, Math.min(255, Math.round(c.getRed()   * factor))),
+                Math.max(0, Math.min(255, Math.round(c.getGreen() * factor))),
+                Math.max(0, Math.min(255, Math.round(c.getBlue()  * factor))));
     }
 
     /** Show a non-blocking toast at the bottom of the window. */
