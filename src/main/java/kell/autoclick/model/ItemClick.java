@@ -1,8 +1,8 @@
 package kell.autoclick.model;
 
-import kell.autoclick.contants.GlobalConst;
-
 import java.awt.event.InputEvent;
+
+import kell.autoclick.contants.GlobalConst;
 
 public class ItemClick extends Item {
 

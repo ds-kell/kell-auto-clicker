@@ -2,11 +2,11 @@ package kell.autoclick.contants;
 
 public class GlobalConst {
     private GlobalConst() {}
-    public static final int EVENT_CLICK   = 1;
-    public static final int EVENT_PRESS   = 2;
-    public static final int EVENT_SCROLL  = 3;
-    public static final int EVENT_DAD     = 4;
-    public static final int EVENT_COMMENT = 5;
+    public static final String EVENT_CLICK   = "CLICK";
+    public static final String EVENT_PRESS   = "PRESS";
+    public static final String EVENT_SCROLL  = "SCROLL";
+    public static final String EVENT_DAD     = "DAD";
+    public static final String EVENT_COMMENT = "COMMENT";
 
     // File separator used in save/load
     public static final String FILE_SEP = "|";

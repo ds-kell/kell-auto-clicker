@@ -218,6 +218,9 @@ public class AutoClicker {
 
         ADD_SCROLL_FRAME.getAddBtn().addActionListener(e -> addScrollEvent());
         ADD_SCROLL_FRAME.getCancelBtn().addActionListener(e -> showAddScrollFrame(false));
+        ADD_SCROLL_FRAME.getDialog().addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing(WindowEvent e) { showAddScrollFrame(false); }
+        });
 
         ADD_COMMENT_FRAME.getAddBtn().addActionListener(e -> addComment());
         ADD_COMMENT_FRAME.getCancelBtn().addActionListener(e -> showAddCommentFrame(false));
@@ -239,9 +242,9 @@ public class AutoClicker {
             var item = items.get(row);
             try {
                 switch (col) {
-                    case 1 -> item.setName((String) data);                              // Action label
-                    case 4 -> item.setPressTime(Integer.parseInt(((String) data).trim())); // Hold
-                    case 5 -> item.setNextTime(Integer.parseInt(((String) data).trim()));  // Delay
+                    case 2 -> item.setName((String) data);                              // Name
+                    case 5 -> item.setPressTime(Integer.parseInt(((String) data).trim())); // Hold
+                    case 6 -> item.setNextTime(Integer.parseInt(((String) data).trim()));  // Delay
                     default -> { /* no-op */ }
                 }
             } catch (NumberFormatException ignored) { /* keep previous value */ }
@@ -426,7 +429,7 @@ public class AutoClicker {
                             }
 
                             var item = items.get(i);
-                            if (item.getTypeEvent() == GlobalConst.EVENT_COMMENT) continue;
+                            if (GlobalConst.EVENT_COMMENT.equals(item.getTypeEvent())) continue;
 
                             final int rowIdx = i;
                             SwingUtilities.invokeLater(() -> MAIN_FRAME.getTableItems().setHighlightRow(rowIdx));
@@ -440,7 +443,7 @@ public class AutoClicker {
                                 }
                                 case ItemDAD dad -> performDAD(dad);
                                 default -> {
-                                    if (item.getTypeEvent() == GlobalConst.EVENT_SCROLL) {
+                                    if (GlobalConst.EVENT_SCROLL.equals(item.getTypeEvent())) {
                                         performScroll(item);
                                     }
                                 }
@@ -862,7 +865,7 @@ public class AutoClicker {
             var arr = JsonParser.parseReader(r).getAsJsonArray();
             for (var el : arr) {
                 var o = el.getAsJsonObject();
-                int type      = o.get("type").getAsInt();
+                String type   = resolveType(o);
                 String name   = o.get("name").getAsString();
                 int pressTime = o.has("pressTime") ? o.get("pressTime").getAsInt() : 0;
                 int nextTime  = o.has("nextTime")  ? o.get("nextTime").getAsInt()  : 100;
@@ -906,8 +909,8 @@ public class AutoClicker {
                 }
                 var p = line.split("\\|");
                 if (p.length < 2) continue;
-                int type = toInt(p[0]);
-                if (type < 0) continue;
+                String type = legacyTypeToString(p[0].trim());
+                if (type == null) continue;
                 var name = p[1];
                 int pressTime = p.length > 2 ? toInt(p[2]) : 0;
                 int nextTime  = p.length > 3 ? toInt(p[3]) : 100;
@@ -926,6 +929,39 @@ public class AutoClicker {
             }
         }
         return items;
+    }
+
+    /** Maps old numeric type codes (from legacy .txt files) to the new String constants. */
+    private static String legacyTypeToString(String raw) {
+        return switch (raw) {
+            case "1" -> GlobalConst.EVENT_CLICK;
+            case "2" -> GlobalConst.EVENT_PRESS;
+            case "3" -> GlobalConst.EVENT_SCROLL;
+            case "4" -> GlobalConst.EVENT_DAD;
+            case "5" -> GlobalConst.EVENT_COMMENT;
+            default  -> null;
+        };
+    }
+
+    /**
+     * Resolves the "type" field from a JSON object, supporting both old integer
+     * format (1-5) and new string format ("CLICK", "PRESS", etc.) for backward
+     * compatibility with existing save files.
+     */
+    private static String resolveType(JsonObject o) {
+        var el = o.get("type");
+        if (el == null) return "";
+        if (el.getAsJsonPrimitive().isNumber()) {
+            return switch (el.getAsInt()) {
+                case 1  -> GlobalConst.EVENT_CLICK;
+                case 2  -> GlobalConst.EVENT_PRESS;
+                case 3  -> GlobalConst.EVENT_SCROLL;
+                case 4  -> GlobalConst.EVENT_DAD;
+                case 5  -> GlobalConst.EVENT_COMMENT;
+                default -> "";
+            };
+        }
+        return el.getAsString();
     }
 
     private int toInt(String s) {

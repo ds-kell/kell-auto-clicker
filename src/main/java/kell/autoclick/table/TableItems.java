@@ -24,7 +24,7 @@ import kell.autoclick.model.ItemComment;
 import kell.autoclick.model.ItemDAD;
 
 /**
- * Columns: # | Action | X | Y | Hold (ms) | Pause (ms)
+ * Columns: # | Action | Name | X | Y | Hold (ms) | Pause (ms)
  * X and Y are only populated for Click and DAD items.
  */
 public class TableItems {
@@ -32,11 +32,12 @@ public class TableItems {
     // col indices
     private static final int COL_IDX    = 0;
     private static final int COL_ACTION = 1;
-    private static final int COL_X      = 2;
-    private static final int COL_Y      = 3;
-    private static final int COL_HOLD   = 4;
-    private static final int COL_DELAY  = 5;
-    private static final int COL_COUNT  = 6;
+    private static final int COL_NAME   = 2;
+    private static final int COL_X      = 3;
+    private static final int COL_Y      = 4;
+    private static final int COL_HOLD   = 5;
+    private static final int COL_DELAY  = 6;
+    private static final int COL_COUNT  = 7;
 
     // colours
     private static final Color COLOR_HIGHLIGHT  = new Color(0xFF, 0xD7, 0x00, 180);
@@ -52,14 +53,14 @@ public class TableItems {
     public final DefaultTableModel model = new DefaultTableModel() {
         @Override
         public boolean isCellEditable(int row, int col) {
-            if (col == COL_IDX) return false;
+            if (col == COL_IDX || col == COL_ACTION) return false;
             Item item = safeGet(row);
             if (item == null || isFileHeader(item)) return false;
-            if (item.getTypeEvent() == GlobalConst.EVENT_COMMENT) return col == COL_ACTION;
+            if (GlobalConst.EVENT_COMMENT.equals(item.getTypeEvent())) return col == COL_NAME;
             // X/Y only editable for click/DAD
             if (col == COL_X || col == COL_Y) {
-                int t = item.getTypeEvent();
-                return t == GlobalConst.EVENT_CLICK || t == GlobalConst.EVENT_DAD;
+                String t = item.getTypeEvent();
+                return GlobalConst.EVENT_CLICK.equals(t) || GlobalConst.EVENT_DAD.equals(t);
             }
             return true;
         }
@@ -72,6 +73,7 @@ public class TableItems {
     public TableItems() {
         model.addColumn("#");
         model.addColumn("Action");
+        model.addColumn("Name");
         model.addColumn("X");
         model.addColumn("Y");
         model.addColumn("Hold (ms)");
@@ -80,7 +82,8 @@ public class TableItems {
         // column widths
         table.getColumnModel().getColumn(COL_IDX).setPreferredWidth(36);
         table.getColumnModel().getColumn(COL_IDX).setMaxWidth(44);
-        table.getColumnModel().getColumn(COL_ACTION).setPreferredWidth(180);
+        table.getColumnModel().getColumn(COL_ACTION).setPreferredWidth(110);
+        table.getColumnModel().getColumn(COL_NAME).setPreferredWidth(140);
         table.getColumnModel().getColumn(COL_X).setPreferredWidth(70);
         table.getColumnModel().getColumn(COL_Y).setPreferredWidth(70);
         table.getColumnModel().getColumn(COL_HOLD).setPreferredWidth(80);
@@ -190,13 +193,15 @@ public class TableItems {
             row[COL_ACTION] = "── " + item.getName().substring("§FILE§".length()) + " ──";
             return row;
         }
-        if (item.getTypeEvent() == GlobalConst.EVENT_COMMENT) {
+        if (GlobalConst.EVENT_COMMENT.equals(item.getTypeEvent())) {
             row[COL_IDX]    = String.valueOf(displayIdx);
-            row[COL_ACTION] = item.getName();
+            row[COL_ACTION] = "Comment";
+            row[COL_NAME]   = item.getName();
             return row;
         }
         row[COL_IDX]   = String.valueOf(displayIdx);
-        row[COL_HOLD]  =    String.valueOf(item.getPressTime());
+        row[COL_NAME]  = item.getName();
+        row[COL_HOLD]  = String.valueOf(item.getPressTime());
         row[COL_DELAY] = String.valueOf(item.getNextTime());
 
         switch (item) {
@@ -212,9 +217,9 @@ public class TableItems {
             }
             default -> {
                 row[COL_ACTION] = switch (item.getTypeEvent()) {
-                    case GlobalConst.EVENT_PRESS  -> "Key Press (" + item.getName() + ")";
-                    case GlobalConst.EVENT_SCROLL -> "Scroll (" + item.getName() + ")";
-                    default                       -> item.getName();
+                    case GlobalConst.EVENT_PRESS  -> "Key Press";
+                    case GlobalConst.EVENT_SCROLL -> "Scroll";
+                    default                       -> item.getTypeEvent();
                 };
             }
         }
@@ -272,7 +277,7 @@ public class TableItems {
                 setHorizontalAlignment(col == COL_ACTION ? LEFT : CENTER);
                 return this;
             }
-            if (item != null && item.getTypeEvent() == GlobalConst.EVENT_COMMENT) {
+            if (item != null && GlobalConst.EVENT_COMMENT.equals(item.getTypeEvent())) {
                 setBackground(COLOR_COMMENT_BG);
                 setForeground(COLOR_COMMENT_FG);
                 setFont(tbl.getFont().deriveFont(Font.ITALIC));
