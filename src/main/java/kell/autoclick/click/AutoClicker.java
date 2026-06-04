@@ -579,6 +579,7 @@ public class AutoClicker {
     // ── Show/hide sub-frames ──────────────────────────────────────────────────
     private void showAddPointFrame() {
         ADD_POINT_FRAME.reset();
+        MAIN_FRAME.getFrame().setVisible(false);
         var ma = new MouseAdapter() {
             @Override public void mouseReleased(MouseEvent e) {
                 // Ignore clicks on the hint badge so users can click "through" it
@@ -596,10 +597,20 @@ public class AutoClicker {
                 MAIN_FRAME.getTableItems().addItem(new ItemClick(e.getX(), e.getY(), btn));
                 ADD_POINT_FRAME.getFrame().setVisible(false);
                 ADD_POINT_FRAME.getFrame().removeMouseListener(this);
+                restoreMainFrameAfterPointPick();
             }
         };
+        ADD_POINT_FRAME.setOnCancel(() -> {
+            ADD_POINT_FRAME.getFrame().removeMouseListener(ma);
+            restoreMainFrameAfterPointPick();
+        });
         ADD_POINT_FRAME.getFrame().addMouseListener(ma);
         ADD_POINT_FRAME.getFrame().setVisible(true);
+    }
+
+    private void restoreMainFrameAfterPointPick() {
+        MAIN_FRAME.getFrame().setVisible(true);
+        MAIN_FRAME.getFrame().toFront();
     }
 
     private void showAddPressFrame(boolean show) {
@@ -625,6 +636,7 @@ public class AutoClicker {
 
     private void pickDADPoint(boolean isFrom) {
         ADD_DAD_FRAME.getDialog().setVisible(false);
+        ADD_POINT_FRAME.setOnCancel(() -> {});
         var picker = new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 ADD_POINT_FRAME.getFrame().setVisible(false);

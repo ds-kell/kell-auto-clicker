@@ -26,6 +26,7 @@ import kell.autoclick.custom.CFrame;
 public class AddPointFrame extends CFrame {
 
     private static final Font FONT_HINT = new Font("Segoe UI", Font.BOLD, 13);
+    private Runnable onCancel = () -> {};
 
     private final JLabel hint = new JLabel(
             "Left-click or right-click anywhere to set the point  •  Esc to cancel");
@@ -64,8 +65,13 @@ public class AddPointFrame extends CFrame {
         root.getActionMap().put("cancel-pick", new AbstractAction() {
             @Override public void actionPerformed(java.awt.event.ActionEvent e) {
                 frame.setVisible(false);
+                onCancel.run();
             }
         });
+    }
+
+    public void setOnCancel(Runnable onCancel) {
+        this.onCancel = onCancel != null ? onCancel : () -> {};
     }
 
     /**
