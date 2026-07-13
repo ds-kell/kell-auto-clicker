@@ -3,6 +3,7 @@ package kell.autoclick.contants;
 public class GlobalConst {
     private GlobalConst() {}
     public static final String EVENT_CLICK   = "CLICK";
+    public static final String SYSTEM_FONT   = "Segoe UI";
     public static final String EVENT_PRESS   = "PRESS";
     public static final String EVENT_SCROLL  = "SCROLL";
     public static final String EVENT_DAD     = "DAD";

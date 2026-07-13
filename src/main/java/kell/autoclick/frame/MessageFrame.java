@@ -16,6 +16,8 @@ import javax.swing.WindowConstants;
 
 import kell.autoclick.custom.CButton;
 
+import static kell.autoclick.contants.GlobalConst.SYSTEM_FONT;
+
 /**
  * Message popup. Backed by a non-modal JDialog owned by the main frame so
  * it always renders on top of the owner — fixes the bug where on macOS the
@@ -23,7 +25,7 @@ import kell.autoclick.custom.CButton;
  */
 public class MessageFrame {
 
-    private static final Font UI_FONT = new Font("Segoe UI", Font.BOLD, 13);
+    private static final Font UI_FONT = new Font(SYSTEM_FONT, Font.BOLD, 13);
 
     private JDialog dialog;
     public  final JLabel  messageLabel = new JLabel("", SwingConstants.CENTER);
@@ -128,7 +130,4 @@ public class MessageFrame {
     public JLabel  getMessageLabel() { return messageLabel; }
     public JButton getConfirmBtn()   { return confirmBtn; }
 
-    /** @deprecated kept for AutoClicker compatibility — returns the owning JFrame. */
-    @Deprecated
-    public JFrame getFrame() { return owner; }
 }

@@ -8,14 +8,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
+
+import static kell.autoclick.contants.GlobalConst.SYSTEM_FONT;
 
 /**
  * Base class for all popup dialogs.
@@ -25,9 +20,9 @@ public class CDialog {
 
     protected final JDialog dialog;
 
-    protected static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD,  14);
-    protected static final Font FONT_LABEL = new Font("Segoe UI", Font.BOLD,  13);
-    protected static final Font FONT_INPUT = new Font("Segoe UI", Font.PLAIN, 13);
+    protected static final Font FONT_TITLE = new Font(SYSTEM_FONT, Font.BOLD,  14);
+    protected static final Font FONT_LABEL = new Font(SYSTEM_FONT, Font.BOLD,  13);
+    protected static final Font FONT_INPUT = new Font(SYSTEM_FONT, Font.PLAIN, 13);
     protected static final int  INPUT_H    = 28;
     protected static final int  INPUT_W    = 100;
 
@@ -35,7 +30,7 @@ public class CDialog {
         dialog = new JDialog(owner, title, false); // NON-modal — never blocks EDT
         dialog.setSize(width, height);
         dialog.setResizable(false);
-        dialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+        dialog.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         center(width, height);
     }
 
@@ -53,7 +48,7 @@ public class CDialog {
     protected JTextField input(int cols) {
         JTextField f = new JTextField(cols);
         f.setFont(FONT_INPUT);
-        f.setHorizontalAlignment(JTextField.RIGHT);
+        f.setHorizontalAlignment(SwingConstants.RIGHT);
         f.setPreferredSize(new Dimension(INPUT_W, INPUT_H));
         return f;
     }
@@ -74,7 +69,7 @@ public class CDialog {
 
     /** Styled label: bold. */
     protected JLabel label(String text) {
-        JLabel l = new JLabel(text, JLabel.RIGHT);
+        JLabel l = new JLabel(text, SwingConstants.RIGHT);
         l.setFont(FONT_LABEL);
         l.setFocusable(false);
         return l;
@@ -82,7 +77,7 @@ public class CDialog {
 
     /** Title label. */
     protected JLabel title(String text) {
-        JLabel l = new JLabel(text, JLabel.CENTER);
+        JLabel l = new JLabel(text, SwingConstants.CENTER);
         l.setFont(FONT_TITLE);
         l.setFocusable(false);
         return l;

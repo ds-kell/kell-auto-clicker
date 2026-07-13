@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.IllegalComponentStateException;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.io.Serial;
 import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
@@ -13,12 +14,15 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
+import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
+
+import static kell.autoclick.contants.GlobalConst.SYSTEM_FONT;
 
 /**
  * Text field that only accepts digits 0-9, optionally with a leading minus
@@ -34,22 +38,26 @@ import javax.swing.text.DocumentFilter;
  */
 public class CDigitField extends JTextField {
 
-    private static final Font  UI_FONT       = new Font("Segoe UI", Font.PLAIN, 13);
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private static final Font  UI_FONT       = new Font(SYSTEM_FONT, Font.PLAIN, 13);
     private static final int   HEIGHT        = 28;
     private static final Color ERROR_COLOR   = new Color(0xC6, 0x28, 0x28);
     private static final int   FLASH_MS      = 600;
     private static final int   POPUP_MS      = 1500;
     private static final String DEFAULT_MSG  = "Numbers only";
 
-    private Consumer<String> onInvalid;
-    private Border           originalBorder;
-    private Popup            activePopup;
+    private transient Consumer<String> onInvalid;
+    private transient Border           originalBorder;
+    private transient Popup            activePopup;
     private boolean          allowNegative = false;
 
     public CDigitField(int columns) {
         super(columns);
         setFont(UI_FONT);
-        setHorizontalAlignment(JTextField.RIGHT);
+        setHorizontalAlignment(SwingConstants.RIGHT);
+        enableInputMethods(false);
         var pref = getPreferredSize();
         setPreferredSize(new Dimension(pref.width, HEIGHT));
         installFilter();
@@ -159,7 +167,7 @@ public class CDigitField extends JTextField {
         Point pt;
         try {
             pt = getLocationOnScreen();
-        } catch (IllegalComponentStateException ex) {
+        } catch (IllegalComponentStateException _) {
             return;
         }
         Popup popup = PopupFactory.getSharedInstance()
@@ -180,6 +188,6 @@ public class CDigitField extends JTextField {
         var t = getText().trim();
         if (t.isEmpty() || "-".equals(t)) return fallback;
         try { return Integer.parseInt(t); }
-        catch (NumberFormatException e) { return fallback; }
+        catch (NumberFormatException _) { return fallback; }
     }
 }

@@ -7,7 +7,12 @@ import java.awt.Font;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
+import java.io.Serial;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.DropMode;
@@ -23,11 +28,15 @@ import kell.autoclick.model.ItemClick;
 import kell.autoclick.model.ItemComment;
 import kell.autoclick.model.ItemDAD;
 
+import static kell.autoclick.contants.GlobalConst.SYSTEM_FONT;
+
 /**
  * Columns: # | Action | Name | X | Y | Hold (ms) | Pause (ms)
  * X and Y are only populated for Click and DAD items.
  */
 public class TableItems {
+
+    private static final Logger LOG = Logger.getLogger(TableItems.class.getName());
 
     // col indices
     private static final int COL_IDX    = 0;
@@ -47,10 +56,14 @@ public class TableItems {
     private static final Color COLOR_HEADER_FG  = Color.WHITE;
     private static final Color COLOR_ROW_ALT    = new Color(0xF5, 0xF8, 0xFF);
     private static final Color COLOR_ROW_NORM   = Color.WHITE;
+    private static final String FILE_HEADER_PREFIX = "§FILE§";
 
     public final Vector<Item> listItems = new Vector<>();
 
     public final DefaultTableModel model = new DefaultTableModel() {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
         @Override
         public boolean isCellEditable(int row, int col) {
             if (col == COL_IDX || col == COL_ACTION) return false;
@@ -90,8 +103,8 @@ public class TableItems {
         table.getColumnModel().getColumn(COL_DELAY).setPreferredWidth(80);
 
         table.setRowHeight(26);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        table.setFont(new Font(SYSTEM_FONT, Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font(SYSTEM_FONT, Font.BOLD, 13));
         table.setSelectionBackground(new Color(0xBB, 0xD7, 0xFF));
         table.setGridColor(new Color(0xDD, 0xDD, 0xDD));
         table.setShowGrid(true);
@@ -119,7 +132,7 @@ public class TableItems {
     }
 
     public void addFileHeader(String filename) {
-        ItemComment header = new ItemComment("§FILE§" + filename);
+        ItemComment header = new ItemComment(FILE_HEADER_PREFIX + filename);
         listItems.add(header);
         Object[] row = new Object[COL_COUNT];
         row[COL_ACTION] = "── " + filename + " ──";
@@ -181,7 +194,7 @@ public class TableItems {
         int idx = 1;
         for (int i = 0; i < model.getRowCount(); i++) {
             Item item = safeGet(i);
-            model.setValueAt(item != null && isFileHeader(item) ? "" : String.valueOf(idx++), i, COL_IDX);
+            model.setValueAt(isFileHeader(item) ? "" : String.valueOf(idx++), i, COL_IDX);
         }
     }
 
@@ -190,7 +203,7 @@ public class TableItems {
     private Object[] buildRow(Item item, int displayIdx) {
         Object[] row = new Object[COL_COUNT];
         if (isFileHeader(item)) {
-            row[COL_ACTION] = "── " + item.getName().substring("§FILE§".length()) + " ──";
+            row[COL_ACTION] = "── " + item.getName().substring(FILE_HEADER_PREFIX.length()) + " ──";
             return row;
         }
         if (GlobalConst.EVENT_COMMENT.equals(item.getTypeEvent())) {
@@ -215,13 +228,11 @@ public class TableItems {
                 row[COL_X]      = id.getXAxis1() + " → " + id.getXAxis2();
                 row[COL_Y]      = id.getYAxis1() + " → " + id.getYAxis2();
             }
-            default -> {
-                row[COL_ACTION] = switch (item.getTypeEvent()) {
-                    case GlobalConst.EVENT_PRESS  -> "Key Press";
-                    case GlobalConst.EVENT_SCROLL -> "Scroll";
-                    default                       -> item.getTypeEvent();
-                };
-            }
+            default -> row[COL_ACTION] = switch (item.getTypeEvent()) {
+                case GlobalConst.EVENT_PRESS  -> "Key Press";
+                case GlobalConst.EVENT_SCROLL -> "Scroll";
+                default                       -> item.getTypeEvent();
+            };
         }
         return row;
     }
@@ -232,7 +243,7 @@ public class TableItems {
     private boolean isFileHeader(Item item) {
         return item instanceof ItemComment ic
                 && ic.getName() != null
-                && ic.getName().startsWith("§FILE§");
+                && ic.getName().startsWith(FILE_HEADER_PREFIX);
     }
 
     private Item safeGet(int row) {
@@ -255,6 +266,9 @@ public class TableItems {
     // ── Cell Renderer ─────────────────────────────────────────────────────────
 
     private class RowRenderer extends DefaultTableCellRenderer {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
         @Override
         public Component getTableCellRendererComponent(JTable tbl, Object value,
                 boolean isSelected, boolean hasFocus, int row, int col) {
@@ -270,7 +284,7 @@ public class TableItems {
                 setFont(tbl.getFont().deriveFont(Font.BOLD));
                 return this;
             }
-            if (item != null && isFileHeader(item)) {
+            if (isFileHeader(item)) {
                 setBackground(COLOR_HEADER_BG);
                 setForeground(COLOR_HEADER_FG);
                 setFont(tbl.getFont().deriveFont(Font.BOLD));
@@ -292,6 +306,9 @@ public class TableItems {
     // ── Drag-and-drop row reorder ─────────────────────────────────────────────
 
     private class RowTransferHandler extends TransferHandler {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
         @Override public int getSourceActions(JComponent c) { return MOVE; }
         @Override protected Transferable createTransferable(JComponent c) {
             return new StringSelection(String.valueOf(table.getSelectedRow()));
@@ -308,10 +325,16 @@ public class TableItems {
                 if (toRow > fromRow) toRow--;
                 if (fromRow == toRow) return false;
                 if (fromRow < toRow) for (int i = fromRow; i < toRow; i++) swapRows(i, i + 1);
-                else                 for (int i = fromRow; i > toRow; i--) swapRows(i, i - 1);
+                else for (int i = fromRow; i > toRow; i--) swapRows(i, i - 1);
                 table.setRowSelectionInterval(toRow, toRow);
                 return true;
-            } catch (Exception e) { return false; }
+            } catch (UnsupportedFlavorException
+                     | IOException
+                     | NumberFormatException
+                     | ClassCastException e) {
+                LOG.log(Level.FINE, "Could not import dragged table row", e);
+                return false;
+            }
         }
     }
 }

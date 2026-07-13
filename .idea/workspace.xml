@@ -4,27 +4,25 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="create dad event">
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CDialog.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddCommentFrame.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemComment.java" afterDir="false" />
+    <list default="true" id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="Fix sonar">
+      <change afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/SingleInstanceManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/contants/GlobalConst.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/contants/GlobalConst.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CButton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CButton.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CDigitField.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CDigitField.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CTextField.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/custom/CTextField.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddDADFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddDADFrame.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPointFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPointFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPressKeyFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddPressKeyFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddScrollFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/AddScrollFrame.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MainFrame.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MessageFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/frame/MessageFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/GlobalConst.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/GlobalConst.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/Item.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/Item.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemClick.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemClick.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemDAD.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemDAD.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemPress.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/model/ItemPress.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TableItems.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/kell/autoclick/table/TableItems.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -32,97 +30,23 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Class" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
-    <option name="RECENT_BRANCH_BY_REPOSITORY">
-      <map>
-        <entry key="$PROJECT_DIR$" value="browser" />
-      </map>
-    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-    <option name="RESET_MODE" value="HARD" />
-  </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;ds-kell&quot;
-  }
-}</component>
-  <component name="GitRewordedCommitMessages">
-    <option name="commitMessagesMapping">
-      <RewordedCommitMessageMapping>
-        <option name="originalMessage" value="random time click to like person" />
-        <option name="rewordedMessage" value="random time click to like person" />
-      </RewordedCommitMessageMapping>
-    </option>
-    <option name="currentCommit" value="1" />
-    <option name="onto" value="6ffe53bb58cfc8bdc19d5286f743cb6e2936a51c" />
-  </component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/ds-kell/kell-auto-clicker.git&quot;,
-    &quot;accountId&quot;: &quot;32dde2d5-deff-4aaa-b558-84944aa68b37&quot;
-  }
-}</component>
-  <component name="MarkdownSettingsMigration">
-    <option name="stateVersion" value="1" />
-  </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 1
-}</component>
-  <component name="ProjectId" id="2dtJSGqFa4IDD7mXA4PxUqGHvQF" />
-  <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.AutoClickerApp (1).executor": "Run",
-    "Application.AutoClickerApp (2).executor": "Run",
-    "Application.AutoClickerApp.executor": "Run",
-    "Application.Example.executor": "Run",
-    "Application.Main.executor": "Run",
-    "Application.MouseClickListener.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Application.Main.executor": "Debug",
     "SONARLINT_PRECOMMIT_ANALYSIS": "true",
-    "UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW": "true",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/DEV/kell/kell-auto-clicker",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
+    "git-widget-placeholder": "master"
   }
 }]]></component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="D:\truyen.nguyentuan\auto-clicker\auto-clicker\src\main\java\kell\autoclick" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\webproject\auto-clicker\src\main\resources" />
-      <recent name="D:\webproject\auto-clicker\src\static\template" />
-    </key>
-    <key name="CopyClassDialog.RECENTS_KEY">
-      <recent name="kell.autoclick.frame" />
-    </key>
-  </component>
   <component name="RunManager">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="kell.autoclick.Main" />
       <module name="auto-clicker" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="kell.autoclick.model.*" />
+          <option name="PATTERN" value="kell.autoclick.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -133,339 +57,41 @@
     <recent_temporary>
       <list>
         <item itemvalue="Application.Main" />
-        <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
   </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.31033.145" />
-      </set>
-    </attachedChunks>
-  </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
-    <task active="true" id="Default" summary="Default task">
-      <changelist id="070dac99-8801-452b-a563-17d1934a7bf0" name="Changes" comment="" />
-      <created>1710821440768</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1710821440768</updated>
-    </task>
-    <task id="LOCAL-00001" summary="create app">
-      <option name="closed" value="true" />
-      <created>1710837676758</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1710837676758</updated>
-    </task>
-    <task id="LOCAL-00002" summary="config stop when hide app">
-      <option name="closed" value="true" />
-      <created>1710842379362</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1710842379362</updated>
-    </task>
-    <task id="LOCAL-00003" summary="update git ignore">
-      <option name="closed" value="true" />
-      <created>1710899058062</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1710899058062</updated>
-    </task>
-    <task id="LOCAL-00004" summary="update aaaa">
-      <option name="closed" value="true" />
-      <created>1710922890940</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1710922890940</updated>
-    </task>
-    <task id="LOCAL-00005" summary="update bbbb">
-      <option name="closed" value="true" />
-      <created>1710923651685</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1710923651685</updated>
-    </task>
-    <task id="LOCAL-00006" summary="add ev listen time repeat">
-      <option name="closed" value="true" />
-      <created>1712312387762</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1712312387762</updated>
-    </task>
-    <task id="LOCAL-00007" summary="loop by time repeat">
-      <option name="closed" value="true" />
-      <created>1712571544926</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1712571544926</updated>
-    </task>
-    <task id="LOCAL-00008" summary="oooo">
-      <option name="closed" value="true" />
-      <created>1713145990687</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1713145990687</updated>
-    </task>
-    <task id="LOCAL-00009" summary="tach class">
-      <option name="closed" value="true" />
-      <created>1713167019808</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1713167019808</updated>
-    </task>
-    <task id="LOCAL-00010" summary="add frame msg">
-      <option name="closed" value="true" />
-      <created>1713522887213</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1713522887213</updated>
-    </task>
-    <task id="LOCAL-00011" summary="config pom">
-      <option name="closed" value="true" />
-      <created>1713523131724</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1713523131724</updated>
-    </task>
-    <task id="LOCAL-00012" summary="config pom">
-      <option name="closed" value="true" />
-      <created>1713523152199</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1713523152199</updated>
-    </task>
-    <task id="LOCAL-00013" summary="change structure project">
-      <option name="closed" value="true" />
-      <created>1713849203123</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1713849203123</updated>
-    </task>
-    <task id="LOCAL-00014" summary="OOP code">
-      <option name="closed" value="true" />
-      <created>1714726122926</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1714726122926</updated>
-    </task>
-    <task id="LOCAL-00015" summary="add save data">
-      <option name="closed" value="true" />
-      <created>1714732080816</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1714732080816</updated>
-    </task>
-    <task id="LOCAL-00016" summary="add msg">
-      <option name="closed" value="true" />
-      <created>1714732827843</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1714732827843</updated>
-    </task>
-    <task id="LOCAL-00017" summary="save data, load data form explorer">
-      <option name="closed" value="true" />
-      <created>1714733841105</created>
-      <option name="number" value="00017" />
-      <option name="presentableId" value="LOCAL-00017" />
-      <option name="project" value="LOCAL" />
-      <updated>1714733841105</updated>
-    </task>
-    <task id="LOCAL-00018" summary="add press key">
-      <option name="closed" value="true" />
-      <created>1714817443079</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1714817443079</updated>
-    </task>
-    <task id="LOCAL-00019" summary="save data">
-      <option name="closed" value="true" />
-      <created>1714965061304</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1714965061304</updated>
-    </task>
-    <task id="LOCAL-00020" summary="add border, show frame on focus">
-      <option name="closed" value="true" />
-      <created>1714978106127</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1714978106127</updated>
-    </task>
-    <task id="LOCAL-00021" summary="optimize code">
-      <option name="closed" value="true" />
-      <created>1714978523900</created>
-      <option name="number" value="00021" />
-      <option name="presentableId" value="LOCAL-00021" />
-      <option name="project" value="LOCAL" />
-      <updated>1714978523900</updated>
-    </task>
-    <task id="LOCAL-00022" summary="fix bug don't show main frame when close msg">
-      <option name="closed" value="true" />
-      <created>1714980572855</created>
-      <option name="number" value="00022" />
-      <option name="presentableId" value="LOCAL-00022" />
-      <option name="project" value="LOCAL" />
-      <updated>1714980572855</updated>
-    </task>
-    <task id="LOCAL-00023" summary="fix bug thread exception">
-      <option name="closed" value="true" />
-      <created>1714992390357</created>
-      <option name="number" value="00023" />
-      <option name="presentableId" value="LOCAL-00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1714992390357</updated>
-    </task>
-    <task id="LOCAL-00024" summary="random position click to like person">
-      <option name="closed" value="true" />
-      <created>1716545786461</created>
-      <option name="number" value="00024" />
-      <option name="presentableId" value="LOCAL-00024" />
-      <option name="project" value="LOCAL" />
-      <updated>1716545786461</updated>
-    </task>
-    <task id="LOCAL-00025" summary="random time click to like person">
-      <option name="closed" value="true" />
-      <created>1716546051816</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1716546051816</updated>
-    </task>
-    <task id="LOCAL-00026" summary="random time click to like person">
-      <option name="closed" value="true" />
-      <created>1716546120825</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1716546120825</updated>
-    </task>
-    <task id="LOCAL-00027" summary="add scroll event">
-      <option name="closed" value="true" />
-      <created>1716977607397</created>
-      <option name="number" value="00027" />
-      <option name="presentableId" value="LOCAL-00027" />
-      <option name="project" value="LOCAL" />
-      <updated>1716977607397</updated>
-    </task>
-    <task id="LOCAL-00028" summary="add move mouse event">
-      <option name="closed" value="true" />
-      <created>1717064874425</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1717064874427</updated>
-    </task>
-    <task id="LOCAL-00029" summary="create dad event">
-      <option name="closed" value="true" />
-      <created>1718769729280</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1718769729280</updated>
-    </task>
-    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
-    <option name="RECENT_FILTERS">
-      <map>
-        <entry key="User">
-          <value>
-            <list>
-              <RecentGroup>
-                <option name="FILTER_VALUES">
-                  <option value="*" />
-                </option>
-              </RecentGroup>
-            </list>
-          </value>
-        </entry>
-      </map>
-    </option>
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="branch">
-                    <value>
-                      <list>
-                        <option value="master" />
-                      </list>
-                    </value>
-                  </entry>
-                  <entry key="text">
-                    <value>
-                      <list>
-                        <option value="143" />
-                      </list>
-                    </value>
-                  </entry>
-                  <entry key="user">
-                    <value>
-                      <list>
-                        <option value="*" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-            </State>
+            <State />
           </value>
         </entry>
       </map>
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update git ignore" />
-    <MESSAGE value="update aaaa" />
-    <MESSAGE value="update bbbb" />
-    <MESSAGE value="add ev listen time repeat" />
-    <MESSAGE value="loop by time repeat" />
-    <MESSAGE value="oooo" />
-    <MESSAGE value="tach class" />
-    <MESSAGE value="add frame msg" />
-    <MESSAGE value="config pom" />
-    <MESSAGE value="change structure project" />
-    <MESSAGE value="OOP code" />
-    <MESSAGE value="add save data" />
-    <MESSAGE value="add msg" />
-    <MESSAGE value="save data, load data form explorer" />
-    <MESSAGE value="add press key" />
-    <MESSAGE value="save data" />
-    <MESSAGE value="add border, show frame on focus" />
-    <MESSAGE value="optimize code" />
-    <MESSAGE value="fix bug don't show main frame when close msg" />
-    <MESSAGE value="fix bug thread exception" />
-    <MESSAGE value="random position click to like person" />
-    <MESSAGE value="random time click to like person" />
-    <MESSAGE value="add scroll event" />
-    <MESSAGE value="add move mouse event" />
-    <MESSAGE value="create dad event" />
-    <option name="LAST_COMMIT_MESSAGE" value="create dad event" />
+    <MESSAGE value="Fix sonar" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix sonar" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java</url>
+          <line>430</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/kell/autoclick/click/AutoClicker.java</url>
+          <line>434</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

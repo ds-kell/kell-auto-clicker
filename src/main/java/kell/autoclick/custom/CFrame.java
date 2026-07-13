@@ -3,11 +3,13 @@ package kell.autoclick.custom;
 import javax.swing.*;
 import java.awt.*;
 
+import static kell.autoclick.contants.GlobalConst.SYSTEM_FONT;
+
 public class CFrame {
 
     protected final JFrame frame = new JFrame();
 
-    private static final Font UI_FONT = new Font("Segoe UI", Font.PLAIN, 13);
+    private static final Font UI_FONT = new Font(SYSTEM_FONT, Font.PLAIN, 13);
 
     protected CFrame(int width, int height) {
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -21,7 +23,7 @@ public class CFrame {
     /** Apply consistent font + right-align to a text field. */
     public static void styleInput(JTextField f) {
         f.setFont(UI_FONT);
-        f.setHorizontalAlignment(JTextField.RIGHT);
+        f.setHorizontalAlignment(SwingConstants.RIGHT);
         Dimension d = f.getPreferredSize();
         f.setPreferredSize(new Dimension(d.width, 28));
     }

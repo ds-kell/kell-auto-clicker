@@ -10,6 +10,10 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serial;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -30,6 +34,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicButtonUI;
@@ -39,10 +44,14 @@ import kell.autoclick.custom.CDigitField;
 import kell.autoclick.custom.CFrame;
 import kell.autoclick.table.TableItems;
 
+import static kell.autoclick.contants.GlobalConst.SYSTEM_FONT;
+
 public class MainFrame extends CFrame {
 
-    private static final Font UI_FONT      = new Font("Segoe UI", Font.PLAIN, 13);
-    private static final Font UI_FONT_BOLD = new Font("Segoe UI", Font.BOLD,  13);
+    private static final Logger LOG = Logger.getLogger(MainFrame.class.getName());
+
+    private static final Font UI_FONT      = new Font(SYSTEM_FONT, Font.PLAIN, 13);
+    private static final Font UI_FONT_BOLD = new Font(SYSTEM_FONT, Font.BOLD,  13);
 
     // ── Add-item buttons ──────────────────────────────────────────────────────
     private final JButton addClickBtn   = new CButton("Add Click");
@@ -219,9 +228,15 @@ public class MainFrame extends CFrame {
         im.put(KeyStroke.getKeyStroke("F7"), "kell-start");
         im.put(KeyStroke.getKeyStroke("F8"), "kell-stop");
         am.put("kell-start", new AbstractAction() {
+            @Serial
+            private static final long serialVersionUID = 1L;
+
             @Override public void actionPerformed(java.awt.event.ActionEvent e) { onF7.run(); }
         });
         am.put("kell-stop", new AbstractAction() {
+            @Serial
+            private static final long serialVersionUID = 1L;
+
             @Override public void actionPerformed(java.awt.event.ActionEvent e) { onF8.run(); }
         });
     }
@@ -234,8 +249,17 @@ public class MainFrame extends CFrame {
 
     public void updateProgressTime(long current, long remainSec) {
         SwingUtilities.invokeLater(() -> {
-            long h = remainSec / 3600, m = (remainSec % 3600) / 60, s = remainSec % 60;
-            progressLabel.setText(String.format("Executed: %d cycles  |  Time remaining: %02d:%02d:%02d", current, h, m, s));
+            long h = remainSec / 3600;
+            long m = (remainSec % 3600) / 60;
+            long s = remainSec % 60;
+            progressLabel.setText(String.format(
+                    Locale.ROOT,
+                    "Executed: %d cycles  |  Time remaining: %02d:%02d:%02d",
+                    current,
+                    h,
+                    m,
+                    s
+            ));
         });
     }
 
@@ -247,7 +271,11 @@ public class MainFrame extends CFrame {
     private void applyTheme() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) { /* fall back to cross-platform L&F */ }
+        } catch (ReflectiveOperationException
+                 | UnsupportedLookAndFeelException
+                 | RuntimeException e) {
+            LOG.log(Level.FINE, "Falling back to the default look and feel", e);
+        }
 
         // Uniform font BOLD for radio buttons
         for (JRadioButton rb : new JRadioButton[]{
@@ -266,7 +294,7 @@ public class MainFrame extends CFrame {
         // Input fields: right-aligned, consistent size
         for (JTextField f : new JTextField[]{repeatTimesTxt, hoursField, minutesField, secondsField}) {
             f.setFont(UI_FONT);
-            f.setHorizontalAlignment(JTextField.RIGHT);
+            f.setHorizontalAlignment(SwingConstants.RIGHT);
             f.setPreferredSize(new Dimension(f.getPreferredSize().width, 28));
         }
 
@@ -321,9 +349,9 @@ public class MainFrame extends CFrame {
 
     private static Color darken(Color c, float factor) {
         return new Color(
-                Math.max(0, Math.min(255, Math.round(c.getRed()   * factor))),
-                Math.max(0, Math.min(255, Math.round(c.getGreen() * factor))),
-                Math.max(0, Math.min(255, Math.round(c.getBlue()  * factor))));
+                Math.clamp(Math.round(c.getRed()   * factor), 0, 255),
+                Math.clamp(Math.round(c.getGreen() * factor), 0, 255),
+                Math.clamp(Math.round(c.getBlue()  * factor), 0, 255));
     }
 
     /** Show a non-blocking toast at the bottom of the window. */
@@ -343,9 +371,12 @@ public class MainFrame extends CFrame {
         Dimension sz = frame.getSize();
         toast.setLocation(loc.x + (sz.width - toast.getWidth()) / 2, loc.y + sz.height - 70);
         toast.setVisible(true);
-        new javax.swing.Timer(2000, e -> { toast.setVisible(false); toast.dispose(); }) {{
-            setRepeats(false); start();
-        }};
+        var timer = new javax.swing.Timer(2000, e -> {
+            toast.setVisible(false);
+            toast.dispose();
+        });
+        timer.setRepeats(false);
+        timer.start();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

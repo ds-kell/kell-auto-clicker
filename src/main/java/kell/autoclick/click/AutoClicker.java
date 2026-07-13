@@ -1,6 +1,7 @@
 package kell.autoclick.click;
 
 import java.awt.AWTException;
+import java.awt.Frame;
 import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.MouseInfo;
@@ -24,9 +25,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,23 +67,57 @@ import kell.autoclick.model.ItemPress;
 
 public class AutoClicker {
 
+    private static final String JSON_EXTENSION = ".json";
+    private static final String JSON_FILTER_EXTENSION = "json";
+    private static final String JSON_FIELD_MOUSE_BUTTON = "mouseButton";
+    private static final String JSON_FIELD_MULTI_PRESS = "multiPress";
+    private static final String JSON_FIELD_NEXT_TIME = "nextTime";
+    private static final String JSON_FIELD_PRESS_TIME = "pressTime";
+    private static final String JSON_FIELD_TYPE = "type";
+    private static final String JSON_FIELD_NAME = "name";
+    private static final String JSON_FIELD_KEY_CODE = "keyCode";
+    private static final String JSON_FIELD_X = "x";
+    private static final String JSON_FIELD_Y = "y";
+    private static final String JSON_FIELD_X1 = "x1";
+    private static final String JSON_FIELD_Y1 = "y1";
+    private static final String JSON_FIELD_X2 = "x2";
+    private static final String JSON_FIELD_Y2 = "y2";
+    private static final int DEFAULT_PRESS_TIME = 0;
+    private static final int DEFAULT_NEXT_TIME = 100;
+    private static final int MOUSE_MOVE_RANDOM_BOUND = 7;
+    private static final int MOUSE_MOVE_RANDOM_OFFSET = 3;
+    private static final int CLICK_HOLD_BASE_MS = 30;
+    private static final int CLICK_HOLD_RANDOM_MS = 40;
+    private static final int DRAG_HOLD_BASE_MS = 80;
+    private static final int DRAG_HOLD_RANDOM_MS = 60;
+    private static final int DRAG_SETTLE_BASE_MS = 40;
+    private static final int DRAG_SETTLE_RANDOM_MS = 40;
+    private static final int SMOOTH_MOVE_BASE_STEPS = 400;
+    private static final int SMOOTH_MOVE_RANDOM_STEPS = 400;
+    private static final int SMOOTH_MOVE_WOBBLE_CHECK_BOUND = 11;
+    private static final int SMOOTH_MOVE_WOBBLE_MODULO = 3;
+    private static final int SMOOTH_MOVE_WOBBLE_INTERVAL = 50;
+    private static final int SMOOTH_MOVE_WOBBLE_BOUND = 6;
+    private static final int CLICK_DELAY_RANDOM_BOUND = 10;
+    private static final long CLICK_DELAY_RANDOM_MULTIPLIER_MS = 10L;
+
     // ── Frames ────────────────────────────────────────────────────────────────
-    private final MainFrame        MAIN_FRAME        = new MainFrame();
-    // Dialogs are created after MAIN_FRAME so they can use it as owner
-    private final AddPointFrame    ADD_POINT_FRAME;
-    private final AddPressKeyFrame ADD_PRESS_FRAME;
-    private final AddScrollFrame   ADD_SCROLL_FRAME;
-    private final AddDADFrame      ADD_DAD_FRAME;
-    private final AddCommentFrame  ADD_COMMENT_FRAME;
-    private final MessageFrame     MSG_FRAME         = new MessageFrame();
+    private final MainFrame mainFrame = new MainFrame();
+    // Dialogs are created after mainFrame so they can use it as owner
+    private final AddPointFrame    addPointFrame;
+    private final AddPressKeyFrame addPressFrame;
+    private final AddScrollFrame   addScrollFrame;
+    private final AddDADFrame      addDadFrame;
+    private final AddCommentFrame  addCommentFrame;
+    private final MessageFrame     msgFrame         = new MessageFrame();
 
     // ── State ─────────────────────────────────────────────────────────────────
     private volatile boolean isStopClick  = true;
     private volatile boolean infinite     = false;
     private volatile boolean repeatByTime = false;
-    private volatile long    repeatTimes  = 0;
-    private volatile long    totalRepeat  = 0;
-    private volatile long    doneCount    = 0;
+    private final AtomicLong repeatTimes = new AtomicLong();
+    private final AtomicLong totalRepeat = new AtomicLong();
+    private final AtomicLong doneCount = new AtomicLong();
     /** End time in ms (System.currentTimeMillis) when repeatByTime mode is active */
     private volatile long    endTimeMs    = 0;
 
@@ -92,6 +129,8 @@ public class AutoClicker {
 
     private static final boolean IS_WINDOWS =
             System.getProperty("os.name", "").toLowerCase().contains("win");
+    private static final boolean IS_MAC =
+            System.getProperty("os.name", "").toLowerCase().contains("mac");
 
     /** Tray icon used to hide/restore the window while clicking on Windows. */
     private TrayIcon trayIcon;
@@ -103,16 +142,16 @@ public class AutoClicker {
     // ── Constructor ───────────────────────────────────────────────────────────
     public AutoClicker() {
         setupFileLogger();
-        MAIN_FRAME.init();
-        JFrame owner = MAIN_FRAME.getFrame();
+        mainFrame.init();
+        JFrame owner = mainFrame.getFrame();
         // Create dialogs with owner so JDialog parent relationship is correct
-        ADD_POINT_FRAME   = new AddPointFrame();
-        ADD_PRESS_FRAME   = new AddPressKeyFrame(owner);
-        ADD_SCROLL_FRAME  = new AddScrollFrame(owner);
-        ADD_DAD_FRAME     = new AddDADFrame(owner);
-        ADD_COMMENT_FRAME = new AddCommentFrame(owner);
-        MSG_FRAME.initWithOwner(owner);
-        MAIN_FRAME.getFrame().setVisible(true);
+        addPointFrame   = new AddPointFrame();
+        addPressFrame   = new AddPressKeyFrame(owner);
+        addScrollFrame  = new AddScrollFrame(owner);
+        addDadFrame     = new AddDADFrame(owner);
+        addCommentFrame = new AddCommentFrame(owner);
+        msgFrame.initWithOwner(owner);
+        mainFrame.getFrame().setVisible(true);
     }
 
     public void start() {
@@ -122,7 +161,7 @@ public class AutoClicker {
         // global native hook. If the native hook fails (Windows AV, macOS
         // Accessibility not granted, etc.), users still have the hotkeys
         // when the main window is focused.
-        MAIN_FRAME.setHotkeyHandlers(this::onF7, this::onF8);
+        mainFrame.setHotkeyHandlers(this::onF7, this::onF8);
         globalKeyListener();
         windowFocus();
     }
@@ -144,8 +183,9 @@ public class AutoClicker {
             root.addHandler(fh);
             root.setLevel(Level.INFO);
             Logger.getLogger(GlobalScreen.class.getPackageName()).setLevel(Level.OFF);
-        } catch (IOException e) {
-            LOG.warning("Could not set up file logger: " + e.getMessage());
+        } catch (IOException exception) {
+            LOG.log(Level.WARNING, exception, () ->
+                    "Could not set up file logger: %s".formatted(exception.getMessage()));
         }
     }
 
@@ -154,101 +194,135 @@ public class AutoClicker {
         // JDialog with owner handles focus automatically — no manual management needed
     }
 
+    /** Restore and focus the existing app when its icon is opened again. */
+    public void showMainWindow() {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = mainFrame.getFrame();
+            removeTrayIcon();
+            restoreMainWindow(frame);
+        });
+    }
+
 
     // ── Event listeners ───────────────────────────────────────────────────────
     private void eventListener() {
         // Repeat mode toggles
-        MAIN_FRAME.getInfiniteRBtn().addActionListener(e -> {
+        mainFrame.getInfiniteRBtn().addActionListener(_ -> {
             infinite = true; repeatByTime = false;
         });
-        MAIN_FRAME.getRepeatByCountRBtn().addActionListener(e -> {
+        mainFrame.getRepeatByCountRBtn().addActionListener(_ -> {
             infinite = false; repeatByTime = false;
         });
-        MAIN_FRAME.getRepeatByTimeRBtn().addActionListener(e -> {
+        mainFrame.getRepeatByTimeRBtn().addActionListener(_ -> {
             infinite = false; repeatByTime = true;
         });
 
-        MAIN_FRAME.getHideMainFrameRBtn().addItemListener(e ->
-            MAIN_FRAME.setHideFrame(e.getStateChange() == ItemEvent.SELECTED));
+        mainFrame.getHideMainFrameRBtn().addItemListener(e ->
+            mainFrame.setHideFrame(e.getStateChange() == ItemEvent.SELECTED));
 
-        MAIN_FRAME.getAddClickBtn().addActionListener(e -> showAddPointFrame());
+        mainFrame.getAddClickBtn().addActionListener(_ -> showAddPointFrame());
         // Add Key: not disabled — handled entirely by MouseListener in MainFrame.applyTheme()
 
-        MAIN_FRAME.getAddScrollBtn().addActionListener(e -> {
+        mainFrame.getAddScrollBtn().addActionListener(_ -> {
             showAddScrollFrame(true);
-            ADD_SCROLL_FRAME.getWheelAmtTxt().requestFocus();
+            addScrollFrame.getWheelAmtTxt().requestFocus();
         });
-        MAIN_FRAME.getAddDADBtn().addActionListener(e -> showAddDADFrame(true));
+        mainFrame.getAddDADBtn().addActionListener(_ -> showAddDADFrame(true));
 
         // DAD frame buttons
-        ADD_DAD_FRAME.getFromBtn().addActionListener(e -> pickDADPoint(true));
-        ADD_DAD_FRAME.getToBtn().addActionListener(e -> pickDADPoint(false));
-        ADD_DAD_FRAME.getAddBtn().addActionListener(e -> addDADEvent());
-        ADD_DAD_FRAME.getCancelBtn().addActionListener(e -> showAddDADFrame(false));
-        ADD_DAD_FRAME.getDialog().addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing(WindowEvent e) { showAddDADFrame(false); }
+        addDadFrame.getFromBtn().addActionListener(_ -> pickDADPoint(true));
+        addDadFrame.getToBtn().addActionListener(_ -> pickDADPoint(false));
+        addDadFrame.getAddBtn().addActionListener(_ -> addDADEvent());
+        addDadFrame.getCancelBtn().addActionListener(_ -> showAddDADFrame(false));
+        addDadFrame.getDialog().addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing(WindowEvent ignoredEvent) { showAddDADFrame(false); }
         });
 
-        MAIN_FRAME.getAddCommentBtn().addActionListener(e -> showAddCommentFrame(true));
-        MAIN_FRAME.getStartBtn().addActionListener(e -> startClick());
-        MAIN_FRAME.getStopBtn().addActionListener(e -> stopClick());
-        MAIN_FRAME.getDeleteBtn().addActionListener(e -> deleteSelected());
-        MAIN_FRAME.getResetBtn().addActionListener(e -> resetData());
-        MAIN_FRAME.getSaveBtn().addActionListener(e -> saveData());
-        MAIN_FRAME.getLoadBtn().addActionListener(e -> loadData(false));
-        MAIN_FRAME.getAppendBtn().addActionListener(e -> loadData(true));
-        MAIN_FRAME.getMoveUpBtn().addActionListener(e -> MAIN_FRAME.getTableItems().moveSelectedUp());
-        MAIN_FRAME.getMoveDownBtn().addActionListener(e -> MAIN_FRAME.getTableItems().moveSelectedDown());
+        mainFrame.getAddCommentBtn().addActionListener(_ -> showAddCommentFrame(true));
+        mainFrame.getStartBtn().addActionListener(_ -> startClick());
+        mainFrame.getStopBtn().addActionListener(_ -> stopClick());
+        mainFrame.getDeleteBtn().addActionListener(_ -> deleteSelected());
+        mainFrame.getResetBtn().addActionListener(_ -> resetData());
+        mainFrame.getSaveBtn().addActionListener(_ -> saveData());
+        mainFrame.getLoadBtn().addActionListener(_ -> loadData(false));
+        mainFrame.getAppendBtn().addActionListener(_ -> loadData(true));
+        mainFrame.getMoveUpBtn().addActionListener(_ -> mainFrame.getTableItems().moveSelectedUp());
+        mainFrame.getMoveDownBtn().addActionListener(_ -> mainFrame.getTableItems().moveSelectedDown());
 
-        MSG_FRAME.getConfirmBtn().addActionListener(e -> changeFrame(true));
+        msgFrame.getConfirmBtn().addActionListener(_ -> changeFrame(true));
 
-        ADD_PRESS_FRAME.getAddBtn().addActionListener(e -> addPressKey());
-        ADD_PRESS_FRAME.getCancelBtn().addActionListener(e -> showAddPressFrame(false));
-        ADD_PRESS_FRAME.getIsSinglePressRBtn().addItemListener(e -> {
-            ADD_PRESS_FRAME.setIsSinglePress(e.getStateChange() == ItemEvent.SELECTED);
-            ADD_PRESS_FRAME.getIsMultiPressRBtn().setSelected(!ADD_PRESS_FRAME.getIsSinglePress());
+        addPressFrame.getAddBtn().addActionListener(_ -> addPressKey());
+        addPressFrame.getCancelBtn().addActionListener(_ -> showAddPressFrame(false));
+        addPressFrame.getIsSinglePressRBtn().addItemListener(e -> {
+            addPressFrame.setIsSinglePress(e.getStateChange() == ItemEvent.SELECTED);
+            addPressFrame.getIsMultiPressRBtn().setSelected(!addPressFrame.getIsSinglePress());
         });
-        ADD_PRESS_FRAME.getIsMultiPressRBtn().addItemListener(e -> {
-            ADD_PRESS_FRAME.setIsSinglePress(!(e.getStateChange() == ItemEvent.SELECTED));
-            ADD_PRESS_FRAME.getIsSinglePressRBtn().setSelected(ADD_PRESS_FRAME.getIsSinglePress());
+        addPressFrame.getIsMultiPressRBtn().addItemListener(e -> {
+            addPressFrame.setIsSinglePress(e.getStateChange() != ItemEvent.SELECTED);
+            addPressFrame.getIsSinglePressRBtn().setSelected(addPressFrame.getIsSinglePress());
         });
-        ADD_PRESS_FRAME.getDialog().addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing(WindowEvent e) { showAddPressFrame(false); }
-        });
-
-        ADD_SCROLL_FRAME.getAddBtn().addActionListener(e -> addScrollEvent());
-        ADD_SCROLL_FRAME.getCancelBtn().addActionListener(e -> showAddScrollFrame(false));
-        ADD_SCROLL_FRAME.getDialog().addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing(WindowEvent e) { showAddScrollFrame(false); }
+        addPressFrame.getDialog().addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing(WindowEvent ignoredEvent) { showAddPressFrame(false); }
         });
 
-        ADD_COMMENT_FRAME.getAddBtn().addActionListener(e -> addComment());
-        ADD_COMMENT_FRAME.getCancelBtn().addActionListener(e -> showAddCommentFrame(false));
-        ADD_COMMENT_FRAME.getDialog().addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing(WindowEvent e) { showAddCommentFrame(false); }
+        addScrollFrame.getAddBtn().addActionListener(_ -> addScrollEvent());
+        addScrollFrame.getCancelBtn().addActionListener(_ -> showAddScrollFrame(false));
+        addScrollFrame.getDialog().addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing(WindowEvent ignoredEvent) { showAddScrollFrame(false); }
+        });
+
+        addCommentFrame.getAddBtn().addActionListener(_ -> addComment());
+        addCommentFrame.getCancelBtn().addActionListener(_ -> showAddCommentFrame(false));
+        addCommentFrame.getDialog().addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing(WindowEvent ignoredEvent) { showAddCommentFrame(false); }
         });
     }
 
     // ── Table listener ────────────────────────────────────────────────────────
     private void tableListener() {
-        MAIN_FRAME.getTableItems().getModel().addTableModelListener(e -> {
+        mainFrame.getTableItems().getModel().addTableModelListener(e -> {
             int row = e.getFirstRow();
             int col = e.getColumn();
             if (row < 0 || col < 0) return;
-            var items = MAIN_FRAME.getTableItems().getListItems();
+            var items = mainFrame.getTableItems().getListItems();
             if (row >= items.size()) return;
-            var data = MAIN_FRAME.getTableItems().getModel().getValueAt(row, col);
+            var data = mainFrame.getTableItems().getModel().getValueAt(row, col);
             if (data == null) return;
             var item = items.get(row);
-            try {
-                switch (col) {
-                    case 2 -> item.setName((String) data);                              // Name
-                    case 5 -> item.setPressTime(Integer.parseInt(((String) data).trim())); // Hold
-                    case 6 -> item.setNextTime(Integer.parseInt(((String) data).trim()));  // Delay
-                    default -> { /* no-op */ }
-                }
-            } catch (NumberFormatException ignored) { /* keep previous value */ }
+            switch (col) {
+                case 2 -> item.setName((String) data); // Name
+                case 5 -> updatePressTime(item, data); // Hold
+                case 6 -> updateNextTime(item, data);  // Delay
+                default -> { /* no-op */ }
+            }
         });
+    }
+
+    private void updatePressTime(Item item, Object data) {
+        Integer value = parseInteger(data);
+        if (value != null) {
+            item.setPressTime(value);
+        }
+    }
+
+    private void updateNextTime(Item item, Object data) {
+        Integer value = parseInteger(data);
+        if (value != null) {
+            item.setNextTime(value);
+        }
+    }
+
+    private Integer parseInteger(Object data) {
+        String value = String.valueOf(data).trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException _) {
+            LOG.log(Level.FINE, "Ignoring invalid integer table value: {0}", value);
+            return null;
+        }
     }
 
 
@@ -265,19 +339,14 @@ public class AutoClicker {
     /** EDT only: update UI after stopping. */
     private void stopClickUI() {
         enableInput(true);
-        var f = MAIN_FRAME.getFrame();
+        var f = mainFrame.getFrame();
 
         // Restore from tray (Windows). Safe no-op on other platforms.
         removeTrayIcon();
-        if (!f.isVisible()) {
-            f.setVisible(true);
-        }
-        f.setEnabled(true);
-        f.toFront();
-        f.requestFocus();
+        restoreMainWindow(f);
 
-        MAIN_FRAME.getTableItems().setHighlightRow(-1);
-        MAIN_FRAME.setProgressText("Stopped. Done: " + doneCount);
+        mainFrame.getTableItems().setHighlightRow(-1);
+        mainFrame.setProgressText("Stopped. Done: " + doneCount.get());
     }
 
     /** Full stop — call from EDT (button click) or native hook thread. */
@@ -287,79 +356,95 @@ public class AutoClicker {
     }
 
     public void resetData() {
-        if (MAIN_FRAME.getTableItems().getTable().isEditing())
-            MAIN_FRAME.getTableItems().getTable().getCellEditor().stopCellEditing();
+        if (mainFrame.getTableItems().getTable().isEditing())
+            mainFrame.getTableItems().getTable().getCellEditor().stopCellEditing();
         infinite = false; repeatByTime = false;
-        repeatTimes = 0; totalRepeat = 0; doneCount = 0;
-        MAIN_FRAME.getTableItems().clearTable();
-        MAIN_FRAME.getInfiniteRBtn().setSelected(false);
-        MAIN_FRAME.getRepeatByCountRBtn().setSelected(true);
-        MAIN_FRAME.setHideFrame(true);
-        MAIN_FRAME.getHideMainFrameRBtn().setSelected(true);
-        MAIN_FRAME.getRepeatTimesTxt().setText("");
-        MAIN_FRAME.getHoursField().setText("0");
-        MAIN_FRAME.getMinutesField().setText("0");
-        MAIN_FRAME.getSecondsField().setText("0");
-        MAIN_FRAME.setProgressText("Ready");
+        repeatTimes.set(0);
+        totalRepeat.set(0);
+        doneCount.set(0);
+        mainFrame.getTableItems().clearTable();
+        mainFrame.getInfiniteRBtn().setSelected(false);
+        mainFrame.getRepeatByCountRBtn().setSelected(true);
+        mainFrame.setHideFrame(true);
+        mainFrame.getHideMainFrameRBtn().setSelected(true);
+        mainFrame.getRepeatTimesTxt().setText("");
+        mainFrame.getHoursField().setText("0");
+        mainFrame.getMinutesField().setText("0");
+        mainFrame.getSecondsField().setText("0");
+        mainFrame.setProgressText("Ready");
     }
 
     public void deleteSelected() {
-        if (MAIN_FRAME.getTableItems().getTable().getSelectedRows().length < 1) {
-            changeFrame(false, MAIN_FRAME.getTableItems().getListItems().isEmpty()
+        if (mainFrame.getTableItems().getTable().getSelectedRows().length < 1) {
+            changeFrame(false, mainFrame.getTableItems().getListItems().isEmpty()
                     ? "The list is empty." : "Please select a row to delete.");
             return;
         }
-        MAIN_FRAME.getTableItems().deleteSelectedRows();
+        mainFrame.getTableItems().deleteSelectedRows();
     }
 
     public void startClick() {
-        if (MAIN_FRAME.getTableItems().getListItems().isEmpty()) {
+        if (mainFrame.getTableItems().getListItems().isEmpty()) {
             changeFrame(false, "No actions added yet. Add at least one action to start."); return;
         }
-        if (MAIN_FRAME.getInfiniteRBtn().isSelected()) {
+        if (mainFrame.getInfiniteRBtn().isSelected()) {
             infinite = true; repeatByTime = false;
-            totalRepeat = -1;
-            repeatTimes = Long.MAX_VALUE;
-        } else if (MAIN_FRAME.getRepeatByTimeRBtn().isSelected()) {
+            totalRepeat.set(-1);
+            repeatTimes.set(Long.MAX_VALUE);
+        } else if (mainFrame.getRepeatByTimeRBtn().isSelected()) {
             infinite = false; repeatByTime = true;
-            long h = parseLong(MAIN_FRAME.getHoursField().getText(), 0);
-            long m = parseLong(MAIN_FRAME.getMinutesField().getText(), 0);
-            long s = parseLong(MAIN_FRAME.getSecondsField().getText(), 0);
+            long h = parseLong(mainFrame.getHoursField().getText(), 0);
+            long m = parseLong(mainFrame.getMinutesField().getText(), 0);
+            long s = parseLong(mainFrame.getSecondsField().getText(), 0);
             long totalSec = h * 3600 + m * 60 + s;
             if (totalSec <= 0) { changeFrame(false, "Please enter a valid duration (h/m/s)."); return; }
             endTimeMs = System.currentTimeMillis() + totalSec * 1000;
-            totalRepeat = totalSec;
-            repeatTimes = Long.MAX_VALUE;
+            totalRepeat.set(totalSec);
+            repeatTimes.set(Long.MAX_VALUE);
         } else {
             infinite = false; repeatByTime = false;
-            String input = MAIN_FRAME.getRepeatTimesTxt().getText().trim();
+            String input = mainFrame.getRepeatTimesTxt().getText().trim();
             if (input.isEmpty()) { changeFrame(false, "Please enter the number of repeat cycles."); return; }
             try {
-                repeatTimes = Long.parseLong(input);
-                if (repeatTimes < 1) { changeFrame(false, "Repeat count must be at least 1."); return; }
-            } catch (NumberFormatException ex) { changeFrame(false, "Please enter a valid whole number."); return; }
-            totalRepeat = repeatTimes;
+                repeatTimes.set(Long.parseLong(input));
+                if (repeatTimes.get() < 1) { changeFrame(false, "Repeat count must be at least 1."); return; }
+            } catch (NumberFormatException _) { changeFrame(false, "Please enter a valid whole number."); return; }
+            totalRepeat.set(repeatTimes.get());
         }
-        doneCount = 0;
-        // Hide-while-running:
-        //   * Windows: hide the JFrame and install a system tray icon. F8 or
-        //     double-click on the tray icon stops and restores the window.
-        //   * macOS: setVisible(false)/setVisible(true) cycle has known
-        //     NSWindow bugs (focus chain breaks, "getApplicationProperty"
-        //     warnings, F8 sometimes auto-closes the restored window). The
-        //     user explicitly accepts those bugs in exchange for the hide
-        //     behavior, so we honor the checkbox here.
-        var f = MAIN_FRAME.getFrame();
-        if (MAIN_FRAME.isHideFrame()) {
-            if (IS_WINDOWS) {
-                installTrayIcon();
-            }
-            f.setVisible(false);
+        doneCount.set(0);
+        var f = mainFrame.getFrame();
+        if (mainFrame.isHideFrame()) {
+            hideMainWindowForRun(f);
         }
         f.setEnabled(false);
         enableInput(false);
         isStopClick = false;
         performClick();
+    }
+
+    private void hideMainWindowForRun(JFrame frame) {
+        if (IS_WINDOWS) {
+            installTrayIcon();
+            frame.setVisible(false);
+            return;
+        }
+        if (IS_MAC) {
+            frame.setState(Frame.ICONIFIED);
+            return;
+        }
+        frame.setVisible(false);
+    }
+
+    private void restoreMainWindow(JFrame frame) {
+        if (!frame.isVisible()) {
+            frame.setVisible(true);
+        }
+        if ((frame.getExtendedState() & Frame.ICONIFIED) != 0) {
+            frame.setExtendedState(frame.getExtendedState() & ~Frame.ICONIFIED);
+        }
+        frame.setEnabled(true);
+        frame.toFront();
+        frame.requestFocus();
     }
 
     /**
@@ -382,29 +467,27 @@ public class AutoClicker {
 
             var popup = new PopupMenu();
             var stopItem = new MenuItem("Stop & Restore");
-            stopItem.addActionListener(e -> stopClick());
+            stopItem.addActionListener(_ -> stopClick());
             popup.add(stopItem);
             var exitItem = new MenuItem("Exit");
-            exitItem.addActionListener(e -> System.exit(0));
+            exitItem.addActionListener(_ -> System.exit(0));
             popup.add(exitItem);
 
             trayIcon = new TrayIcon(image, "Kell Auto Clicker — running", popup);
             trayIcon.setImageAutoSize(true);
-            trayIcon.addActionListener(e -> stopClick()); // double-click on Windows
+            trayIcon.addActionListener(_ -> stopClick());
             SystemTray.getSystemTray().add(trayIcon);
-        } catch (Exception ex) {
+        } catch (AWTException | RuntimeException ex) {
             LOG.log(Level.WARNING, "Failed to install tray icon — keeping window visible", ex);
             trayIcon = null;
-            MAIN_FRAME.getFrame().setVisible(true);
+            mainFrame.getFrame().setVisible(true);
         }
     }
 
     /** Remove the tray icon if installed. Safe to call any time. */
     private void removeTrayIcon() {
         if (trayIcon != null && SystemTray.isSupported()) {
-            try {
-                SystemTray.getSystemTray().remove(trayIcon);
-            } catch (Exception ignored) { /* tray may already be gone */ }
+            SystemTray.getSystemTray().remove(trayIcon);
             trayIcon = null;
         }
     }
@@ -414,58 +497,7 @@ public class AutoClicker {
     private void performClick() {
         var clickThread = new Thread(() -> {
             try {
-                synchronized (lock) {
-                    // Snapshot the list to avoid ConcurrentModification
-                    var items = new ArrayList<>(MAIN_FRAME.getTableItems().getListItems());
-                    while (!isStopClick && repeatTimes > 0) {
-                        // Time-based stop check
-                        if (repeatByTime && System.currentTimeMillis() >= endTimeMs) break;
-
-                        for (int i = 0; i < items.size(); i++) {
-                            if (isStopClick) break;
-                            if (repeatByTime && System.currentTimeMillis() >= endTimeMs) {
-                                isStopClick = true;
-                                break;
-                            }
-
-                            var item = items.get(i);
-                            if (GlobalConst.EVENT_COMMENT.equals(item.getTypeEvent())) continue;
-
-                            final int rowIdx = i;
-                            SwingUtilities.invokeLater(() -> MAIN_FRAME.getTableItems().setHighlightRow(rowIdx));
-
-                            switch (item) {
-                                case ItemClick click -> clickEvent(click);
-                                case ItemPress press -> {
-                                    var latch = new CountDownLatch(1);
-                                    singlePressEvent(press, latch);
-                                    latch.await();
-                                }
-                                case ItemDAD dad -> performDAD(dad);
-                                default -> {
-                                    if (GlobalConst.EVENT_SCROLL.equals(item.getTypeEvent())) {
-                                        performScroll(item);
-                                    }
-                                }
-                            }
-                            lock.wait(item.getNextTime() + random.nextInt(10) * 10L);
-                        }
-
-                        if (!infinite && !repeatByTime) repeatTimes--;
-                        doneCount++;
-
-                        final long done = doneCount;
-                        final long total = totalRepeat;
-                        if (repeatByTime) {
-                            long remaining = Math.max(0, (endTimeMs - System.currentTimeMillis()) / 1000);
-                            SwingUtilities.invokeLater(() -> MAIN_FRAME.updateProgressTime(done, remaining));
-                        } else {
-                            SwingUtilities.invokeLater(() -> MAIN_FRAME.updateProgress(done, total));
-                        }
-                    }
-                    stopClickThreads();
-                    SwingUtilities.invokeLater(this::stopClickUI);
-                }
+                runClickLoop();
             } catch (AWTException | InterruptedException ex) {
                 stopClickThreads();
                 SwingUtilities.invokeLater(this::stopClickUI);
@@ -478,6 +510,77 @@ public class AutoClicker {
         runningThreads.add(clickThread);
     }
 
+    private void runClickLoop() throws AWTException, InterruptedException {
+        synchronized (lock) {
+            var items = new ArrayList<>(mainFrame.getTableItems().getListItems());
+            while (shouldContinueClicking()) {
+                executeCycle(items);
+                finishCycle();
+            }
+            stopClickThreads();
+            SwingUtilities.invokeLater(this::stopClickUI);
+        }
+    }
+
+    private boolean shouldContinueClicking() {
+        return !isStopClick
+                && repeatTimes.get() > 0
+                && (!repeatByTime || System.currentTimeMillis() < endTimeMs);
+    }
+
+    private void executeCycle(List<Item> items) throws AWTException, InterruptedException {
+        for (int i = 0; i < items.size() && shouldContinueClicking(); i++) {
+            Item item = items.get(i);
+            if (!GlobalConst.EVENT_COMMENT.equals(item.getTypeEvent())) {
+                executeItem(item, i);
+                waitBeforeNextItem(item.getNextTime());
+            }
+        }
+    }
+
+    private void executeItem(Item item, int rowIdx) throws AWTException, InterruptedException {
+        SwingUtilities.invokeLater(() -> mainFrame.getTableItems().setHighlightRow(rowIdx));
+        switch (item) {
+            case ItemClick click -> clickEvent(click);
+            case ItemPress press -> {
+                var latch = new CountDownLatch(1);
+                singlePressEvent(press, latch);
+                latch.await();
+            }
+            case ItemDAD dad -> performDAD(dad);
+            case Item scroll when GlobalConst.EVENT_SCROLL.equals(scroll.getTypeEvent()) -> performScroll(scroll);
+            default -> { /* unsupported item type */ }
+        }
+    }
+
+    private void waitBeforeNextItem(int delayMs) throws InterruptedException {
+        long waitUntil = System.currentTimeMillis()
+                + delayMs
+                + random.nextInt(CLICK_DELAY_RANDOM_BOUND) * CLICK_DELAY_RANDOM_MULTIPLIER_MS;
+        while (!isStopClick && System.currentTimeMillis() < waitUntil) {
+            lock.wait(waitUntil - System.currentTimeMillis());
+        }
+    }
+
+    private void finishCycle() {
+        if (!infinite && !repeatByTime) {
+            repeatTimes.decrementAndGet();
+        }
+        long done = doneCount.incrementAndGet();
+
+        final long total = totalRepeat.get();
+        if (repeatByTime) {
+            long remaining = Math.clamp(
+                    (endTimeMs - System.currentTimeMillis()) / 1000,
+                    0L,
+                    Long.MAX_VALUE
+            );
+            SwingUtilities.invokeLater(() -> mainFrame.updateProgressTime(done, remaining));
+        } else {
+            SwingUtilities.invokeLater(() -> mainFrame.updateProgress(done, total));
+        }
+    }
+
 
     // ── Action implementations ────────────────────────────────────────────────
 
@@ -488,15 +591,19 @@ public class AutoClicker {
     private void clickEvent(ItemClick item) throws AWTException {
         var robot = new Robot();
         var cur = MouseInfo.getPointerInfo().getLocation();
-        int targetX = item.getXAxis(), targetY = item.getYAxis();
+        int targetX = item.getXAxis();
+        int targetY = item.getYAxis();
 
         smoothMouseMove(robot, cur.x, cur.y, targetX, targetY);
 
         // Small random offset to look human
-        robot.mouseMove(targetX + random.nextInt(7) - 3, targetY + random.nextInt(7) - 3);
+        robot.mouseMove(
+                targetX + random.nextInt(MOUSE_MOVE_RANDOM_BOUND) - MOUSE_MOVE_RANDOM_OFFSET,
+                targetY + random.nextInt(MOUSE_MOVE_RANDOM_BOUND) - MOUSE_MOVE_RANDOM_OFFSET
+        );
         int btn = item.isRightClick() ? InputEvent.BUTTON3_DOWN_MASK : InputEvent.BUTTON1_DOWN_MASK;
         robot.mousePress(btn);
-        robot.delay(30 + random.nextInt(40)); // hold briefly like a human
+        robot.delay(CLICK_HOLD_BASE_MS + random.nextInt(CLICK_HOLD_RANDOM_MS));
         robot.mouseRelease(btn);
     }
 
@@ -510,13 +617,13 @@ public class AutoClicker {
         smoothMouseMove(robot, cur.x, cur.y, item.getXAxis1(), item.getYAxis1());
 
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        robot.delay(80 + random.nextInt(60)); // hold before drag
+        robot.delay(DRAG_HOLD_BASE_MS + random.nextInt(DRAG_HOLD_RANDOM_MS));
 
         // Drag to destination with smooth move
         smoothMouseMove(robot, item.getXAxis1(), item.getYAxis1(),
                                 item.getXAxis2(), item.getYAxis2());
 
-        robot.delay(40 + random.nextInt(40)); // settle before release
+        robot.delay(DRAG_SETTLE_BASE_MS + random.nextInt(DRAG_SETTLE_RANDOM_MS));
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
@@ -525,21 +632,25 @@ public class AutoClicker {
      * Uses the same curved-path algorithm as the original clickEvent.
      */
     private void smoothMouseMove(Robot robot, int x1, int y1, int x2, int y2) {
-        int steps = 400 + random.nextInt(400); // 400-800 steps
+        int steps = SMOOTH_MOVE_BASE_STEPS + random.nextInt(SMOOTH_MOVE_RANDOM_STEPS);
         double dx = (x2 - x1) / (double) steps;
         double dy = (y2 - y1) / (double) steps;
-        int wobble = 0, prevX = x1, prevY = y1;
+        int wobble = 0;
+        int prevX = x1;
+        int prevY = y1;
         for (int i = 1; i <= steps; i++) {
             int nx = x1 + (int)(dx * i);
             // Occasionally add a small perpendicular wobble
-            if (random.nextInt(11) % 3 == 0 && i % 50 == 0) {
-                wobble = random.nextInt(6) - 3;
+            if (random.nextInt(SMOOTH_MOVE_WOBBLE_CHECK_BOUND) % SMOOTH_MOVE_WOBBLE_MODULO == 0
+                    && i % SMOOTH_MOVE_WOBBLE_INTERVAL == 0) {
+                wobble = random.nextInt(SMOOTH_MOVE_WOBBLE_BOUND) - MOUSE_MOVE_RANDOM_OFFSET;
             }
             int ny = y1 + (int)(dy * i) + wobble;
             if (nx != prevX || ny != prevY) {
                 robot.mouseMove(nx, ny);
             }
-            prevX = nx; prevY = ny;
+            prevX = nx;
+            prevY = ny;
         }
         // Ensure we land exactly on target
         robot.mouseMove(x2, y2);
@@ -547,7 +658,7 @@ public class AutoClicker {
 
     private void singlePressEvent(ItemPress item, CountDownLatch latch) {
         var timer = new javax.swing.Timer(item.getPressTime(), null);
-        timer.addActionListener(e -> {
+        timer.addActionListener(_ -> {
             if (isStopClick) {
                 timer.stop();
                 latch.countDown();
@@ -570,21 +681,21 @@ public class AutoClicker {
     private void performScroll(Item item) {
         try {
             new Robot().mouseWheel(item.getPressTime());
-        } catch (AWTException e) {
-            LOG.log(Level.SEVERE, "Scroll error", e);
+        } catch (AWTException exception) {
+            LOG.log(Level.SEVERE, "Scroll error", exception);
         }
     }
 
 
     // ── Show/hide sub-frames ──────────────────────────────────────────────────
     private void showAddPointFrame() {
-        ADD_POINT_FRAME.reset();
-        MAIN_FRAME.getFrame().setVisible(false);
+        addPointFrame.reset();
+        mainFrame.getFrame().setVisible(false);
         var ma = new MouseAdapter() {
             @Override public void mouseReleased(MouseEvent e) {
                 // Ignore clicks on the hint badge so users can click "through" it
                 // by accident without creating a bad item.
-                if (ADD_POINT_FRAME.hintBounds().contains(e.getPoint())) return;
+                if (addPointFrame.hintBounds().contains(e.getPoint())) return;
 
                 String btn;
                 if (SwingUtilities.isRightMouseButton(e)) {
@@ -594,110 +705,110 @@ public class AutoClicker {
                 } else {
                     return; // ignore middle/extra buttons
                 }
-                MAIN_FRAME.getTableItems().addItem(new ItemClick(e.getX(), e.getY(), btn));
-                ADD_POINT_FRAME.getFrame().setVisible(false);
-                ADD_POINT_FRAME.getFrame().removeMouseListener(this);
+                mainFrame.getTableItems().addItem(new ItemClick(e.getX(), e.getY(), btn));
+                addPointFrame.getFrame().setVisible(false);
+                addPointFrame.getFrame().removeMouseListener(this);
                 restoreMainFrameAfterPointPick();
             }
         };
-        ADD_POINT_FRAME.setOnCancel(() -> {
-            ADD_POINT_FRAME.getFrame().removeMouseListener(ma);
+        addPointFrame.setOnCancel(() -> {
+            addPointFrame.getFrame().removeMouseListener(ma);
             restoreMainFrameAfterPointPick();
         });
-        ADD_POINT_FRAME.getFrame().addMouseListener(ma);
-        ADD_POINT_FRAME.getFrame().setVisible(true);
+        addPointFrame.getFrame().addMouseListener(ma);
+        addPointFrame.getFrame().setVisible(true);
     }
 
     private void restoreMainFrameAfterPointPick() {
-        MAIN_FRAME.getFrame().setVisible(true);
-        MAIN_FRAME.getFrame().toFront();
+        mainFrame.getFrame().setVisible(true);
+        mainFrame.getFrame().toFront();
     }
 
     private void showAddPressFrame(boolean show) {
-        MAIN_FRAME.getFrame().setEnabled(!show);
-        ADD_PRESS_FRAME.setVisible(show);
-        if (!show) { MAIN_FRAME.getFrame().setEnabled(true); MAIN_FRAME.getFrame().toFront(); }
-        if (show) ADD_PRESS_FRAME.getKeyTxt().requestFocus();
+        mainFrame.getFrame().setEnabled(!show);
+        addPressFrame.setVisible(show);
+        if (!show) { mainFrame.getFrame().setEnabled(true); mainFrame.getFrame().toFront(); }
+        if (show) addPressFrame.getKeyTxt().requestFocus();
     }
 
     private void showAddScrollFrame(boolean show) {
-        MAIN_FRAME.getFrame().setEnabled(!show);
-        ADD_SCROLL_FRAME.setVisible(show);
-        if (!show) { MAIN_FRAME.getFrame().setEnabled(true); MAIN_FRAME.getFrame().toFront(); }
-        if (show) ADD_SCROLL_FRAME.getWheelAmtTxt().requestFocus();
+        mainFrame.getFrame().setEnabled(!show);
+        addScrollFrame.setVisible(show);
+        if (!show) { mainFrame.getFrame().setEnabled(true); mainFrame.getFrame().toFront(); }
+        if (show) addScrollFrame.getWheelAmtTxt().requestFocus();
     }
 
     private void showAddDADFrame(boolean show) {
-        if (show) ADD_DAD_FRAME.resetCoords();
-        MAIN_FRAME.getFrame().setEnabled(!show);
-        ADD_DAD_FRAME.getDialog().setVisible(show);
-        if (!show) { MAIN_FRAME.getFrame().setEnabled(true); MAIN_FRAME.getFrame().toFront(); }
+        if (show) addDadFrame.resetCoords();
+        mainFrame.getFrame().setEnabled(!show);
+        addDadFrame.getDialog().setVisible(show);
+        if (!show) { mainFrame.getFrame().setEnabled(true); mainFrame.getFrame().toFront(); }
     }
 
     private void pickDADPoint(boolean isFrom) {
-        ADD_DAD_FRAME.getDialog().setVisible(false);
-        ADD_POINT_FRAME.setOnCancel(() -> {});
+        addDadFrame.getDialog().setVisible(false);
+        addPointFrame.setOnCancel(() -> {});
         var picker = new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
-                ADD_POINT_FRAME.getFrame().setVisible(false);
-                ADD_POINT_FRAME.getFrame().removeMouseListener(this);
-                if (isFrom) ADD_DAD_FRAME.setFrom(e.getX(), e.getY());
-                else        ADD_DAD_FRAME.setTo(e.getX(), e.getY());
-                ADD_DAD_FRAME.getDialog().setVisible(true);
-                ADD_DAD_FRAME.getDialog().toFront();
+                addPointFrame.getFrame().setVisible(false);
+                addPointFrame.getFrame().removeMouseListener(this);
+                if (isFrom) addDadFrame.setFrom(e.getX(), e.getY());
+                else        addDadFrame.setTo(e.getX(), e.getY());
+                addDadFrame.getDialog().setVisible(true);
+                addDadFrame.getDialog().toFront();
             }
         };
-        ADD_POINT_FRAME.getFrame().addMouseListener(picker);
-        ADD_POINT_FRAME.getFrame().setVisible(true);
+        addPointFrame.getFrame().addMouseListener(picker);
+        addPointFrame.getFrame().setVisible(true);
     }
 
     private void addDADEvent() {
-        if (!ADD_DAD_FRAME.isFromSet() || !ADD_DAD_FRAME.isToSet()) {
+        if (!addDadFrame.isFromSet() || !addDadFrame.isToSet()) {
             changeFrame(false, "Please pick both the start and end points first."); return;
         }
-        int nextTime = parseInt(ADD_DAD_FRAME.getNextTimeTxt().getText(), 500);
-        MAIN_FRAME.getTableItems().addItem(new ItemDAD(
-            ADD_DAD_FRAME.getFromX(), ADD_DAD_FRAME.getFromY(),
-            ADD_DAD_FRAME.getToX(),   ADD_DAD_FRAME.getToY(), 0, nextTime));
+        int nextTime = parseInt(addDadFrame.getNextTimeTxt().getText(), 500);
+        mainFrame.getTableItems().addItem(new ItemDAD(
+            addDadFrame.getFromX(), addDadFrame.getFromY(),
+            addDadFrame.getToX(),   addDadFrame.getToY(), 0, nextTime));
         showAddDADFrame(false);
     }
 
     private void showAddCommentFrame(boolean show) {
-        MAIN_FRAME.getFrame().setEnabled(!show);
-        if (show) ADD_COMMENT_FRAME.getCommentTxt().setText("");
-        ADD_COMMENT_FRAME.getDialog().setVisible(show);
-        if (!show) { MAIN_FRAME.getFrame().setEnabled(true); MAIN_FRAME.getFrame().toFront(); }
-        if (show) ADD_COMMENT_FRAME.getCommentTxt().requestFocus();
+        mainFrame.getFrame().setEnabled(!show);
+        if (show) addCommentFrame.getCommentTxt().setText("");
+        addCommentFrame.getDialog().setVisible(show);
+        if (!show) { mainFrame.getFrame().setEnabled(true); mainFrame.getFrame().toFront(); }
+        if (show) addCommentFrame.getCommentTxt().requestFocus();
     }
 
     // ── Add-item actions ──────────────────────────────────────────────────────
     private void addPressKey() {
-        String input = ADD_PRESS_FRAME.getKeyTxt().getText();
+        String input = addPressFrame.getKeyTxt().getText();
         if (input.isEmpty()) { changeFrame(false, "Please enter a key to press."); return; }
         int keyCode   = KeyEvent.getExtendedKeyCodeForChar(input.charAt(0));
-        int pressTime = parseInt(ADD_PRESS_FRAME.getPressTimeTxt().getText(), 100);
-        int nextTime  = parseInt(ADD_PRESS_FRAME.getNextTimeTxt().getText(), 500);
-        MAIN_FRAME.getTableItems().addItem(
-            new ItemPress(input, keyCode, pressTime, nextTime, ADD_PRESS_FRAME.getIsSinglePress()));
-        ADD_PRESS_FRAME.getKeyTxt().setText("");
+        int pressTime = parseInt(addPressFrame.getPressTimeTxt().getText(), 100);
+        int nextTime  = parseInt(addPressFrame.getNextTimeTxt().getText(), 500);
+        mainFrame.getTableItems().addItem(
+            new ItemPress(input, keyCode, pressTime, nextTime, addPressFrame.getIsSinglePress()));
+        addPressFrame.getKeyTxt().setText("");
         showAddPressFrame(false);
     }
 
     private void addScrollEvent() {
-        String input = ADD_SCROLL_FRAME.getWheelAmtTxt().getText();
+        String input = addScrollFrame.getWheelAmtTxt().getText();
         if (input.isEmpty()) { changeFrame(false, "Enter wheel amount"); return; }
-        int nextTime = parseInt(ADD_SCROLL_FRAME.getNextTimeTxt().getText(), 500);
-        MAIN_FRAME.getTableItems().addItem(
+        int nextTime = parseInt(addScrollFrame.getNextTimeTxt().getText(), 500);
+        mainFrame.getTableItems().addItem(
             new Item(input, parseInt(input, 1), nextTime, GlobalConst.EVENT_SCROLL));
-        ADD_SCROLL_FRAME.getWheelAmtTxt().setText("");
+        addScrollFrame.getWheelAmtTxt().setText("");
         showAddScrollFrame(false);
     }
 
     private void addComment() {
-        String text = ADD_COMMENT_FRAME.getCommentTxt().getText().trim();
+        String text = addCommentFrame.getCommentTxt().getText().trim();
         if (text.isEmpty()) { changeFrame(false, "Enter comment text"); return; }
         if (!text.startsWith(GlobalConst.COMMENT_PREFIX)) text = GlobalConst.COMMENT_PREFIX + " " + text;
-        MAIN_FRAME.getTableItems().addItem(new ItemComment(text));
+        mainFrame.getTableItems().addItem(new ItemComment(text));
         showAddCommentFrame(false);
     }
 
@@ -713,9 +824,10 @@ public class AutoClicker {
             //   - Windows: AV/Defender blocking jnativehook's temp DLL.
             //   - Linux:  X11 access not allowed (Wayland often blocks too).
             // Don't kill the app — the in-window F7/F8 fallback still works.
-            LOG.log(Level.WARNING, "Global hotkeys disabled (native hook failed): " + ex.getMessage(), ex);
+            LOG.log(Level.WARNING, ex, () ->
+                    "Global hotkeys disabled (native hook failed): %s".formatted(ex.getMessage()));
             SwingUtilities.invokeLater(() ->
-                MAIN_FRAME.showToast("Global F7/F8 disabled — focus the window to use hotkeys"));
+                mainFrame.showToast("Global F7/F8 disabled — focus the window to use hotkeys"));
             return;
         }
         GlobalScreen.addNativeKeyListener(new NativeKeyListener() {
@@ -726,61 +838,65 @@ public class AutoClicker {
                     SwingUtilities.invokeLater(AutoClicker.this::onF8);
                 }
             }
-            @Override public void nativeKeyReleased(NativeKeyEvent e) {}
-            @Override public void nativeKeyTyped(NativeKeyEvent e) {}
+            @Override public void nativeKeyReleased(NativeKeyEvent ignoredEvent) {
+                // Only key-press events are relevant for starting/stopping the clicker.
+            }
+            @Override public void nativeKeyTyped(NativeKeyEvent ignoredEvent) {
+                // Function keys are handled from nativeKeyPressed instead of typed events.
+            }
         });
     }
 
     // ── UI helpers ────────────────────────────────────────────────────────────
     private void changeFrame(boolean isMainFrame) { changeFrame(isMainFrame, ""); }
     private void changeFrame(boolean isMainFrame, String message) {
-        MAIN_FRAME.getFrame().setEnabled(isMainFrame);
-        if (ADD_PRESS_FRAME.getDialog().isVisible()) ADD_PRESS_FRAME.getDialog().setEnabled(isMainFrame);
+        mainFrame.getFrame().setEnabled(isMainFrame);
+        if (addPressFrame.getDialog().isVisible()) addPressFrame.getDialog().setEnabled(isMainFrame);
         if (isMainFrame) {
-            MSG_FRAME.hideMessage();
+            msgFrame.hideMessage();
         } else {
-            MSG_FRAME.showMessage(message);
+            msgFrame.showMessage(message);
         }
     }
 
     private void enableInput(boolean enabled) {
-        MAIN_FRAME.getInfiniteRBtn().setEnabled(enabled);
-        MAIN_FRAME.getRepeatByCountRBtn().setEnabled(enabled);
-        MAIN_FRAME.getRepeatByTimeRBtn().setEnabled(enabled);
-        MAIN_FRAME.getHideMainFrameRBtn().setEnabled(enabled);
-        MAIN_FRAME.getRepeatTimesTxt().setEnabled(enabled && MAIN_FRAME.getRepeatByCountRBtn().isSelected());
-        MAIN_FRAME.getHoursField().setEnabled(enabled && MAIN_FRAME.getRepeatByTimeRBtn().isSelected());
-        MAIN_FRAME.getMinutesField().setEnabled(enabled && MAIN_FRAME.getRepeatByTimeRBtn().isSelected());
-        MAIN_FRAME.getSecondsField().setEnabled(enabled && MAIN_FRAME.getRepeatByTimeRBtn().isSelected());
+        mainFrame.getInfiniteRBtn().setEnabled(enabled);
+        mainFrame.getRepeatByCountRBtn().setEnabled(enabled);
+        mainFrame.getRepeatByTimeRBtn().setEnabled(enabled);
+        mainFrame.getHideMainFrameRBtn().setEnabled(enabled);
+        mainFrame.getRepeatTimesTxt().setEnabled(enabled && mainFrame.getRepeatByCountRBtn().isSelected());
+        mainFrame.getHoursField().setEnabled(enabled && mainFrame.getRepeatByTimeRBtn().isSelected());
+        mainFrame.getMinutesField().setEnabled(enabled && mainFrame.getRepeatByTimeRBtn().isSelected());
+        mainFrame.getSecondsField().setEnabled(enabled && mainFrame.getRepeatByTimeRBtn().isSelected());
     }
-    private int  parseInt(String s, int fallback)  { try { return Integer.parseInt(s.trim()); } catch (NumberFormatException e) { return fallback; } }
-    private long parseLong(String s, long fallback) { try { return Long.parseLong(s.trim()); }  catch (NumberFormatException e) { return fallback; } }
+    private int  parseInt(String s, int fallback)  { try { return Integer.parseInt(s.trim()); } catch (NumberFormatException _) { return fallback; } }
+    private long parseLong(String s, long fallback) { try { return Long.parseLong(s.trim()); }  catch (NumberFormatException _) { return fallback; } }
 
 
     // ── Save (JSON) ───────────────────────────────────────────────────────────
     private void saveData() {
-        var items = MAIN_FRAME.getTableItems().getListItems();
+        var items = mainFrame.getTableItems().getListItems();
         if (items.isEmpty()) { changeFrame(false, "List is empty"); return; }
 
         var fc = new JFileChooser();
         fc.setDialogTitle("Save As");
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setAcceptAllFileFilterUsed(false);
-        fc.setFileFilter(new FileNameExtensionFilter("JSON files (*.json)", "json"));
-        fc.setSelectedFile(new File("data_" + System.currentTimeMillis() + ".json"));
+        fc.setFileFilter(new FileNameExtensionFilter("JSON files (*.json)", JSON_FILTER_EXTENSION));
+        fc.setSelectedFile(new File("data_" + System.currentTimeMillis() + JSON_EXTENSION));
 
-        if (fc.showSaveDialog(MAIN_FRAME.getFrame()) != JFileChooser.APPROVE_OPTION) return;
+        if (fc.showSaveDialog(mainFrame.getFrame()) != JFileChooser.APPROVE_OPTION) return;
 
         var chosen = fc.getSelectedFile();
         // Make sure the file ends with .json (the filter doesn't enforce it on
         // every L&F — Aqua in particular lets the user type any name).
-        if (!chosen.getName().toLowerCase().endsWith(".json")) {
-            chosen = new File(chosen.getParentFile(), chosen.getName() + ".json");
+        if (!chosen.getName().toLowerCase().endsWith(JSON_EXTENSION)) {
+            chosen = new File(chosen.getParentFile(), chosen.getName() + JSON_EXTENSION);
         }
 
         // Confirm overwrite. JFileChooser doesn't ask by default on Linux/macOS.
         if (chosen.exists()) {
-            int ans = JOptionPane.showConfirmDialog(MAIN_FRAME.getFrame(),
+            int ans = JOptionPane.showConfirmDialog(mainFrame.getFrame(),
                     chosen.getName() + " already exists. Overwrite?",
                     "Confirm Overwrite", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (ans != JOptionPane.YES_OPTION) return;
@@ -796,35 +912,35 @@ public class AutoClicker {
                 for (var item : items) arr.add(itemToJson(item));
                 GSON.toJson(arr, w);
             }
-            changeFrame(false, "Saved: " + path);
-            LOG.info("Saved to: " + path);
+            changeFrame(false, "Saved: %s".formatted(path));
+            LOG.info(() -> "Saved to: %s".formatted(path));
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Save error", e);
-            changeFrame(false, "Save failed: " + e.getMessage());
+            changeFrame(false, "Save failed: %s".formatted(e.getMessage()));
         }
     }
 
     private JsonObject itemToJson(Item item) {
         var o = new JsonObject();
-        o.addProperty("type", item.getTypeEvent());
-        o.addProperty("name", item.getName());
-        o.addProperty("pressTime", item.getPressTime());
-        o.addProperty("nextTime", item.getNextTime());
+        o.addProperty(JSON_FIELD_TYPE, item.getTypeEvent());
+        o.addProperty(JSON_FIELD_NAME, item.getName());
+        o.addProperty(JSON_FIELD_PRESS_TIME, item.getPressTime());
+        o.addProperty(JSON_FIELD_NEXT_TIME, item.getNextTime());
         switch (item) {
             case ItemClick ic -> {
-                o.addProperty("x", ic.getXAxis());
-                o.addProperty("y", ic.getYAxis());
-                o.addProperty("mouseButton", ic.getButton());
+                o.addProperty(JSON_FIELD_X, ic.getXAxis());
+                o.addProperty(JSON_FIELD_Y, ic.getYAxis());
+                o.addProperty(JSON_FIELD_MOUSE_BUTTON, ic.getButton());
             }
             case ItemPress ip -> {
-                o.addProperty("keyCode", ip.getKeyCode());
-                o.addProperty("multiPress", ip.isMultiPress());
+                o.addProperty(JSON_FIELD_KEY_CODE, ip.getKeyCode());
+                o.addProperty(JSON_FIELD_MULTI_PRESS, ip.isMultiPress());
             }
             case ItemDAD id -> {
-                o.addProperty("x1", id.getXAxis1());
-                o.addProperty("y1", id.getYAxis1());
-                o.addProperty("x2", id.getXAxis2());
-                o.addProperty("y2", id.getYAxis2());
+                o.addProperty(JSON_FIELD_X1, id.getXAxis1());
+                o.addProperty(JSON_FIELD_Y1, id.getYAxis1());
+                o.addProperty(JSON_FIELD_X2, id.getXAxis2());
+                o.addProperty(JSON_FIELD_Y2, id.getYAxis2());
             }
             // SCROLL and COMMENT only need the base fields already added
             default -> { /* base fields suffice */ }
@@ -836,38 +952,43 @@ public class AutoClicker {
     private void loadData(boolean append) {
         var fc = new JFileChooser();
         fc.setDialogTitle(append ? "Append file" : "Load file");
-        fc.setFileFilter(new FileNameExtensionFilter("Auto-clicker files (*.json, *.txt)", "json", "txt"));
-        if (fc.showOpenDialog(MAIN_FRAME.getFrame()) != JFileChooser.APPROVE_OPTION) return;
+        fc.setFileFilter(new FileNameExtensionFilter(
+                "Auto-clicker files (*.json, *.txt)",
+                JSON_FILTER_EXTENSION,
+                "txt"
+        ));
+        if (fc.showOpenDialog(mainFrame.getFrame()) != JFileChooser.APPROVE_OPTION) return;
 
         var file = fc.getSelectedFile();
         if (file == null || !file.exists()) {
-            changeFrame(false, "File not found: " + (file == null ? "(none)" : file.getName()));
+            changeFrame(false, "File not found: %s".formatted(file == null ? "(none)" : file.getName()));
             return;
         }
         var loaded = parseFile(file);
-        if (loaded == null) return;
+        if (loaded.isEmpty()) return;
 
         if (append) {
-            MAIN_FRAME.getTableItems().appendItems(new Vector<>(loaded), file.getName());
+            mainFrame.getTableItems().appendItems(new Vector<>(loaded), file.getName());
         } else {
-            MAIN_FRAME.getTableItems().setListItems(new Vector<>(loaded));
+            mainFrame.getTableItems().setListItems(new Vector<>(loaded));
         }
-        changeFrame(false, (append ? "Appended: " : "Loaded: ") + file.getName());
-        LOG.info((append ? "Appended: " : "Loaded: ") + file.getAbsolutePath());
+        String action = append ? "Appended" : "Loaded";
+        changeFrame(false, "%s: %s".formatted(action, file.getName()));
+        LOG.info(() -> "%s: %s".formatted(action, file.getAbsolutePath()));
     }
 
     /**
      * Parses both new JSON format (.json) and legacy pipe-delimited format (.txt).
-     * Returns null on error (error message already shown).
+     * Returns an empty list on error (error message already shown).
      */
     private List<Item> parseFile(File file) {
         var fname = file.getName().toLowerCase();
         try {
-            return fname.endsWith(".json") ? parseJson(file) : parseLegacyTxt(file);
+            return fname.endsWith(JSON_EXTENSION) ? parseJson(file) : parseLegacyTxt(file);
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Load error", e);
-            changeFrame(false, "Load failed: " + e.getMessage());
-            return null;
+            changeFrame(false, "Load failed: %s".formatted(e.getMessage()));
+            return List.of();
         }
     }
 
@@ -876,35 +997,66 @@ public class AutoClicker {
         try (Reader r = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             var arr = JsonParser.parseReader(r).getAsJsonArray();
             for (var el : arr) {
-                var o = el.getAsJsonObject();
-                String type   = resolveType(o);
-                String name   = o.get("name").getAsString();
-                int pressTime = o.has("pressTime") ? o.get("pressTime").getAsInt() : 0;
-                int nextTime  = o.has("nextTime")  ? o.get("nextTime").getAsInt()  : 100;
-
-                Item parsed = switch (type) {
-                    case GlobalConst.EVENT_CLICK -> {
-                        int x      = o.get("x").getAsInt();
-                        int y      = o.get("y").getAsInt();
-                        String btn = o.has("mouseButton") ? o.get("mouseButton").getAsString() : "Left";
-                        yield new ItemClick(name, x, y, pressTime, nextTime, btn);
-                    }
-                    case GlobalConst.EVENT_PRESS -> {
-                        int kc     = o.get("keyCode").getAsInt();
-                        boolean mp = o.has("multiPress") && o.get("multiPress").getAsBoolean();
-                        yield new ItemPress(name, kc, pressTime, nextTime, mp);
-                    }
-                    case GlobalConst.EVENT_DAD -> new ItemDAD(
-                            o.get("x1").getAsInt(), o.get("y1").getAsInt(),
-                            o.get("x2").getAsInt(), o.get("y2").getAsInt(),
-                            pressTime, nextTime);
-                    case GlobalConst.EVENT_COMMENT -> new ItemComment(name);
-                    default -> new Item(name, pressTime, nextTime, type);
-                };
-                items.add(parsed);
+                items.add(jsonToItem(el.getAsJsonObject()));
             }
         }
         return items;
+    }
+
+    private Item jsonToItem(JsonObject o) {
+        String type = resolveType(o);
+        String name = o.get(JSON_FIELD_NAME).getAsString();
+        int pressTime = getInt(o, JSON_FIELD_PRESS_TIME, DEFAULT_PRESS_TIME);
+        int nextTime = getInt(o, JSON_FIELD_NEXT_TIME, DEFAULT_NEXT_TIME);
+
+        return switch (type) {
+            case GlobalConst.EVENT_CLICK -> jsonToClick(o, name, pressTime, nextTime);
+            case GlobalConst.EVENT_PRESS -> jsonToPress(o, name, pressTime, nextTime);
+            case GlobalConst.EVENT_DAD -> jsonToDad(o, pressTime, nextTime);
+            case GlobalConst.EVENT_COMMENT -> new ItemComment(name);
+            default -> new Item(name, pressTime, nextTime, type);
+        };
+    }
+
+    private ItemClick jsonToClick(JsonObject o, String name, int pressTime, int nextTime) {
+        String btn = o.has(JSON_FIELD_MOUSE_BUTTON)
+                ? o.get(JSON_FIELD_MOUSE_BUTTON).getAsString()
+                : "Left";
+        return new ItemClick(
+                name,
+                o.get(JSON_FIELD_X).getAsInt(),
+                o.get(JSON_FIELD_Y).getAsInt(),
+                pressTime,
+                nextTime,
+                btn
+        );
+    }
+
+    private ItemPress jsonToPress(JsonObject o, String name, int pressTime, int nextTime) {
+        boolean multiPress = o.has(JSON_FIELD_MULTI_PRESS)
+                && o.get(JSON_FIELD_MULTI_PRESS).getAsBoolean();
+        return new ItemPress(
+                name,
+                o.get(JSON_FIELD_KEY_CODE).getAsInt(),
+                pressTime,
+                nextTime,
+                multiPress
+        );
+    }
+
+    private ItemDAD jsonToDad(JsonObject o, int pressTime, int nextTime) {
+        return new ItemDAD(
+                o.get(JSON_FIELD_X1).getAsInt(),
+                o.get(JSON_FIELD_Y1).getAsInt(),
+                o.get(JSON_FIELD_X2).getAsInt(),
+                o.get(JSON_FIELD_Y2).getAsInt(),
+                pressTime,
+                nextTime
+        );
+    }
+
+    private static int getInt(JsonObject o, String fieldName, int fallback) {
+        return o.has(fieldName) ? o.get(fieldName).getAsInt() : fallback;
     }
 
     /** Backward-compatible reader for old pipe-delimited .txt files. */
@@ -913,34 +1065,84 @@ public class AutoClicker {
         try (var r = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             String line;
             while ((line = r.readLine()) != null) {
-                line = line.trim();
-                if (line.isEmpty()) continue;
-                if (line.startsWith(GlobalConst.COMMENT_PREFIX)) {
-                    items.add(new ItemComment(line));
-                    continue;
-                }
-                var p = line.split("\\|");
-                if (p.length < 2) continue;
-                String type = legacyTypeToString(p[0].trim());
-                if (type == null) continue;
-                var name = p[1];
-                int pressTime = p.length > 2 ? toInt(p[2]) : 0;
-                int nextTime  = p.length > 3 ? toInt(p[3]) : 100;
-                switch (type) {
-                    case GlobalConst.EVENT_CLICK -> {
-                        if (p.length >= 6) items.add(new ItemClick(name, toInt(p[4]), toInt(p[5]), pressTime, nextTime));
-                    }
-                    case GlobalConst.EVENT_PRESS -> {
-                        if (p.length >= 6) items.add(new ItemPress(name, toInt(p[4]), pressTime, nextTime, Boolean.parseBoolean(p[5])));
-                    }
-                    case GlobalConst.EVENT_DAD -> {
-                        if (p.length >= 8) items.add(new ItemDAD(toInt(p[4]), toInt(p[5]), toInt(p[6]), toInt(p[7]), pressTime, nextTime));
-                    }
-                    default -> items.add(new Item(name, pressTime, nextTime, type));
-                }
+                parseLegacyLine(line).ifPresent(items::add);
             }
         }
         return items;
+    }
+
+    private Optional<Item> parseLegacyLine(String rawLine) {
+        String line = rawLine.trim();
+        if (line.isEmpty()) {
+            return Optional.empty();
+        }
+        if (line.startsWith(GlobalConst.COMMENT_PREFIX)) {
+            return Optional.of(new ItemComment(line));
+        }
+
+        var parts = line.split("\\|");
+        if (parts.length < 2) {
+            return Optional.empty();
+        }
+
+        String type = legacyTypeToString(parts[0].trim());
+        if (type == null) {
+            return Optional.empty();
+        }
+        return legacyPartsToItem(parts, type);
+    }
+
+    private Optional<Item> legacyPartsToItem(String[] parts, String type) {
+        String name = parts[1];
+        int pressTime = parts.length > 2 ? toInt(parts[2]) : DEFAULT_PRESS_TIME;
+        int nextTime = parts.length > 3 ? toInt(parts[3]) : DEFAULT_NEXT_TIME;
+
+        return switch (type) {
+            case GlobalConst.EVENT_CLICK -> legacyClick(parts, name, pressTime, nextTime);
+            case GlobalConst.EVENT_PRESS -> legacyPress(parts, name, pressTime, nextTime);
+            case GlobalConst.EVENT_DAD -> legacyDad(parts, pressTime, nextTime);
+            default -> Optional.of(new Item(name, pressTime, nextTime, type));
+        };
+    }
+
+    private Optional<Item> legacyClick(String[] parts, String name, int pressTime, int nextTime) {
+        if (parts.length < 6) {
+            return Optional.empty();
+        }
+        return Optional.of(new ItemClick(
+                name,
+                toInt(parts[4]),
+                toInt(parts[5]),
+                pressTime,
+                nextTime
+        ));
+    }
+
+    private Optional<Item> legacyPress(String[] parts, String name, int pressTime, int nextTime) {
+        if (parts.length < 6) {
+            return Optional.empty();
+        }
+        return Optional.of(new ItemPress(
+                name,
+                toInt(parts[4]),
+                pressTime,
+                nextTime,
+                Boolean.parseBoolean(parts[5])
+        ));
+    }
+
+    private Optional<Item> legacyDad(String[] parts, int pressTime, int nextTime) {
+        if (parts.length < 8) {
+            return Optional.empty();
+        }
+        return Optional.of(new ItemDAD(
+                toInt(parts[4]),
+                toInt(parts[5]),
+                toInt(parts[6]),
+                toInt(parts[7]),
+                pressTime,
+                nextTime
+        ));
     }
 
     /** Maps old numeric type codes (from legacy .txt files) to the new String constants. */
@@ -961,8 +1163,10 @@ public class AutoClicker {
      * compatibility with existing save files.
      */
     private static String resolveType(JsonObject o) {
-        var el = o.get("type");
-        if (el == null) return "";
+        var el = o.get(JSON_FIELD_TYPE);
+        if (el == null) {
+            return "";
+        }
         if (el.getAsJsonPrimitive().isNumber()) {
             return switch (el.getAsInt()) {
                 case 1  -> GlobalConst.EVENT_CLICK;
@@ -978,6 +1182,6 @@ public class AutoClicker {
 
     private int toInt(String s) {
         try { return Integer.parseInt(s.trim()); }
-        catch (NumberFormatException e) { return -1; }
+        catch (NumberFormatException _) { return -1; }
     }
 }

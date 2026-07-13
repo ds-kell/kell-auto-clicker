@@ -259,7 +259,7 @@
                                     <executable>sh</executable>
                                     <arguments>
                                         <argument>-c</argument>
-                                        <argument>rm -rf "${jlink.image.dir}" "${project.build.directory}/jpackage-input" &amp;&amp; jlink --add-modules ${jlink.modules} --output "${jlink.image.dir}" --strip-debug --no-header-files --no-man-pages --compress=zip-6 &amp;&amp; mkdir -p "${project.build.directory}/jpackage-input" &amp;&amp; cp "${project.build.directory}/auto-clicker.jar" "${project.build.directory}/jpackage-input/"</argument>
+                                        <argument>rm -rf "${jlink.image.dir}" "${project.build.directory}/jpackage-input" "${project.build.directory}/dist" &amp;&amp; jlink --add-modules ${jlink.modules} --output "${jlink.image.dir}" --strip-debug --no-header-files --no-man-pages --compress=zip-6 &amp;&amp; mkdir -p "${project.build.directory}/jpackage-input" &amp;&amp; cp "${project.build.directory}/auto-clicker.jar" "${project.build.directory}/jpackage-input/"</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -334,7 +334,7 @@
                                     <executable>cmd</executable>
                                     <arguments>
                                         <argument>/c</argument>
-                                        <argument>if exist "${jlink.image.dir}" rmdir /s /q "${jlink.image.dir}" &amp; if exist "${project.build.directory}\jpackage-input" rmdir /s /q "${project.build.directory}\jpackage-input" &amp; jlink --add-modules ${jlink.modules} --output "${jlink.image.dir}" --strip-debug --no-header-files --no-man-pages --compress=zip-6 &amp; mkdir "${project.build.directory}\jpackage-input" &amp; copy "${project.build.directory}\auto-clicker.jar" "${project.build.directory}\jpackage-input\"</argument>
+                                        <argument>if exist "${jlink.image.dir}" rmdir /s /q "${jlink.image.dir}" &amp; if exist "${project.build.directory}\jpackage-input" rmdir /s /q "${project.build.directory}\jpackage-input" &amp; if exist "${project.build.directory}\dist" rmdir /s /q "${project.build.directory}\dist" &amp; jlink --add-modules ${jlink.modules} --output "${jlink.image.dir}" --strip-debug --no-header-files --no-man-pages --compress=zip-6 &amp; mkdir "${project.build.directory}\jpackage-input" &amp; copy "${project.build.directory}\auto-clicker.jar" "${project.build.directory}\jpackage-input\"</argument>
                                     </arguments>
                                 </configuration>
                             </execution>

@@ -2,10 +2,16 @@ package kell.autoclick.custom;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serial;
+
+import static kell.autoclick.contants.GlobalConst.SYSTEM_FONT;
 
 public class CButton extends JButton {
 
-    private static final Font UI_FONT   = new Font("Segoe UI", Font.PLAIN, 13);
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private static final Font UI_FONT   = new Font(SYSTEM_FONT, Font.PLAIN, 13);
     private static final int  BTN_HEIGHT = 28;
 
     public CButton(String text) {

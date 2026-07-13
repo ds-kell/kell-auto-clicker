@@ -1,22 +1,17 @@
 package kell.autoclick.frame;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Rectangle;
+import java.awt.*;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 import kell.autoclick.custom.CFrame;
+
+import static kell.autoclick.contants.GlobalConst.SYSTEM_FONT;
 
 /**
  * Full-screen transparent overlay for picking a click point.
@@ -25,7 +20,7 @@ import kell.autoclick.custom.CFrame;
  */
 public class AddPointFrame extends CFrame {
 
-    private static final Font FONT_HINT = new Font("Segoe UI", Font.BOLD, 13);
+    private static final Font FONT_HINT = new Font(SYSTEM_FONT, Font.BOLD, 13);
     private Runnable onCancel = () -> {};
 
     private final JLabel hint = new JLabel(
@@ -37,7 +32,7 @@ public class AddPointFrame extends CFrame {
     public AddPointFrame() {
         super(100, 100);
         frame.setUndecorated(true);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
         frame.setBackground(new Color(0, 0, 0, 50));
 
         topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 10));

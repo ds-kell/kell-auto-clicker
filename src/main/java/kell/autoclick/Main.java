@@ -1,7 +1,9 @@
 package kell.autoclick;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -9,7 +11,8 @@ import kell.autoclick.click.AutoClicker;
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
+    static void main(String[] args)
+            throws IOException, InterruptedException, URISyntaxException {
         // jnativehook calls native code. On JDK 17+ this prints warnings;
         // on JDK 24+ (JEP 472) it requires --enable-native-access=ALL-UNNAMED.
         // The packaged JAR sets `Enable-Native-Access: ALL-UNNAMED` in its manifest,
@@ -24,7 +27,19 @@ public class Main {
             return;
         }
 
-        new AutoClicker().start();
+        var singleInstance = SingleInstanceManager.tryAcquire();
+        if (singleInstance == null) {
+            SingleInstanceManager.activateRunningInstance();
+            return;
+        }
+
+        Runtime.getRuntime().addShutdownHook(
+                new Thread(singleInstance::close, "single-instance-shutdown")
+        );
+
+        var autoClicker = new AutoClicker();
+        singleInstance.listenForActivation(autoClicker::showMainWindow);
+        autoClicker.start();
     }
 
     /**
@@ -33,15 +48,15 @@ public class Main {
     private static boolean shouldRelaunch() {
         try {
             var version = System.getProperty("java.specification.version", "0");
-            // "11", "17", "21", "25", ... (no "1." prefix on modern JDKs)
             int major = Integer.parseInt(version.split("\\.")[0]);
             return major >= 17;
-        } catch (Exception e) {
+        } catch (NumberFormatException _) {
             return false;
         }
     }
 
-    private static void relaunchWithNativeAccess(String[] args) throws Exception {
+    private static void relaunchWithNativeAccess(String[] args)
+            throws IOException, InterruptedException, URISyntaxException {
         var javaExe = ProcessHandle.current().info().command().orElse("java");
         var codeSource = new File(
                 Main.class.getProtectionDomain().getCodeSource().getLocation().toURI()

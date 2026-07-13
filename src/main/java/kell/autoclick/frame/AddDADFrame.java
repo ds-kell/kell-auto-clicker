@@ -25,7 +25,10 @@ public class AddDADFrame extends CDialog {
     private final JButton     addBtn      = new CButton("Add");
     private final JButton     cancelBtn   = new CButton("Cancel");
 
-    private int fromX = -1, fromY = -1, toX = -1, toY = -1;
+    private int fromX = -1;
+    private int fromY = -1;
+    private int toX = -1;
+    private int toY = -1;
 
     public AddDADFrame(JFrame owner) {
         super(owner, "Add Drag & Drop Action", 360, 280);
