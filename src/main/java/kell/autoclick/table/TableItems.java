@@ -27,6 +27,7 @@ import kell.autoclick.model.Item;
 import kell.autoclick.model.ItemClick;
 import kell.autoclick.model.ItemComment;
 import kell.autoclick.model.ItemDAD;
+import kell.autoclick.model.ItemPress;
 
 import static kell.autoclick.contants.GlobalConst.SYSTEM_FONT;
 
@@ -169,6 +170,25 @@ public class TableItems {
         }
     }
 
+    public void updateLastDelay(int delayMs) {
+        if (listItems.isEmpty()) {
+            return;
+        }
+        int row = listItems.size() - 1;
+        Item item = listItems.get(row);
+        item.setNextTime(delayMs);
+        model.setValueAt(String.valueOf(delayMs), row, COL_DELAY);
+    }
+
+    public void updateHoldTime(int row, int holdMs) {
+        if (row < 0 || row >= listItems.size()) {
+            return;
+        }
+        Item item = listItems.get(row);
+        item.setPressTime(holdMs);
+        model.setValueAt(String.valueOf(holdMs), row, COL_HOLD);
+    }
+
     public void moveSelectedUp() {
         int row = table.getSelectedRow();
         if (row <= 0) return;
@@ -219,7 +239,7 @@ public class TableItems {
 
         switch (item) {
             case ItemClick ic -> {
-                row[COL_ACTION] = ic.isRightClick() ? "Right Click" : "Left Click";
+                row[COL_ACTION] = clickActionName(ic);
                 row[COL_X]      = String.valueOf(ic.getXAxis());
                 row[COL_Y]      = String.valueOf(ic.getYAxis());
             }
@@ -228,13 +248,34 @@ public class TableItems {
                 row[COL_X]      = id.getXAxis1() + " → " + id.getXAxis2();
                 row[COL_Y]      = id.getYAxis1() + " → " + id.getYAxis2();
             }
+            case ItemPress ip -> row[COL_ACTION] = keyActionName(ip);
             default -> row[COL_ACTION] = switch (item.getTypeEvent()) {
-                case GlobalConst.EVENT_PRESS  -> "Key Press";
                 case GlobalConst.EVENT_SCROLL -> "Scroll";
                 default                       -> item.getTypeEvent();
             };
         }
         return row;
+    }
+
+    private String clickActionName(ItemClick item) {
+        String button = item.isRightClick() ? "Right" : "Left";
+        if (item.isMouseDownEvent()) {
+            return button + " Down";
+        }
+        if (item.isMouseUpEvent()) {
+            return button + " Up";
+        }
+        return button + " Click";
+    }
+
+    private String keyActionName(ItemPress item) {
+        if (item.isKeyDownEvent()) {
+            return "Key Down";
+        }
+        if (item.isKeyUpEvent()) {
+            return "Key Up";
+        }
+        return "Key Press";
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -69,6 +70,7 @@ public class MainFrame extends CFrame {
     // ── Run controls ──────────────────────────────────────────────────────────
     private final JButton startBtn = new CButton("Start (F7)");
     private final JButton stopBtn  = new CButton("Stop (F8)");
+    private final JButton recordBtn = new CButton("Record (F9)");
 
     // ── File controls ─────────────────────────────────────────────────────────
     private final JButton saveBtn   = new CButton("Save");
@@ -91,6 +93,8 @@ public class MainFrame extends CFrame {
 
     // ── Table ─────────────────────────────────────────────────────────────────
     private final TableItems tableItems = new TableItems();
+
+    private JWindow recordControlWindow;
 
     private boolean hideFrame = true;
 
@@ -153,6 +157,7 @@ public class MainFrame extends CFrame {
         JPanel row3 = centeredRow();
         row3.add(startBtn);
         row3.add(stopBtn);
+        row3.add(recordBtn);
         row3.add(saveBtn);
         row3.add(loadBtn);
         row3.add(appendBtn);
@@ -215,10 +220,12 @@ public class MainFrame extends CFrame {
      */
     private Runnable onF7 = () -> {};
     private Runnable onF8 = () -> {};
+    private Runnable onF9 = () -> {};
 
-    public void setHotkeyHandlers(Runnable f7, Runnable f8) {
+    public void setHotkeyHandlers(Runnable f7, Runnable f8, Runnable f9) {
         if (f7 != null) this.onF7 = f7;
         if (f8 != null) this.onF8 = f8;
+        if (f9 != null) this.onF9 = f9;
     }
 
     private void installHotkeys() {
@@ -227,6 +234,7 @@ public class MainFrame extends CFrame {
         ActionMap am = root.getActionMap();
         im.put(KeyStroke.getKeyStroke("F7"), "kell-start");
         im.put(KeyStroke.getKeyStroke("F8"), "kell-stop");
+        im.put(KeyStroke.getKeyStroke("F9"), "kell-record");
         am.put("kell-start", new AbstractAction() {
             @Serial
             private static final long serialVersionUID = 1L;
@@ -238,6 +246,12 @@ public class MainFrame extends CFrame {
             private static final long serialVersionUID = 1L;
 
             @Override public void actionPerformed(java.awt.event.ActionEvent e) { onF8.run(); }
+        });
+        am.put("kell-record", new AbstractAction() {
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) { onF9.run(); }
         });
     }
 
@@ -267,6 +281,52 @@ public class MainFrame extends CFrame {
         SwingUtilities.invokeLater(() -> progressLabel.setText(text));
     }
 
+    public void showRecordControl(Runnable onStop) {
+        SwingUtilities.invokeLater(() -> {
+            hideRecordControl();
+            recordControlWindow = new JWindow(frame);
+            recordControlWindow.setAlwaysOnTop(true);
+
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 6));
+            panel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(0xEF, 0x6C, 0x00), 2, true),
+                    BorderFactory.createEmptyBorder(2, 6, 2, 6)
+            ));
+            panel.setBackground(new Color(0x24, 0x24, 0x24));
+
+            JLabel label = new JLabel("● Recording");
+            label.setFont(UI_FONT_BOLD);
+            label.setForeground(new Color(0xFF, 0xB7, 0x4D));
+            label.setFocusable(false);
+
+            JButton stop = new CButton("Stop");
+            stop.setFont(UI_FONT_BOLD);
+            paintAsFlat(stop, new Color(0xC6, 0x28, 0x28), Color.WHITE);
+            stop.addActionListener(_ -> onStop.run());
+
+            panel.add(label);
+            panel.add(stop);
+            recordControlWindow.getContentPane().add(panel);
+            recordControlWindow.pack();
+            placeRecordControl();
+            recordControlWindow.setVisible(true);
+        });
+    }
+
+    public void hideRecordControl() {
+        if (recordControlWindow != null) {
+            recordControlWindow.setVisible(false);
+            recordControlWindow.dispose();
+            recordControlWindow = null;
+        }
+    }
+
+    public boolean isInsideRecordControl(int x, int y) {
+        return recordControlWindow != null
+                && recordControlWindow.isShowing()
+                && recordControlWindow.getBounds().contains(x, y);
+    }
+
     // ── Theme ─────────────────────────────────────────────────────────────────
     private void applyTheme() {
         try {
@@ -287,7 +347,7 @@ public class MainFrame extends CFrame {
         // All buttons: bold font
         for (JButton btn : new JButton[]{addClickBtn, addKeyBtn, addScrollBtn, addDADBtn,
                 addCommentBtn, moveUpBtn, moveDownBtn, deleteBtn, resetBtn,
-                startBtn, stopBtn, saveBtn, loadBtn, appendBtn}) {
+                startBtn, stopBtn, recordBtn, saveBtn, loadBtn, appendBtn}) {
             btn.setFont(UI_FONT_BOLD);
         }
 
@@ -301,6 +361,7 @@ public class MainFrame extends CFrame {
         // Colored action buttons — paint flat so they look identical on Aqua/Windows/GTK.
         paintAsFlat(startBtn, new Color(0x2E, 0x7D, 0x32), Color.WHITE); // green
         paintAsFlat(stopBtn,  new Color(0xC6, 0x28, 0x28), Color.WHITE); // red
+        paintAsFlat(recordBtn, new Color(0xEF, 0x6C, 0x00), Color.WHITE); // orange
 
         Color blue = new Color(0x15, 0x65, 0xC0);
         for (JButton btn : new JButton[]{saveBtn, loadBtn, appendBtn}) {
@@ -395,6 +456,15 @@ public class MainFrame extends CFrame {
         return Box.createHorizontalStrut(w);
     }
 
+    private void placeRecordControl() {
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        int margin = 18;
+        recordControlWindow.setLocation(
+                screen.width - recordControlWindow.getWidth() - margin,
+                margin
+        );
+    }
+
     // ── Getters ───────────────────────────────────────────────────────────────
     public JTextField   getRepeatTimesTxt()      { return repeatTimesTxt; }
     public JTextField   getHoursField()          { return hoursField; }
@@ -415,6 +485,7 @@ public class MainFrame extends CFrame {
     public JButton      getResetBtn()            { return resetBtn; }
     public JButton      getStartBtn()            { return startBtn; }
     public JButton      getStopBtn()             { return stopBtn; }
+    public JButton      getRecordBtn()           { return recordBtn; }
     public JButton      getSaveBtn()             { return saveBtn; }
     public JButton      getLoadBtn()             { return loadBtn; }
     public JButton      getAppendBtn()           { return appendBtn; }

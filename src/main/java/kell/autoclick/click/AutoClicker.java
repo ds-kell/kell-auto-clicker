@@ -4,31 +4,17 @@ import java.awt.AWTException;
 import java.awt.Frame;
 import java.awt.Image;
 import java.awt.MenuItem;
-import java.awt.MouseInfo;
 import java.awt.PopupMenu;
-import java.awt.Robot;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
-import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Vector;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -45,11 +31,10 @@ import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
+import com.github.kwhat.jnativehook.mouse.NativeMouseListener;
+import com.github.kwhat.jnativehook.mouse.NativeMouseWheelEvent;
+import com.github.kwhat.jnativehook.mouse.NativeMouseWheelListener;
 
 import kell.autoclick.contants.GlobalConst;
 import kell.autoclick.frame.AddCommentFrame;
@@ -60,73 +45,10 @@ import kell.autoclick.frame.AddScrollFrame;
 import kell.autoclick.frame.MainFrame;
 import kell.autoclick.frame.MessageFrame;
 import kell.autoclick.model.Item;
-import kell.autoclick.model.ItemClick;
-import kell.autoclick.model.ItemComment;
-import kell.autoclick.model.ItemDAD;
-import kell.autoclick.model.ItemPress;
+
+import static kell.autoclick.click.AutoClickerConfig.*;
 
 public class AutoClicker {
-
-    private static final String JSON_EXTENSION = ".json";
-    private static final String JSON_FILTER_EXTENSION = "json";
-    private static final String JSON_FIELD_MOUSE_BUTTON = "mouseButton";
-    private static final String JSON_FIELD_MULTI_PRESS = "multiPress";
-    private static final String JSON_FIELD_NEXT_TIME = "nextTime";
-    private static final String JSON_FIELD_PRESS_TIME = "pressTime";
-    private static final String JSON_FIELD_TYPE = "type";
-    private static final String JSON_FIELD_NAME = "name";
-    private static final String JSON_FIELD_KEY_CODE = "keyCode";
-    private static final String JSON_FIELD_X = "x";
-    private static final String JSON_FIELD_Y = "y";
-    private static final String JSON_FIELD_X1 = "x1";
-    private static final String JSON_FIELD_Y1 = "y1";
-    private static final String JSON_FIELD_X2 = "x2";
-    private static final String JSON_FIELD_Y2 = "y2";
-    private static final int DEFAULT_PRESS_TIME = 0;
-    private static final int DEFAULT_NEXT_TIME = 100;
-    private static final int MOUSE_MOVE_RANDOM_BOUND = 7;
-    private static final int MOUSE_MOVE_RANDOM_OFFSET = 3;
-    private static final int CLICK_HOLD_BASE_MS = 30;
-    private static final int CLICK_HOLD_RANDOM_MS = 40;
-    private static final int DRAG_HOLD_BASE_MS = 80;
-    private static final int DRAG_HOLD_RANDOM_MS = 60;
-    private static final int DRAG_SETTLE_BASE_MS = 40;
-    private static final int DRAG_SETTLE_RANDOM_MS = 40;
-    private static final int SMOOTH_MOVE_BASE_STEPS = 400;
-    private static final int SMOOTH_MOVE_RANDOM_STEPS = 400;
-    private static final int SMOOTH_MOVE_WOBBLE_CHECK_BOUND = 11;
-    private static final int SMOOTH_MOVE_WOBBLE_MODULO = 3;
-    private static final int SMOOTH_MOVE_WOBBLE_INTERVAL = 50;
-    private static final int SMOOTH_MOVE_WOBBLE_BOUND = 6;
-    private static final int CLICK_DELAY_RANDOM_BOUND = 10;
-    private static final long CLICK_DELAY_RANDOM_MULTIPLIER_MS = 10L;
-    private static final int MIN_STEPS = 25;
-    private static final int MAX_STEPS = 140;
-
-    private static final double PIXELS_PER_STEP_MIN = 3.5;
-    private static final double PIXELS_PER_STEP_MAX = 7.0;
-
-    private static final double CURVE_RATIO_MIN = 0.05;
-    private static final double CURVE_RATIO_MAX = 0.10;
-    private static final double MAX_CURVE_PIXELS = 50.0;
-
-    private static final double CONTROL_1_PROGRESS_MIN = 0.20;
-    private static final double CONTROL_1_PROGRESS_MAX = 0.40;
-
-    private static final double CONTROL_2_PROGRESS_MIN = 0.60;
-    private static final double CONTROL_2_PROGRESS_MAX = 0.82;
-
-    private static final double SECOND_CURVE_RATIO_MIN = 0.40;
-    private static final double SECOND_CURVE_RATIO_MAX = 0.95;
-
-    private static final int DELAY_MIN_MS = 2;
-    private static final int DELAY_MAX_MS = 6;
-
-    private static final double WOBBLE_AMPLITUDE_MIN = 0.0;
-    private static final double WOBBLE_AMPLITUDE_MAX = 1.8;
-
-    private static final double WOBBLE_FREQUENCY_MIN = 0.7;
-    private static final double WOBBLE_FREQUENCY_MAX = 1.8;
     // ── Frames ────────────────────────────────────────────────────────────────
     private final MainFrame mainFrame = new MainFrame();
     // Dialogs are created after mainFrame so they can use it as owner
@@ -149,7 +71,10 @@ public class AutoClicker {
 
     public  final Object         lock           = new Object();
     private final Vector<Thread> runningThreads = new Vector<>();
-    private final Random         random         = new Random();
+    private final MacroPlayer macroPlayer;
+    private final MacroRecorder macroRecorder;
+    private final MacroManualRecorder macroManualRecorder;
+    private final MacroFileStore macroFileStore = new MacroFileStore();
 
     private static final Logger LOG = Logger.getLogger(AutoClicker.class.getName());
 
@@ -161,14 +86,13 @@ public class AutoClicker {
     /** Tray icon used to hide/restore the window while clicking on Windows. */
     private TrayIcon trayIcon;
 
-    // ── Gson (JSON serialization) ─────────────────────────────────────────────
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
-
     // ── Constructor ───────────────────────────────────────────────────────────
     public AutoClicker() {
         setupFileLogger();
         mainFrame.init();
+        Random random = new Random();
+        macroPlayer = new MacroPlayer(random, lock, this::shouldContinueClicking, () -> isStopClick);
+        macroRecorder = new MacroRecorder(mainFrame, () -> isStopClick, message -> changeFrame(false, message));
         JFrame owner = mainFrame.getFrame();
         // Create dialogs with owner so JDialog parent relationship is correct
         addPointFrame   = new AddPointFrame();
@@ -176,6 +100,15 @@ public class AutoClicker {
         addScrollFrame  = new AddScrollFrame(owner);
         addDadFrame     = new AddDADFrame(owner);
         addCommentFrame = new AddCommentFrame(owner);
+        macroManualRecorder = new MacroManualRecorder(
+                mainFrame,
+                addPointFrame,
+                addPressFrame,
+                addScrollFrame,
+                addDadFrame,
+                addCommentFrame,
+                message -> changeFrame(false, message)
+        );
         msgFrame.initWithOwner(owner);
         mainFrame.getFrame().setVisible(true);
     }
@@ -183,11 +116,11 @@ public class AutoClicker {
     public void start() {
         eventListener();
         tableListener();
-        // Always wire the in-window F7/F8 fallback BEFORE attempting the
+        // Always wire the in-window F7/F8/F9 fallback BEFORE attempting the
         // global native hook. If the native hook fails (Windows AV, macOS
         // Accessibility not granted, etc.), users still have the hotkeys
         // when the main window is focused.
-        mainFrame.setHotkeyHandlers(this::onF7, this::onF8);
+        mainFrame.setHotkeyHandlers(this::onF7, this::onF8, this::onF9);
         globalKeyListener();
         windowFocus();
     }
@@ -198,6 +131,10 @@ public class AutoClicker {
 
     private void onF8() {
         if (!isStopClick) stopClick();
+    }
+
+    private void onF9() {
+        macroRecorder.toggle();
     }
 
     // ── Logger ────────────────────────────────────────────────────────────────
@@ -246,27 +183,10 @@ public class AutoClicker {
         mainFrame.getHideMainFrameRBtn().addItemListener(e ->
             mainFrame.setHideFrame(e.getStateChange() == ItemEvent.SELECTED));
 
-        mainFrame.getAddClickBtn().addActionListener(_ -> showAddPointFrame());
-        // Add Key: not disabled — handled entirely by MouseListener in MainFrame.applyTheme()
-
-        mainFrame.getAddScrollBtn().addActionListener(_ -> {
-            showAddScrollFrame(true);
-            addScrollFrame.getWheelAmtTxt().requestFocus();
-        });
-        mainFrame.getAddDADBtn().addActionListener(_ -> showAddDADFrame(true));
-
-        // DAD frame buttons
-        addDadFrame.getFromBtn().addActionListener(_ -> pickDADPoint(true));
-        addDadFrame.getToBtn().addActionListener(_ -> pickDADPoint(false));
-        addDadFrame.getAddBtn().addActionListener(_ -> addDADEvent());
-        addDadFrame.getCancelBtn().addActionListener(_ -> showAddDADFrame(false));
-        addDadFrame.getDialog().addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing(WindowEvent ignoredEvent) { showAddDADFrame(false); }
-        });
-
-        mainFrame.getAddCommentBtn().addActionListener(_ -> showAddCommentFrame(true));
+        macroManualRecorder.bindActions();
         mainFrame.getStartBtn().addActionListener(_ -> startClick());
         mainFrame.getStopBtn().addActionListener(_ -> stopClick());
+        mainFrame.getRecordBtn().addActionListener(_ -> macroRecorder.start());
         mainFrame.getDeleteBtn().addActionListener(_ -> deleteSelected());
         mainFrame.getResetBtn().addActionListener(_ -> resetData());
         mainFrame.getSaveBtn().addActionListener(_ -> saveData());
@@ -277,31 +197,6 @@ public class AutoClicker {
 
         msgFrame.getConfirmBtn().addActionListener(_ -> changeFrame(true));
 
-        addPressFrame.getAddBtn().addActionListener(_ -> addPressKey());
-        addPressFrame.getCancelBtn().addActionListener(_ -> showAddPressFrame(false));
-        addPressFrame.getIsSinglePressRBtn().addItemListener(e -> {
-            addPressFrame.setIsSinglePress(e.getStateChange() == ItemEvent.SELECTED);
-            addPressFrame.getIsMultiPressRBtn().setSelected(!addPressFrame.getIsSinglePress());
-        });
-        addPressFrame.getIsMultiPressRBtn().addItemListener(e -> {
-            addPressFrame.setIsSinglePress(e.getStateChange() != ItemEvent.SELECTED);
-            addPressFrame.getIsSinglePressRBtn().setSelected(addPressFrame.getIsSinglePress());
-        });
-        addPressFrame.getDialog().addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing(WindowEvent ignoredEvent) { showAddPressFrame(false); }
-        });
-
-        addScrollFrame.getAddBtn().addActionListener(_ -> addScrollEvent());
-        addScrollFrame.getCancelBtn().addActionListener(_ -> showAddScrollFrame(false));
-        addScrollFrame.getDialog().addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing(WindowEvent ignoredEvent) { showAddScrollFrame(false); }
-        });
-
-        addCommentFrame.getAddBtn().addActionListener(_ -> addComment());
-        addCommentFrame.getCancelBtn().addActionListener(_ -> showAddCommentFrame(false));
-        addCommentFrame.getDialog().addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing(WindowEvent ignoredEvent) { showAddCommentFrame(false); }
-        });
     }
 
     // ── Table listener ────────────────────────────────────────────────────────
@@ -325,29 +220,16 @@ public class AutoClicker {
     }
 
     private void updatePressTime(Item item, Object data) {
-        Integer value = parseInteger(data);
+        Integer value = AutoClickerUtils.parseInteger(String.valueOf(data));
         if (value != null) {
             item.setPressTime(value);
         }
     }
 
     private void updateNextTime(Item item, Object data) {
-        Integer value = parseInteger(data);
+        Integer value = AutoClickerUtils.parseInteger(String.valueOf(data));
         if (value != null) {
             item.setNextTime(value);
-        }
-    }
-
-    private Integer parseInteger(Object data) {
-        String value = String.valueOf(data).trim();
-        if (value.isEmpty()) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException _) {
-            LOG.log(Level.FINE, "Ignoring invalid integer table value: {0}", value);
-            return null;
         }
     }
 
@@ -410,6 +292,10 @@ public class AutoClicker {
     }
 
     public void startClick() {
+        if (macroRecorder.isRecording()) {
+            changeFrame(false, "Stop recording before starting playback.");
+            return;
+        }
         if (mainFrame.getTableItems().getListItems().isEmpty()) {
             changeFrame(false, "No actions added yet. Add at least one action to start."); return;
         }
@@ -419,9 +305,9 @@ public class AutoClicker {
             repeatTimes.set(Long.MAX_VALUE);
         } else if (mainFrame.getRepeatByTimeRBtn().isSelected()) {
             infinite = false; repeatByTime = true;
-            long h = parseLong(mainFrame.getHoursField().getText(), 0);
-            long m = parseLong(mainFrame.getMinutesField().getText(), 0);
-            long s = parseLong(mainFrame.getSecondsField().getText(), 0);
+            long h = AutoClickerUtils.parseLong(mainFrame.getHoursField().getText(), 0);
+            long m = AutoClickerUtils.parseLong(mainFrame.getMinutesField().getText(), 0);
+            long s = AutoClickerUtils.parseLong(mainFrame.getSecondsField().getText(), 0);
             long totalSec = h * 3600 + m * 60 + s;
             if (totalSec <= 0) { changeFrame(false, "Please enter a valid duration (h/m/s)."); return; }
             endTimeMs = System.currentTimeMillis() + totalSec * 1000;
@@ -431,10 +317,13 @@ public class AutoClicker {
             infinite = false; repeatByTime = false;
             String input = mainFrame.getRepeatTimesTxt().getText().trim();
             if (input.isEmpty()) { changeFrame(false, "Please enter the number of repeat cycles."); return; }
-            try {
-                repeatTimes.set(Long.parseLong(input));
-                if (repeatTimes.get() < 1) { changeFrame(false, "Repeat count must be at least 1."); return; }
-            } catch (NumberFormatException _) { changeFrame(false, "Please enter a valid whole number."); return; }
+            Long repeatCount = AutoClickerUtils.parseLong(input);
+            if (repeatCount == null) {
+                changeFrame(false, "Please enter a valid whole number.");
+                return;
+            }
+            repeatTimes.set(repeatCount);
+            if (repeatTimes.get() < 1) { changeFrame(false, "Repeat count must be at least 1."); return; }
             totalRepeat.set(repeatTimes.get());
         }
         doneCount.set(0);
@@ -445,7 +334,7 @@ public class AutoClicker {
         f.setEnabled(false);
         enableInput(false);
         isStopClick = false;
-        performClick();
+        startPlaybackThread();
     }
 
     private void hideMainWindowForRun(JFrame frame) {
@@ -520,7 +409,7 @@ public class AutoClicker {
 
 
     // ── Main click loop ───────────────────────────────────────────────────────
-    private void performClick() {
+    private void startPlaybackThread() {
         var clickThread = new Thread(() -> {
             try {
                 runClickLoop();
@@ -555,47 +444,7 @@ public class AutoClicker {
     }
 
     private void executeCycle(List<Item> items) throws AWTException, InterruptedException {
-        for (int i = 0; i < items.size() && shouldContinueClicking(); i++) {
-            Item item = items.get(i);
-            if (!GlobalConst.EVENT_COMMENT.equals(item.getTypeEvent())) {
-                executeItem(item, i);
-                waitBeforeNextItem(item.getNextTime());
-            }
-        }
-    }
-
-    private void executeItem(Item item, int rowIdx) throws AWTException, InterruptedException {
-        SwingUtilities.invokeLater(() -> mainFrame.getTableItems().setHighlightRow(rowIdx));
-        switch (item) {
-            case ItemClick click -> clickEvent(click);
-            case ItemPress press -> {
-                var latch = new CountDownLatch(1);
-                singlePressEvent(press, latch);
-                latch.await();
-            }
-            case ItemDAD dad -> performDAD(dad);
-            case Item scroll when GlobalConst.EVENT_SCROLL.equals(scroll.getTypeEvent()) -> performScroll(scroll);
-            default -> { /* unsupported item type */ }
-        }
-    }
-
-    private void waitBeforeNextItem(int delayMs) throws InterruptedException {
-        long waitUntil = System.currentTimeMillis()
-                + delayMs
-                + random.nextInt(CLICK_DELAY_RANDOM_BOUND)
-                * CLICK_DELAY_RANDOM_MULTIPLIER_MS;
-
-        synchronized (lock) {
-            while (!isStopClick) {
-                long remaining = waitUntil - System.currentTimeMillis();
-
-                if (remaining <= 0) {
-                    break;
-                }
-
-                lock.wait(remaining);
-            }
-        }
+        macroPlayer.executeCycle(items, mainFrame);
     }
 
     private void finishCycle() {
@@ -617,427 +466,6 @@ public class AutoClicker {
         }
     }
 
-
-    // ── Action implementations ────────────────────────────────────────────────
-
-    /**
-     * Human-like mouse move + click (left or right).
-     * Reuses the smooth-move algorithm from the original code.
-     */
-    private void clickEvent(ItemClick item) throws AWTException {
-        var robot = new Robot();
-        var cur = MouseInfo.getPointerInfo().getLocation();
-
-        int clickX = item.getXAxis()
-                + random.nextInt(MOUSE_MOVE_RANDOM_BOUND)
-                - MOUSE_MOVE_RANDOM_OFFSET;
-
-        int clickY = item.getYAxis()
-                + random.nextInt(MOUSE_MOVE_RANDOM_BOUND)
-                - MOUSE_MOVE_RANDOM_OFFSET;
-
-        smoothMouseMove(robot, cur.x, cur.y, clickX, clickY);
-
-        int btn = item.isRightClick()
-                ? InputEvent.BUTTON3_DOWN_MASK
-                : InputEvent.BUTTON1_DOWN_MASK;
-
-        robot.mousePress(btn);
-        robot.delay(
-                CLICK_HOLD_BASE_MS
-                        + random.nextInt(CLICK_HOLD_RANDOM_MS)
-        );
-        robot.mouseRelease(btn);
-    }
-
-    /**
-     * DAD: smooth move to From, press, smooth move to To, release.
-     */
-    private void performDAD(ItemDAD item) throws AWTException {
-        var robot = new Robot();
-        // Move to start position first
-        var cur = MouseInfo.getPointerInfo().getLocation();
-        smoothMouseMove(robot, cur.x, cur.y, item.getXAxis1(), item.getYAxis1());
-
-        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        robot.delay(DRAG_HOLD_BASE_MS + random.nextInt(DRAG_HOLD_RANDOM_MS));
-
-        // Drag to destination with smooth move
-        smoothMouseMove(robot, item.getXAxis1(), item.getYAxis1(),
-                                item.getXAxis2(), item.getYAxis2());
-
-        robot.delay(DRAG_SETTLE_BASE_MS + random.nextInt(DRAG_SETTLE_RANDOM_MS));
-        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-    }
-
-    /**
-     * Smooth human-like mouse movement from (x1,y1) to (x2,y2).
-     * Uses the same curved-path algorithm as the original clickEvent.
-     */
-    private void smoothMouseMoveOldVersion(Robot robot, int x1, int y1, int x2, int y2) {
-        int steps = SMOOTH_MOVE_BASE_STEPS + random.nextInt(SMOOTH_MOVE_RANDOM_STEPS);
-        double dx = (x2 - x1) / (double) steps;
-        double dy = (y2 - y1) / (double) steps;
-        int wobble = 0;
-        int prevX = x1;
-        int prevY = y1;
-        for (int i = 1; i <= steps; i++) {
-            int nx = x1 + (int)(dx * i);
-            // Occasionally add a small perpendicular wobble
-            if (random.nextInt(SMOOTH_MOVE_WOBBLE_CHECK_BOUND) % SMOOTH_MOVE_WOBBLE_MODULO == 0
-                    && i % SMOOTH_MOVE_WOBBLE_INTERVAL == 0) {
-                wobble = random.nextInt(SMOOTH_MOVE_WOBBLE_BOUND) - MOUSE_MOVE_RANDOM_OFFSET;
-            }
-            int ny = y1 + (int)(dy * i) + wobble;
-            if (nx != prevX || ny != prevY) {
-                robot.mouseMove(nx, ny);
-            }
-            prevX = nx;
-            prevY = ny;
-        }
-        // Ensure we land exactly on target
-        robot.mouseMove(x2, y2);
-    }
-
-    private void smoothMouseMove(
-            Robot robot,
-            int startX,
-            int startY,
-            int endX,
-            int endY
-    ) {
-        double dx = endX - (double) startX;
-        double dy = endY - (double) startY;
-        double distance = Math.hypot(dx, dy);
-
-        if (distance < 1) {
-            robot.mouseMove(endX, endY);
-            return;
-        }
-
-        double pixelsPerStep = randomBetween(
-                PIXELS_PER_STEP_MIN,
-                PIXELS_PER_STEP_MAX
-        );
-
-        int steps = clamp(
-                (int) Math.round(distance / pixelsPerStep),
-                MIN_STEPS,
-                MAX_STEPS
-        );
-
-        double perpendicularX = -dy / distance;
-        double perpendicularY = dx / distance;
-
-        double curveRatio = randomBetween(
-                CURVE_RATIO_MIN,
-                CURVE_RATIO_MAX
-        );
-
-        double curve1 = Math.min(
-                distance * curveRatio,
-                MAX_CURVE_PIXELS
-        );
-
-        // Random đường cong sang trái hoặc phải.
-        if (random.nextBoolean()) {
-            curve1 = -curve1;
-        }
-
-        double curve2 = curve1 * randomBetween(
-                SECOND_CURVE_RATIO_MIN,
-                SECOND_CURVE_RATIO_MAX
-        );
-
-        // Thỉnh thoảng cho control point thứ hai ngược phía,
-        // tạo đường hơi giống chữ S.
-        if (random.nextDouble() < 0.15) {
-            curve2 = -curve2 * 0.5;
-        }
-
-        double control1Progress = randomBetween(
-                CONTROL_1_PROGRESS_MIN,
-                CONTROL_1_PROGRESS_MAX
-        );
-
-        double control2Progress = randomBetween(
-                CONTROL_2_PROGRESS_MIN,
-                CONTROL_2_PROGRESS_MAX
-        );
-
-        double control1X =
-                startX
-                        + dx * control1Progress
-                        + perpendicularX * curve1;
-
-        double control1Y =
-                startY
-                        + dy * control1Progress
-                        + perpendicularY * curve1;
-
-        double control2X =
-                startX
-                        + dx * control2Progress
-                        + perpendicularX * curve2;
-
-        double control2Y =
-                startY
-                        + dy * control2Progress
-                        + perpendicularY * curve2;
-
-        double wobbleAmplitude = randomBetween(
-                WOBBLE_AMPLITUDE_MIN,
-                WOBBLE_AMPLITUDE_MAX
-        );
-
-        double wobbleFrequency = randomBetween(
-                WOBBLE_FREQUENCY_MIN,
-                WOBBLE_FREQUENCY_MAX
-        );
-
-        double wobblePhase = randomBetween(0, Math.PI * 2);
-
-        int previousX = startX;
-        int previousY = startY;
-
-        for (int i = 1; i <= steps; i++) {
-            double progress = i / (double) steps;
-
-            double t = easeInOutCubic(progress);
-            double oneMinusT = 1.0 - t;
-
-            double x =
-                    oneMinusT * oneMinusT * oneMinusT * startX
-                            + 3 * oneMinusT * oneMinusT * t * control1X
-                            + 3 * oneMinusT * t * t * control2X
-                            + t * t * t * endX;
-
-            double y =
-                    oneMinusT * oneMinusT * oneMinusT * startY
-                            + 3 * oneMinusT * oneMinusT * t * control1Y
-                            + 3 * oneMinusT * t * t * control2Y
-                            + t * t * t * endY;
-
-            /*
-             * Wobble liên tục, không bị nhảy đột ngột.
-             *
-             * sin(progress * PI) khiến wobble:
-             * - bằng 0 ở đầu
-             * - tăng dần ở giữa
-             * - về 0 ở cuối
-             */
-            double envelope = Math.sin(progress * Math.PI);
-
-            double wobble =
-                    Math.sin(
-                            progress
-                                    * Math.PI
-                                    * 2
-                                    * wobbleFrequency
-                                    + wobblePhase
-                    )
-                            * wobbleAmplitude
-                            * envelope;
-
-            x += perpendicularX * wobble;
-            y += perpendicularY * wobble;
-
-            int currentX = (int) Math.round(x);
-            int currentY = (int) Math.round(y);
-
-            if (currentX != previousX || currentY != previousY) {
-                robot.mouseMove(currentX, currentY);
-
-                previousX = currentX;
-                previousY = currentY;
-            }
-
-            robot.delay(randomBetweenInt(
-                    DELAY_MIN_MS,
-                    DELAY_MAX_MS
-            ));
-        }
-
-        robot.mouseMove(endX, endY);
-    }
-
-    private double easeInOutCubic(double t) {
-        if (t < 0.5) {
-            return 4 * t * t * t;
-        }
-
-        return 1 - Math.pow(-2 * t + 2, 3) / 2;
-    }
-
-    private double randomBetween(double min, double max) {
-        return min + random.nextDouble() * (max - min);
-    }
-
-    private int randomBetweenInt(int minInclusive, int maxInclusive) {
-        return minInclusive
-                + random.nextInt(maxInclusive - minInclusive + 1);
-    }
-
-    private int clamp(int value, int min, int max) {
-        return Math.clamp(value, min, max);
-    }
-    private void singlePressEvent(ItemPress item, CountDownLatch latch) {
-        var timer = new javax.swing.Timer(item.getPressTime(), null);
-        timer.addActionListener(_ -> {
-            if (isStopClick) {
-                timer.stop();
-                latch.countDown();
-                return;
-            }
-            try {
-                var robot = new Robot();
-                robot.keyPress(item.getKeyCode());
-                robot.keyRelease(item.getKeyCode());
-            } catch (AWTException ex) {
-                LOG.log(Level.SEVERE, "Key press error", ex);
-            }
-            timer.stop();
-            latch.countDown();
-        });
-        timer.setRepeats(false);
-        timer.start();
-    }
-
-    private void performScroll(Item item) {
-        try {
-            new Robot().mouseWheel(item.getPressTime());
-        } catch (AWTException exception) {
-            LOG.log(Level.SEVERE, "Scroll error", exception);
-        }
-    }
-
-
-    // ── Show/hide sub-frames ──────────────────────────────────────────────────
-    private void showAddPointFrame() {
-        addPointFrame.reset();
-        mainFrame.getFrame().setVisible(false);
-        var ma = new MouseAdapter() {
-            @Override public void mouseReleased(MouseEvent e) {
-                // Ignore clicks on the hint badge so users can click "through" it
-                // by accident without creating a bad item.
-                if (addPointFrame.hintBounds().contains(e.getPoint())) return;
-
-                String btn;
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    btn = "Right";
-                } else if (SwingUtilities.isLeftMouseButton(e)) {
-                    btn = "Left";
-                } else {
-                    return; // ignore middle/extra buttons
-                }
-                mainFrame.getTableItems().addItem(new ItemClick(e.getX(), e.getY(), btn));
-                addPointFrame.getFrame().setVisible(false);
-                addPointFrame.getFrame().removeMouseListener(this);
-                restoreMainFrameAfterPointPick();
-            }
-        };
-        addPointFrame.setOnCancel(() -> {
-            addPointFrame.getFrame().removeMouseListener(ma);
-            restoreMainFrameAfterPointPick();
-        });
-        addPointFrame.getFrame().addMouseListener(ma);
-        addPointFrame.getFrame().setVisible(true);
-    }
-
-    private void restoreMainFrameAfterPointPick() {
-        mainFrame.getFrame().setVisible(true);
-        mainFrame.getFrame().toFront();
-    }
-
-    private void showAddPressFrame(boolean show) {
-        mainFrame.getFrame().setEnabled(!show);
-        addPressFrame.setVisible(show);
-        if (!show) { mainFrame.getFrame().setEnabled(true); mainFrame.getFrame().toFront(); }
-        if (show) addPressFrame.getKeyTxt().requestFocus();
-    }
-
-    private void showAddScrollFrame(boolean show) {
-        mainFrame.getFrame().setEnabled(!show);
-        addScrollFrame.setVisible(show);
-        if (!show) { mainFrame.getFrame().setEnabled(true); mainFrame.getFrame().toFront(); }
-        if (show) addScrollFrame.getWheelAmtTxt().requestFocus();
-    }
-
-    private void showAddDADFrame(boolean show) {
-        if (show) addDadFrame.resetCoords();
-        mainFrame.getFrame().setEnabled(!show);
-        addDadFrame.getDialog().setVisible(show);
-        if (!show) { mainFrame.getFrame().setEnabled(true); mainFrame.getFrame().toFront(); }
-    }
-
-    private void pickDADPoint(boolean isFrom) {
-        addDadFrame.getDialog().setVisible(false);
-        addPointFrame.setOnCancel(() -> {});
-        var picker = new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) {
-                addPointFrame.getFrame().setVisible(false);
-                addPointFrame.getFrame().removeMouseListener(this);
-                if (isFrom) addDadFrame.setFrom(e.getX(), e.getY());
-                else        addDadFrame.setTo(e.getX(), e.getY());
-                addDadFrame.getDialog().setVisible(true);
-                addDadFrame.getDialog().toFront();
-            }
-        };
-        addPointFrame.getFrame().addMouseListener(picker);
-        addPointFrame.getFrame().setVisible(true);
-    }
-
-    private void addDADEvent() {
-        if (!addDadFrame.isFromSet() || !addDadFrame.isToSet()) {
-            changeFrame(false, "Please pick both the start and end points first."); return;
-        }
-        int nextTime = parseInt(addDadFrame.getNextTimeTxt().getText(), 500);
-        mainFrame.getTableItems().addItem(new ItemDAD(
-            addDadFrame.getFromX(), addDadFrame.getFromY(),
-            addDadFrame.getToX(),   addDadFrame.getToY(), 0, nextTime));
-        showAddDADFrame(false);
-    }
-
-    private void showAddCommentFrame(boolean show) {
-        mainFrame.getFrame().setEnabled(!show);
-        if (show) addCommentFrame.getCommentTxt().setText("");
-        addCommentFrame.getDialog().setVisible(show);
-        if (!show) { mainFrame.getFrame().setEnabled(true); mainFrame.getFrame().toFront(); }
-        if (show) addCommentFrame.getCommentTxt().requestFocus();
-    }
-
-    // ── Add-item actions ──────────────────────────────────────────────────────
-    private void addPressKey() {
-        String input = addPressFrame.getKeyTxt().getText();
-        if (input.isEmpty()) { changeFrame(false, "Please enter a key to press."); return; }
-        int keyCode   = KeyEvent.getExtendedKeyCodeForChar(input.charAt(0));
-        int pressTime = parseInt(addPressFrame.getPressTimeTxt().getText(), 100);
-        int nextTime  = parseInt(addPressFrame.getNextTimeTxt().getText(), 500);
-        mainFrame.getTableItems().addItem(
-            new ItemPress(input, keyCode, pressTime, nextTime, addPressFrame.getIsSinglePress()));
-        addPressFrame.getKeyTxt().setText("");
-        showAddPressFrame(false);
-    }
-
-    private void addScrollEvent() {
-        String input = addScrollFrame.getWheelAmtTxt().getText();
-        if (input.isEmpty()) { changeFrame(false, "Enter wheel amount"); return; }
-        int nextTime = parseInt(addScrollFrame.getNextTimeTxt().getText(), 500);
-        mainFrame.getTableItems().addItem(
-            new Item(input, parseInt(input, 1), nextTime, GlobalConst.EVENT_SCROLL));
-        addScrollFrame.getWheelAmtTxt().setText("");
-        showAddScrollFrame(false);
-    }
-
-    private void addComment() {
-        String text = addCommentFrame.getCommentTxt().getText().trim();
-        if (text.isEmpty()) { changeFrame(false, "Enter comment text"); return; }
-        if (!text.startsWith(GlobalConst.COMMENT_PREFIX)) text = GlobalConst.COMMENT_PREFIX + " " + text;
-        mainFrame.getTableItems().addItem(new ItemComment(text));
-        showAddCommentFrame(false);
-    }
-
-
     // ── Global hotkey ─────────────────────────────────────────────────────────
     private void globalKeyListener() {
         Logger.getLogger(GlobalScreen.class.getPackageName()).setLevel(Level.OFF);
@@ -1052,19 +480,42 @@ public class AutoClicker {
             LOG.log(Level.WARNING, ex, () ->
                     "Global hotkeys disabled (native hook failed): %s".formatted(ex.getMessage()));
             SwingUtilities.invokeLater(() ->
-                mainFrame.showToast("Global F7/F8 disabled — focus the window to use hotkeys"));
+                mainFrame.showToast("Global F7/F8/F9 disabled — focus the window to use hotkeys"));
+            mainFrame.getRecordBtn().setEnabled(false);
             return;
         }
+        macroRecorder.setNativeHookReady(true);
+        GlobalScreen.addNativeMouseListener(new NativeMouseListener() {
+            @Override
+            public void nativeMousePressed(NativeMouseEvent event) {
+                macroRecorder.recordMouseEvent(event, ACTION_DOWN);
+            }
+
+            @Override
+            public void nativeMouseReleased(NativeMouseEvent event) {
+                macroRecorder.recordMouseEvent(event, ACTION_UP);
+            }
+        });
+        GlobalScreen.addNativeMouseWheelListener(new NativeMouseWheelListener() {
+            @Override
+            public void nativeMouseWheelMoved(NativeMouseWheelEvent event) {
+                macroRecorder.recordMouseWheelEvent(event);
+            }
+        });
         GlobalScreen.addNativeKeyListener(new NativeKeyListener() {
             @Override public void nativeKeyPressed(NativeKeyEvent e) {
                 if (e.getKeyCode() == NativeKeyEvent.VC_F7) {
                     SwingUtilities.invokeLater(AutoClicker.this::onF7);
                 } else if (e.getKeyCode() == NativeKeyEvent.VC_F8) {
                     SwingUtilities.invokeLater(AutoClicker.this::onF8);
+                } else if (e.getKeyCode() == NativeKeyEvent.VC_F9) {
+                    SwingUtilities.invokeLater(AutoClicker.this::onF9);
+                } else {
+                    macroRecorder.recordKeyPressed(e);
                 }
             }
-            @Override public void nativeKeyReleased(NativeKeyEvent ignoredEvent) {
-                // Only key-press events are relevant for starting/stopping the clicker.
+            @Override public void nativeKeyReleased(NativeKeyEvent event) {
+                macroRecorder.recordKeyReleased(event);
             }
             @Override public void nativeKeyTyped(NativeKeyEvent ignoredEvent) {
                 // Function keys are handled from nativeKeyPressed instead of typed events.
@@ -1094,10 +545,6 @@ public class AutoClicker {
         mainFrame.getMinutesField().setEnabled(enabled && mainFrame.getRepeatByTimeRBtn().isSelected());
         mainFrame.getSecondsField().setEnabled(enabled && mainFrame.getRepeatByTimeRBtn().isSelected());
     }
-    private int  parseInt(String s, int fallback)  { try { return Integer.parseInt(s.trim()); } catch (NumberFormatException _) { return fallback; } }
-    private long parseLong(String s, long fallback) { try { return Long.parseLong(s.trim()); }  catch (NumberFormatException _) { return fallback; } }
-
-
     // ── Save (JSON) ───────────────────────────────────────────────────────────
     private void saveData() {
         var items = mainFrame.getTableItems().getListItems();
@@ -1129,48 +576,13 @@ public class AutoClicker {
 
         var path = chosen.toPath();
         try {
-            // Create the parent directory if it doesn't exist (safer than failing).
-            if (path.getParent() != null) Files.createDirectories(path.getParent());
-
-            try (Writer w = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-                var arr = new JsonArray();
-                for (var item : items) arr.add(itemToJson(item));
-                GSON.toJson(arr, w);
-            }
+            macroFileStore.save(new ArrayList<>(items), path);
             changeFrame(false, "Saved: %s".formatted(path));
             LOG.info(() -> "Saved to: %s".formatted(path));
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Save error", e);
             changeFrame(false, "Save failed: %s".formatted(e.getMessage()));
         }
-    }
-
-    private JsonObject itemToJson(Item item) {
-        var o = new JsonObject();
-        o.addProperty(JSON_FIELD_TYPE, item.getTypeEvent());
-        o.addProperty(JSON_FIELD_NAME, item.getName());
-        o.addProperty(JSON_FIELD_PRESS_TIME, item.getPressTime());
-        o.addProperty(JSON_FIELD_NEXT_TIME, item.getNextTime());
-        switch (item) {
-            case ItemClick ic -> {
-                o.addProperty(JSON_FIELD_X, ic.getXAxis());
-                o.addProperty(JSON_FIELD_Y, ic.getYAxis());
-                o.addProperty(JSON_FIELD_MOUSE_BUTTON, ic.getButton());
-            }
-            case ItemPress ip -> {
-                o.addProperty(JSON_FIELD_KEY_CODE, ip.getKeyCode());
-                o.addProperty(JSON_FIELD_MULTI_PRESS, ip.isMultiPress());
-            }
-            case ItemDAD id -> {
-                o.addProperty(JSON_FIELD_X1, id.getXAxis1());
-                o.addProperty(JSON_FIELD_Y1, id.getYAxis1());
-                o.addProperty(JSON_FIELD_X2, id.getXAxis2());
-                o.addProperty(JSON_FIELD_Y2, id.getYAxis2());
-            }
-            // SCROLL and COMMENT only need the base fields already added
-            default -> { /* base fields suffice */ }
-        }
-        return o;
     }
 
     // ── Load / Append (JSON) ──────────────────────────────────────────────────
@@ -1189,8 +601,17 @@ public class AutoClicker {
             changeFrame(false, "File not found: %s".formatted(file == null ? "(none)" : file.getName()));
             return;
         }
-        var loaded = parseFile(file);
-        if (loaded.isEmpty()) return;
+        List<Item> loaded;
+        try {
+            loaded = macroFileStore.load(file);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Load error", e);
+            changeFrame(false, "Load failed: %s".formatted(e.getMessage()));
+            return;
+        }
+        if (loaded.isEmpty()) {
+            return;
+        }
 
         if (append) {
             mainFrame.getTableItems().appendItems(new Vector<>(loaded), file.getName());
@@ -1200,213 +621,5 @@ public class AutoClicker {
         String action = append ? "Appended" : "Loaded";
         changeFrame(false, "%s: %s".formatted(action, file.getName()));
         LOG.info(() -> "%s: %s".formatted(action, file.getAbsolutePath()));
-    }
-
-    /**
-     * Parses both new JSON format (.json) and legacy pipe-delimited format (.txt).
-     * Returns an empty list on error (error message already shown).
-     */
-    private List<Item> parseFile(File file) {
-        var fname = file.getName().toLowerCase();
-        try {
-            return fname.endsWith(JSON_EXTENSION) ? parseJson(file) : parseLegacyTxt(file);
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Load error", e);
-            changeFrame(false, "Load failed: %s".formatted(e.getMessage()));
-            return List.of();
-        }
-    }
-
-    private List<Item> parseJson(File file) throws IOException {
-        var items = new ArrayList<Item>();
-        try (Reader r = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
-            var arr = JsonParser.parseReader(r).getAsJsonArray();
-            for (var el : arr) {
-                items.add(jsonToItem(el.getAsJsonObject()));
-            }
-        }
-        return items;
-    }
-
-    private Item jsonToItem(JsonObject o) {
-        String type = resolveType(o);
-        String name = o.get(JSON_FIELD_NAME).getAsString();
-        int pressTime = getInt(o, JSON_FIELD_PRESS_TIME, DEFAULT_PRESS_TIME);
-        int nextTime = getInt(o, JSON_FIELD_NEXT_TIME, DEFAULT_NEXT_TIME);
-
-        return switch (type) {
-            case GlobalConst.EVENT_CLICK -> jsonToClick(o, name, pressTime, nextTime);
-            case GlobalConst.EVENT_PRESS -> jsonToPress(o, name, pressTime, nextTime);
-            case GlobalConst.EVENT_DAD -> jsonToDad(o, pressTime, nextTime);
-            case GlobalConst.EVENT_COMMENT -> new ItemComment(name);
-            default -> new Item(name, pressTime, nextTime, type);
-        };
-    }
-
-    private ItemClick jsonToClick(JsonObject o, String name, int pressTime, int nextTime) {
-        String btn = o.has(JSON_FIELD_MOUSE_BUTTON)
-                ? o.get(JSON_FIELD_MOUSE_BUTTON).getAsString()
-                : "Left";
-        return new ItemClick(
-                name,
-                o.get(JSON_FIELD_X).getAsInt(),
-                o.get(JSON_FIELD_Y).getAsInt(),
-                pressTime,
-                nextTime,
-                btn
-        );
-    }
-
-    private ItemPress jsonToPress(JsonObject o, String name, int pressTime, int nextTime) {
-        boolean multiPress = o.has(JSON_FIELD_MULTI_PRESS)
-                && o.get(JSON_FIELD_MULTI_PRESS).getAsBoolean();
-        return new ItemPress(
-                name,
-                o.get(JSON_FIELD_KEY_CODE).getAsInt(),
-                pressTime,
-                nextTime,
-                multiPress
-        );
-    }
-
-    private ItemDAD jsonToDad(JsonObject o, int pressTime, int nextTime) {
-        return new ItemDAD(
-                o.get(JSON_FIELD_X1).getAsInt(),
-                o.get(JSON_FIELD_Y1).getAsInt(),
-                o.get(JSON_FIELD_X2).getAsInt(),
-                o.get(JSON_FIELD_Y2).getAsInt(),
-                pressTime,
-                nextTime
-        );
-    }
-
-    private static int getInt(JsonObject o, String fieldName, int fallback) {
-        return o.has(fieldName) ? o.get(fieldName).getAsInt() : fallback;
-    }
-
-    /** Backward-compatible reader for old pipe-delimited .txt files. */
-    private List<Item> parseLegacyTxt(File file) throws IOException {
-        var items = new ArrayList<Item>();
-        try (var r = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
-            String line;
-            while ((line = r.readLine()) != null) {
-                parseLegacyLine(line).ifPresent(items::add);
-            }
-        }
-        return items;
-    }
-
-    private Optional<Item> parseLegacyLine(String rawLine) {
-        String line = rawLine.trim();
-        if (line.isEmpty()) {
-            return Optional.empty();
-        }
-        if (line.startsWith(GlobalConst.COMMENT_PREFIX)) {
-            return Optional.of(new ItemComment(line));
-        }
-
-        var parts = line.split("\\|");
-        if (parts.length < 2) {
-            return Optional.empty();
-        }
-
-        String type = legacyTypeToString(parts[0].trim());
-        if (type == null) {
-            return Optional.empty();
-        }
-        return legacyPartsToItem(parts, type);
-    }
-
-    private Optional<Item> legacyPartsToItem(String[] parts, String type) {
-        String name = parts[1];
-        int pressTime = parts.length > 2 ? toInt(parts[2]) : DEFAULT_PRESS_TIME;
-        int nextTime = parts.length > 3 ? toInt(parts[3]) : DEFAULT_NEXT_TIME;
-
-        return switch (type) {
-            case GlobalConst.EVENT_CLICK -> legacyClick(parts, name, pressTime, nextTime);
-            case GlobalConst.EVENT_PRESS -> legacyPress(parts, name, pressTime, nextTime);
-            case GlobalConst.EVENT_DAD -> legacyDad(parts, pressTime, nextTime);
-            default -> Optional.of(new Item(name, pressTime, nextTime, type));
-        };
-    }
-
-    private Optional<Item> legacyClick(String[] parts, String name, int pressTime, int nextTime) {
-        if (parts.length < 6) {
-            return Optional.empty();
-        }
-        return Optional.of(new ItemClick(
-                name,
-                toInt(parts[4]),
-                toInt(parts[5]),
-                pressTime,
-                nextTime
-        ));
-    }
-
-    private Optional<Item> legacyPress(String[] parts, String name, int pressTime, int nextTime) {
-        if (parts.length < 6) {
-            return Optional.empty();
-        }
-        return Optional.of(new ItemPress(
-                name,
-                toInt(parts[4]),
-                pressTime,
-                nextTime,
-                Boolean.parseBoolean(parts[5])
-        ));
-    }
-
-    private Optional<Item> legacyDad(String[] parts, int pressTime, int nextTime) {
-        if (parts.length < 8) {
-            return Optional.empty();
-        }
-        return Optional.of(new ItemDAD(
-                toInt(parts[4]),
-                toInt(parts[5]),
-                toInt(parts[6]),
-                toInt(parts[7]),
-                pressTime,
-                nextTime
-        ));
-    }
-
-    /** Maps old numeric type codes (from legacy .txt files) to the new String constants. */
-    private static String legacyTypeToString(String raw) {
-        return switch (raw) {
-            case "1" -> GlobalConst.EVENT_CLICK;
-            case "2" -> GlobalConst.EVENT_PRESS;
-            case "3" -> GlobalConst.EVENT_SCROLL;
-            case "4" -> GlobalConst.EVENT_DAD;
-            case "5" -> GlobalConst.EVENT_COMMENT;
-            default  -> null;
-        };
-    }
-
-    /**
-     * Resolves the "type" field from a JSON object, supporting both old integer
-     * format (1-5) and new string format ("CLICK", "PRESS", etc.) for backward
-     * compatibility with existing save files.
-     */
-    private static String resolveType(JsonObject o) {
-        var el = o.get(JSON_FIELD_TYPE);
-        if (el == null) {
-            return "";
-        }
-        if (el.getAsJsonPrimitive().isNumber()) {
-            return switch (el.getAsInt()) {
-                case 1  -> GlobalConst.EVENT_CLICK;
-                case 2  -> GlobalConst.EVENT_PRESS;
-                case 3  -> GlobalConst.EVENT_SCROLL;
-                case 4  -> GlobalConst.EVENT_DAD;
-                case 5  -> GlobalConst.EVENT_COMMENT;
-                default -> "";
-            };
-        }
-        return el.getAsString();
-    }
-
-    private int toInt(String s) {
-        try { return Integer.parseInt(s.trim()); }
-        catch (NumberFormatException _) { return -1; }
     }
 }

@@ -10,6 +10,8 @@ public class ItemClick extends Item {
     private int    yAxis;
     /** "Left" or "Right" — human-readable, stored in JSON as-is. */
     private String button;
+    /** null for normal click, "down"/"up" for event-level recordings. */
+    private String mouseAction;
 
     public ItemClick(int xAxis, int yAxis) {
         super(xAxis + ", " + yAxis, GlobalConst.EVENT_CLICK);
@@ -45,8 +47,12 @@ public class ItemClick extends Item {
     public void   setYAxis(int y)      { this.yAxis = y; }
     public String getButton()          { return button; }
     public void   setButton(String b)  { this.button = b != null ? b : "Left"; }
+    public String getMouseAction()     { return mouseAction; }
+    public void   setMouseAction(String action) { this.mouseAction = action; }
 
     public boolean isRightClick() { return "Right".equalsIgnoreCase(button); }
+    public boolean isMouseDownEvent() { return "down".equalsIgnoreCase(mouseAction); }
+    public boolean isMouseUpEvent() { return "up".equalsIgnoreCase(mouseAction); }
 
     /** AWT mask for use with Robot. */
     public int getAwtButtonMask() {

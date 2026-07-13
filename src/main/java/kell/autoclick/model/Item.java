@@ -7,6 +7,7 @@ public class Item {
     protected int nextTime  = 100;
     protected String typeEvent = "";
     protected String sourceFile = null;
+    protected boolean recorded = false;
 
     public Item(String name, String typeEvent) {
         this.typeEvent = typeEvent;
@@ -40,4 +41,7 @@ public class Item {
 
     public String getSourceFile()          { return sourceFile; }
     public void   setSourceFile(String sf) { this.sourceFile = sf; }
+
+    public boolean isRecorded()             { return recorded; }
+    public void    setRecorded(boolean val) { this.recorded = val; }
 }
