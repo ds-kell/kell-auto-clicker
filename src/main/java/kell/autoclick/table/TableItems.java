@@ -265,6 +265,9 @@ public class TableItems {
         if (item.isMouseUpEvent()) {
             return button + " Up";
         }
+        if (item.isMouseMoveEvent()) {
+            return "Mouse Move";
+        }
         return button + " Click";
     }
 

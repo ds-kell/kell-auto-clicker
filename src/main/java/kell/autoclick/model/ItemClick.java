@@ -53,6 +53,7 @@ public class ItemClick extends Item {
     public boolean isRightClick() { return "Right".equalsIgnoreCase(button); }
     public boolean isMouseDownEvent() { return "down".equalsIgnoreCase(mouseAction); }
     public boolean isMouseUpEvent() { return "up".equalsIgnoreCase(mouseAction); }
+    public boolean isMouseMoveEvent() { return "move".equalsIgnoreCase(mouseAction); }
 
     /** AWT mask for use with Robot. */
     public int getAwtButtonMask() {

@@ -33,6 +33,7 @@ import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
 import com.github.kwhat.jnativehook.mouse.NativeMouseListener;
+import com.github.kwhat.jnativehook.mouse.NativeMouseMotionListener;
 import com.github.kwhat.jnativehook.mouse.NativeMouseWheelEvent;
 import com.github.kwhat.jnativehook.mouse.NativeMouseWheelListener;
 
@@ -91,7 +92,13 @@ public class AutoClicker {
         setupFileLogger();
         mainFrame.init();
         Random random = new Random();
-        macroPlayer = new MacroPlayer(random, lock, this::shouldContinueClicking, () -> isStopClick);
+        macroPlayer = new MacroPlayer(
+                random,
+                lock,
+                this::shouldContinueClicking,
+                () -> isStopClick,
+                this::selectedMousePathMode
+        );
         macroRecorder = new MacroRecorder(mainFrame, () -> isStopClick, message -> changeFrame(false, message));
         JFrame owner = mainFrame.getFrame();
         // Create dialogs with owner so JDialog parent relationship is correct
@@ -447,6 +454,12 @@ public class AutoClicker {
         macroPlayer.executeCycle(items, mainFrame);
     }
 
+    private MacroMousePathMode selectedMousePathMode() {
+        return mainFrame.getRandomPathRBtn().isSelected()
+                ? MacroMousePathMode.RANDOM
+                : MacroMousePathMode.RECORDED;
+    }
+
     private void finishCycle() {
         if (!infinite && !repeatByTime) {
             repeatTimes.decrementAndGet();
@@ -500,6 +513,17 @@ public class AutoClicker {
             @Override
             public void nativeMouseWheelMoved(NativeMouseWheelEvent event) {
                 macroRecorder.recordMouseWheelEvent(event);
+            }
+        });
+        GlobalScreen.addNativeMouseMotionListener(new NativeMouseMotionListener() {
+            @Override
+            public void nativeMouseMoved(NativeMouseEvent event) {
+                macroRecorder.recordMouseMoveEvent(event);
+            }
+
+            @Override
+            public void nativeMouseDragged(NativeMouseEvent event) {
+                macroRecorder.recordMouseMoveEvent(event);
             }
         });
         GlobalScreen.addNativeKeyListener(new NativeKeyListener() {

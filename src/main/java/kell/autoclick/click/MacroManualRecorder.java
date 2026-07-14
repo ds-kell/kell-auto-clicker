@@ -53,6 +53,7 @@ final class MacroManualRecorder {
 
     void bindActions() {
         mainFrame.getAddClickBtn().addActionListener(_ -> showAddPointFrame());
+        mainFrame.getAddKeyBtn().addActionListener(_ -> showAddPressFrame(true));
         mainFrame.getAddScrollBtn().addActionListener(_ -> {
             showAddScrollFrame(true);
             addScrollFrame.getWheelAmtTxt().requestFocus();
@@ -190,16 +191,29 @@ final class MacroManualRecorder {
     }
 
     private void addPressKey() {
-        String input = addPressFrame.getKeyTxt().getText();
+        String input = addPressFrame.getKeyTxt().getText().trim();
         if (input.isEmpty()) {
             showError.accept("Please enter a key to press.");
             return;
         }
-        int keyCode = KeyEvent.getExtendedKeyCodeForChar(input.charAt(0));
         int pressTime = AutoClickerUtils.parseInt(addPressFrame.getPressTimeTxt().getText(), 100);
         int nextTime = AutoClickerUtils.parseInt(addPressFrame.getNextTimeTxt().getText(), 500);
-        mainFrame.getTableItems().addItem(
-                new ItemPress(input, keyCode, pressTime, nextTime, addPressFrame.getIsSinglePress()));
+
+        for (int i = 0; i < input.length(); i++) {
+            char keyChar = input.charAt(i);
+            int keyCode = KeyEvent.getExtendedKeyCodeForChar(keyChar);
+            if (keyCode == KeyEvent.VK_UNDEFINED) {
+                showError.accept("Unsupported key: %s".formatted(keyChar));
+                return;
+            }
+            mainFrame.getTableItems().addItem(new ItemPress(
+                    KeyEvent.getKeyText(keyCode),
+                    keyCode,
+                    pressTime,
+                    nextTime,
+                    addPressFrame.getIsSinglePress()
+            ));
+        }
         addPressFrame.getKeyTxt().setText("");
         showAddPressFrame(false);
     }

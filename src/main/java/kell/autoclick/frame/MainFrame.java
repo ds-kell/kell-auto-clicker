@@ -56,7 +56,7 @@ public class MainFrame extends CFrame {
 
     // ── Add-item buttons ──────────────────────────────────────────────────────
     private final JButton addClickBtn   = new CButton("Add Click");
-    private final JButton addKeyBtn     = new CButton("Add Key  (soon)");
+    private final JButton addKeyBtn     = new CButton("Add Key");
     private final JButton addScrollBtn  = new CButton("Add Scroll");
     private final JButton addDADBtn     = new CButton("Add Drag & Drop");
     private final JButton addCommentBtn = new CButton("Add Note");
@@ -82,6 +82,8 @@ public class MainFrame extends CFrame {
     private final JRadioButton repeatByTimeRBtn  = new JRadioButton("For");
     private final JRadioButton infiniteRBtn      = new JRadioButton("Forever");
     private final JRadioButton hideMainFrameRBtn = new JRadioButton("Hide window while running");
+    private final JRadioButton recordedPathRBtn  = new JRadioButton("Recorded mouse path", true);
+    private final JRadioButton randomPathRBtn    = new JRadioButton("Random mouse path");
 
     public final CDigitField repeatTimesTxt = new CDigitField(7);
     public final CDigitField hoursField     = new CDigitField(3);
@@ -111,6 +113,10 @@ public class MainFrame extends CFrame {
         repeatGroup.add(repeatByCountRBtn);
         repeatGroup.add(repeatByTimeRBtn);
         repeatGroup.add(infiniteRBtn);
+
+        ButtonGroup mousePathGroup = new ButtonGroup();
+        mousePathGroup.add(recordedPathRBtn);
+        mousePathGroup.add(randomPathRBtn);
 
         hoursField.setText("0");
         minutesField.setText("0");
@@ -182,6 +188,12 @@ public class MainFrame extends CFrame {
         JPanel row5 = centeredRow();
         row5.add(hideMainFrameRBtn);
 
+        // Row 6: recorded macro mouse replay path mode
+        JPanel row6 = centeredRow();
+        row6.add(label("Mouse replay:"));
+        row6.add(recordedPathRBtn);
+        row6.add(randomPathRBtn);
+
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         topPanel.setBorder(new EmptyBorder(4, 6, 4, 6));
@@ -190,6 +202,7 @@ public class MainFrame extends CFrame {
         topPanel.add(row3);
         topPanel.add(row4);
         topPanel.add(row5);
+        topPanel.add(row6);
 
         JScrollPane scrollPane = new JScrollPane(tableItems.getTable());
 
@@ -339,7 +352,8 @@ public class MainFrame extends CFrame {
 
         // Uniform font BOLD for radio buttons
         for (JRadioButton rb : new JRadioButton[]{
-                repeatByCountRBtn, repeatByTimeRBtn, infiniteRBtn, hideMainFrameRBtn}) {
+                repeatByCountRBtn, repeatByTimeRBtn, infiniteRBtn, hideMainFrameRBtn,
+                recordedPathRBtn, randomPathRBtn}) {
             rb.setFont(UI_FONT_BOLD);
             rb.setFocusable(false);
         }
@@ -368,13 +382,7 @@ public class MainFrame extends CFrame {
             paintAsFlat(btn, blue, Color.WHITE);
         }
 
-        // Add Key: WIP placeholder (disabled-look but still clickable to show toast).
-        paintAsFlat(addKeyBtn, new Color(0xE0, 0xE0, 0xE0), new Color(0x99, 0x99, 0x99));
-        addKeyBtn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) {
-                showToast("Key Press feature is coming soon!");
-            }
-        });
+        paintAsFlat(addKeyBtn, new Color(0x45, 0x5A, 0x64), Color.WHITE); // blue grey
     }
 
     /**
@@ -474,6 +482,8 @@ public class MainFrame extends CFrame {
     public JRadioButton getRepeatByTimeRBtn()    { return repeatByTimeRBtn; }
     public JRadioButton getInfiniteRBtn()        { return infiniteRBtn; }
     public JRadioButton getHideMainFrameRBtn()   { return hideMainFrameRBtn; }
+    public JRadioButton getRecordedPathRBtn()    { return recordedPathRBtn; }
+    public JRadioButton getRandomPathRBtn()      { return randomPathRBtn; }
     public JButton      getAddClickBtn()         { return addClickBtn; }
     public JButton      getAddKeyBtn()           { return addKeyBtn; }
     public JButton      getAddScrollBtn()        { return addScrollBtn; }

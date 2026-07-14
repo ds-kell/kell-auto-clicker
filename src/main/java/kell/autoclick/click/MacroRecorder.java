@@ -37,6 +37,9 @@ final class MacroRecorder {
     private volatile boolean recording = false;
     private volatile boolean nativeHookReady = false;
     private volatile long lastRecordedEventAtMs = 0;
+    private volatile long lastRecordedMoveAtMs = 0;
+    private volatile int lastRecordedMoveX = Integer.MIN_VALUE;
+    private volatile int lastRecordedMoveY = Integer.MIN_VALUE;
 
     MacroRecorder(MainFrame mainFrame, BooleanSupplier playbackStopped, Consumer<String> showError) {
         this.mainFrame = mainFrame;
@@ -71,6 +74,7 @@ final class MacroRecorder {
         }
         recording = true;
         lastRecordedEventAtMs = 0;
+        resetMoveSample();
         keysDown.clear();
         mouseButtonsDown.clear();
         activeKeys.clear();
@@ -84,6 +88,7 @@ final class MacroRecorder {
     void stop() {
         recording = false;
         lastRecordedEventAtMs = 0;
+        resetMoveSample();
         keysDown.clear();
         mouseButtonsDown.clear();
         activeKeys.clear();
@@ -118,6 +123,22 @@ final class MacroRecorder {
         int x = event.getX();
         int y = event.getY();
         SwingUtilities.invokeLater(() -> addRecordedMouseEvent(event.getButton(), x, y, button, action, now));
+    }
+
+    void recordMouseMoveEvent(NativeMouseEvent event) {
+        if (!recording || isAppWindowClick(event)) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        int x = event.getX();
+        int y = event.getY();
+        if (!shouldRecordMove(x, y, now)) {
+            return;
+        }
+        lastRecordedMoveAtMs = now;
+        lastRecordedMoveX = x;
+        lastRecordedMoveY = y;
+        SwingUtilities.invokeLater(() -> addRecordedMouseMoveEvent(x, y, now));
     }
 
     void recordMouseWheelEvent(NativeMouseWheelEvent event) {
@@ -159,6 +180,9 @@ final class MacroRecorder {
         if (!recording) {
             return;
         }
+        lastRecordedMoveX = x;
+        lastRecordedMoveY = y;
+        lastRecordedMoveAtMs = eventTimeMs;
         updateRecordedDelay(eventTimeMs);
         var recordedClick = new ItemClick(
                 "%s %s at %d, %d".formatted(button, action, x, y),
@@ -177,6 +201,26 @@ final class MacroRecorder {
         } else {
             updateHoldDuration(activeMouseButtons.remove(nativeButton), eventTimeMs);
         }
+        lastRecordedEventAtMs = eventTimeMs;
+        updateProgress();
+    }
+
+    private void addRecordedMouseMoveEvent(int x, int y, long eventTimeMs) {
+        if (!recording) {
+            return;
+        }
+        updateRecordedDelay(eventTimeMs);
+        var recordedMove = new ItemClick(
+                "Move to %d, %d".formatted(x, y),
+                x,
+                y,
+                DEFAULT_PRESS_TIME,
+                DEFAULT_RECORDED_DELAY_MS,
+                "Left"
+        );
+        recordedMove.setRecorded(true);
+        recordedMove.setMouseAction(ACTION_MOVE);
+        mainFrame.getTableItems().addItem(recordedMove);
         lastRecordedEventAtMs = eventTimeMs;
         updateProgress();
     }
@@ -245,6 +289,23 @@ final class MacroRecorder {
     private void updateProgress() {
         mainFrame.setProgressText("Recording... steps: %d"
                 .formatted(mainFrame.getTableItems().getListItems().size()));
+    }
+
+    private boolean shouldRecordMove(int x, int y, long eventTimeMs) {
+        if (lastRecordedMoveAtMs <= 0) {
+            return true;
+        }
+        long elapsed = eventTimeMs - lastRecordedMoveAtMs;
+        int dx = x - lastRecordedMoveX;
+        int dy = y - lastRecordedMoveY;
+        return elapsed >= RECORDED_MOVE_SAMPLE_INTERVAL_MS
+                && Math.hypot(dx, dy) >= RECORDED_MOVE_MIN_DISTANCE_PX;
+    }
+
+    private void resetMoveSample() {
+        lastRecordedMoveAtMs = 0;
+        lastRecordedMoveX = Integer.MIN_VALUE;
+        lastRecordedMoveY = Integer.MIN_VALUE;
     }
 
     private boolean isAppWindowClick(NativeMouseEvent event) {

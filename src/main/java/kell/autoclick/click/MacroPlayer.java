@@ -7,6 +7,7 @@ import java.awt.event.InputEvent;
 import java.util.List;
 import java.util.Random;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,29 +26,67 @@ final class MacroPlayer {
 
     private static final Logger LOG = Logger.getLogger(MacroPlayer.class.getName());
 
+    private record MouseMoveProfile(
+            int minSteps,
+            int maxSteps,
+            double pixelsPerStepMin,
+            double pixelsPerStepMax,
+            int delayMinMs,
+            int delayMaxMs
+    ) {
+    }
+
+    private static final MouseMoveProfile MANUAL_MOVE_PROFILE = new MouseMoveProfile(
+            MIN_STEPS,
+            MAX_STEPS,
+            PIXELS_PER_STEP_MIN,
+            PIXELS_PER_STEP_MAX,
+            DELAY_MIN_MS,
+            DELAY_MAX_MS
+    );
+
+    private static final MouseMoveProfile RECORDED_RANDOM_MOVE_PROFILE = new MouseMoveProfile(
+            RECORDED_RANDOM_PATH_MIN_STEPS,
+            RECORDED_RANDOM_PATH_MAX_STEPS,
+            RECORDED_RANDOM_PATH_PIXELS_PER_STEP_MIN,
+            RECORDED_RANDOM_PATH_PIXELS_PER_STEP_MAX,
+            RECORDED_RANDOM_PATH_DELAY_MIN_MS,
+            RECORDED_RANDOM_PATH_DELAY_MAX_MS
+    );
+
     private final Random random;
     private final Object lock;
     private final BooleanSupplier shouldContinue;
     private final BooleanSupplier isStopped;
+    private final Supplier<MacroMousePathMode> mousePathMode;
 
     MacroPlayer(
             Random random,
             Object lock,
             BooleanSupplier shouldContinue,
-            BooleanSupplier isStopped
+            BooleanSupplier isStopped,
+            Supplier<MacroMousePathMode> mousePathMode
     ) {
         this.random = random;
         this.lock = lock;
         this.shouldContinue = shouldContinue;
         this.isStopped = isStopped;
+        this.mousePathMode = mousePathMode;
     }
 
     void executeCycle(List<Item> items, MainFrame mainFrame) throws AWTException, InterruptedException {
+        long recordedScheduleMs = System.currentTimeMillis();
         for (int i = 0; i < items.size() && shouldContinue.getAsBoolean(); i++) {
             Item item = items.get(i);
             if (!GlobalConst.EVENT_COMMENT.equals(item.getTypeEvent())) {
                 executeItem(item, i, mainFrame);
-                waitBeforeNextItem(item);
+                if (item.isRecorded()) {
+                    recordedScheduleMs += item.getNextTime();
+                    waitUntil(recordedScheduleMs);
+                } else {
+                    waitBeforeNextItem(item);
+                    recordedScheduleMs = System.currentTimeMillis();
+                }
             }
         }
     }
@@ -72,13 +111,23 @@ final class MacroPlayer {
         }
 
         synchronized (lock) {
-            while (!isStopped.getAsBoolean()) {
-                long remaining = waitUntil - System.currentTimeMillis();
-                if (remaining <= 0) {
-                    break;
-                }
-                lock.wait(remaining);
+            waitUntilLocked(waitUntil);
+        }
+    }
+
+    private void waitUntil(long waitUntil) throws InterruptedException {
+        synchronized (lock) {
+            waitUntilLocked(waitUntil);
+        }
+    }
+
+    private void waitUntilLocked(long waitUntil) throws InterruptedException {
+        while (!isStopped.getAsBoolean()) {
+            long remaining = waitUntil - System.currentTimeMillis();
+            if (remaining <= 0) {
+                break;
             }
+            lock.wait(remaining);
         }
     }
 
@@ -97,7 +146,7 @@ final class MacroPlayer {
                 + random.nextInt(MOUSE_MOVE_RANDOM_BOUND)
                 - MOUSE_MOVE_RANDOM_OFFSET;
 
-        smoothMouseMove(robot, cur.x, cur.y, clickX, clickY);
+        smoothMouseMove(robot, cur.x, cur.y, clickX, clickY, MANUAL_MOVE_PROFILE);
 
         int btn = item.getAwtButtonMask();
         robot.mousePress(btn);
@@ -109,7 +158,17 @@ final class MacroPlayer {
         var robot = new Robot();
         int btn = item.getAwtButtonMask();
 
-        robot.mouseMove(item.getXAxis(), item.getYAxis());
+        if (item.isMouseMoveEvent()) {
+            if (mousePathMode.get() == MacroMousePathMode.RANDOM) {
+                return;
+            }
+            robot.mouseMove(
+                    item.getXAxis() + random.nextInt(RECORDED_MOVE_JITTER_BOUND) - RECORDED_MOVE_JITTER_OFFSET,
+                    item.getYAxis() + random.nextInt(RECORDED_MOVE_JITTER_BOUND) - RECORDED_MOVE_JITTER_OFFSET
+            );
+            return;
+        }
+        moveToRecordedAction(robot, item);
         if (item.isMouseDownEvent()) {
             robot.mousePress(btn);
         } else if (item.isMouseUpEvent()) {
@@ -121,15 +180,25 @@ final class MacroPlayer {
         }
     }
 
+    private void moveToRecordedAction(Robot robot, ItemClick item) {
+        if (mousePathMode.get() == MacroMousePathMode.RANDOM) {
+            var current = MouseInfo.getPointerInfo().getLocation();
+            smoothMouseMove(robot, current.x, current.y, item.getXAxis(), item.getYAxis(),
+                    RECORDED_RANDOM_MOVE_PROFILE);
+            return;
+        }
+        robot.mouseMove(item.getXAxis(), item.getYAxis());
+    }
+
     private void performDAD(ItemDAD item) throws AWTException {
         var robot = new Robot();
         var cur = MouseInfo.getPointerInfo().getLocation();
-        smoothMouseMove(robot, cur.x, cur.y, item.getXAxis1(), item.getYAxis1());
+        smoothMouseMove(robot, cur.x, cur.y, item.getXAxis1(), item.getYAxis1(), MANUAL_MOVE_PROFILE);
 
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         robot.delay(DRAG_HOLD_BASE_MS + random.nextInt(DRAG_HOLD_RANDOM_MS));
         smoothMouseMove(robot, item.getXAxis1(), item.getYAxis1(),
-                item.getXAxis2(), item.getYAxis2());
+                item.getXAxis2(), item.getYAxis2(), MANUAL_MOVE_PROFILE);
         robot.delay(DRAG_SETTLE_BASE_MS + random.nextInt(DRAG_SETTLE_RANDOM_MS));
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
@@ -158,7 +227,14 @@ final class MacroPlayer {
         }
     }
 
-    private void smoothMouseMove(Robot robot, int startX, int startY, int endX, int endY) {
+    private void smoothMouseMove(
+            Robot robot,
+            int startX,
+            int startY,
+            int endX,
+            int endY,
+            MouseMoveProfile profile
+    ) {
         double dx = endX - (double) startX;
         double dy = endY - (double) startY;
         double distance = Math.hypot(dx, dy);
@@ -168,9 +244,12 @@ final class MacroPlayer {
         }
 
         int steps = Math.clamp(
-                (int) Math.round(distance / randomBetween(PIXELS_PER_STEP_MIN, PIXELS_PER_STEP_MAX)),
-                MIN_STEPS,
-                MAX_STEPS
+                (int) Math.round(distance / randomBetween(
+                        profile.pixelsPerStepMin(),
+                        profile.pixelsPerStepMax()
+                )),
+                minStepsForDistance(distance, profile),
+                profile.maxSteps()
         );
 
         double perpendicularX = -dy / distance;
@@ -224,7 +303,10 @@ final class MacroPlayer {
                 previousX = currentX;
                 previousY = currentY;
             }
-            robot.delay(randomBetweenInt(DELAY_MIN_MS, DELAY_MAX_MS));
+            int delayMs = randomBetweenInt(profile.delayMinMs(), profile.delayMaxMs());
+            if (delayMs > 0) {
+                robot.delay(delayMs);
+            }
         }
 
         robot.mouseMove(endX, endY);
@@ -235,6 +317,16 @@ final class MacroPlayer {
             return 4 * t * t * t;
         }
         return 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    private int minStepsForDistance(double distance, MouseMoveProfile profile) {
+        if (distance < SHORT_MOVE_DISTANCE_PX) {
+            return Math.min(profile.minSteps(), SHORT_MOVE_MIN_STEPS);
+        }
+        if (distance < MEDIUM_MOVE_DISTANCE_PX) {
+            return Math.min(profile.minSteps(), MEDIUM_MOVE_MIN_STEPS);
+        }
+        return profile.minSteps();
     }
 
     private double randomBetween(double min, double max) {
