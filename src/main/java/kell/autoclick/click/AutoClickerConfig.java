@@ -23,6 +23,12 @@ final class AutoClickerConfig {
     static final String JSON_FIELD_X2 = "x2";
     static final String JSON_FIELD_Y2 = "y2";
     static final String JSON_FIELD_RECORDED = "recorded";
+    static final String JSON_FIELD_SCREEN_ID = "screenId";
+    static final String JSON_FIELD_SCREEN_INDEX = "screenIndex";
+    static final String JSON_FIELD_SCREEN_X = "screenX";
+    static final String JSON_FIELD_SCREEN_Y = "screenY";
+    static final String JSON_FIELD_SCREEN_WIDTH = "screenWidth";
+    static final String JSON_FIELD_SCREEN_HEIGHT = "screenHeight";
     static final String ACTION_DOWN = "down";
     static final String ACTION_UP = "up";
     static final String ACTION_MOVE = "move";

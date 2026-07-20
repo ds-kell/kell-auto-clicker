@@ -69,6 +69,14 @@ final class MacroFileStore {
         if (item.getMouseAction() != null) {
             json.addProperty(JSON_FIELD_MOUSE_ACTION, item.getMouseAction());
         }
+        if (item.hasRecordedScreen()) {
+            json.addProperty(JSON_FIELD_SCREEN_ID, item.getRecordedScreenId());
+            json.addProperty(JSON_FIELD_SCREEN_INDEX, item.getRecordedScreenIndex());
+            json.addProperty(JSON_FIELD_SCREEN_X, item.getRecordedScreenX());
+            json.addProperty(JSON_FIELD_SCREEN_Y, item.getRecordedScreenY());
+            json.addProperty(JSON_FIELD_SCREEN_WIDTH, item.getRecordedScreenWidth());
+            json.addProperty(JSON_FIELD_SCREEN_HEIGHT, item.getRecordedScreenHeight());
+        }
     }
 
     private void writePress(JsonObject json, ItemPress item) {
@@ -129,7 +137,24 @@ final class MacroFileStore {
         if (json.has(JSON_FIELD_MOUSE_ACTION)) {
             item.setMouseAction(json.get(JSON_FIELD_MOUSE_ACTION).getAsString());
         }
+        if (hasRecordedScreen(json)) {
+            item.setRecordedScreen(
+                    json.has(JSON_FIELD_SCREEN_ID) ? json.get(JSON_FIELD_SCREEN_ID).getAsString() : null,
+                    getInt(json, JSON_FIELD_SCREEN_INDEX, -1),
+                    getInt(json, JSON_FIELD_SCREEN_X, 0),
+                    getInt(json, JSON_FIELD_SCREEN_Y, 0),
+                    json.get(JSON_FIELD_SCREEN_WIDTH).getAsInt(),
+                    json.get(JSON_FIELD_SCREEN_HEIGHT).getAsInt()
+            );
+        }
         return item;
+    }
+
+    private static boolean hasRecordedScreen(JsonObject json) {
+        return json.has(JSON_FIELD_SCREEN_WIDTH)
+                && json.has(JSON_FIELD_SCREEN_HEIGHT)
+                && json.get(JSON_FIELD_SCREEN_WIDTH).getAsInt() > 0
+                && json.get(JSON_FIELD_SCREEN_HEIGHT).getAsInt() > 0;
     }
 
     private ItemPress jsonToPress(JsonObject json, String name, int pressTime, int nextTime) {

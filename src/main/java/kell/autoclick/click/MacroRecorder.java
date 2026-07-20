@@ -101,9 +101,10 @@ final class MacroRecorder {
     }
 
     void recordMouseEvent(NativeMouseEvent event, String action) {
-        if (!recording || isAppWindowClick(event)) {
+        if (!recording || isAppWindowEvent(event)) {
             return;
         }
+        var point = ScreenCoordinateMapper.recordingPoint(event.getX(), event.getY());
         String button = switch (event.getButton()) {
             case NativeMouseEvent.BUTTON1 -> "Left";
             case NativeMouseEvent.BUTTON3 -> "Right";
@@ -120,18 +121,19 @@ final class MacroRecorder {
         }
 
         long now = System.currentTimeMillis();
-        int x = event.getX();
-        int y = event.getY();
+        int x = point.x;
+        int y = point.y;
         SwingUtilities.invokeLater(() -> addRecordedMouseEvent(event.getButton(), x, y, button, action, now));
     }
 
     void recordMouseMoveEvent(NativeMouseEvent event) {
-        if (!recording || isAppWindowClick(event)) {
+        if (!recording || isAppWindowEvent(event)) {
             return;
         }
+        var point = ScreenCoordinateMapper.recordingPoint(event.getX(), event.getY());
         long now = System.currentTimeMillis();
-        int x = event.getX();
-        int y = event.getY();
+        int x = point.x;
+        int y = point.y;
         if (!shouldRecordMove(x, y, now)) {
             return;
         }
@@ -142,7 +144,7 @@ final class MacroRecorder {
     }
 
     void recordMouseWheelEvent(NativeMouseWheelEvent event) {
-        if (!recording || isAppWindowClick(event)) {
+        if (!recording || isAppWindowEvent(event)) {
             return;
         }
         long now = System.currentTimeMillis();
@@ -194,6 +196,7 @@ final class MacroRecorder {
         );
         recordedClick.setRecorded(true);
         recordedClick.setMouseAction(action);
+        ScreenCoordinateMapper.captureScreen(recordedClick);
         mainFrame.getTableItems().addItem(recordedClick);
         int row = mainFrame.getTableItems().getListItems().size() - 1;
         if (ACTION_DOWN.equals(action)) {
@@ -220,6 +223,7 @@ final class MacroRecorder {
         );
         recordedMove.setRecorded(true);
         recordedMove.setMouseAction(ACTION_MOVE);
+        ScreenCoordinateMapper.captureScreen(recordedMove);
         mainFrame.getTableItems().addItem(recordedMove);
         lastRecordedEventAtMs = eventTimeMs;
         updateProgress();
@@ -308,7 +312,7 @@ final class MacroRecorder {
         lastRecordedMoveY = Integer.MIN_VALUE;
     }
 
-    private boolean isAppWindowClick(NativeMouseEvent event) {
+    private boolean isAppWindowEvent(NativeMouseEvent event) {
         return mainFrame.isInsideRecordControl(event.getX(), event.getY())
                 || AutoClickerUtils.isInsideWindow(mainFrame.getFrame(), event.getX(), event.getY());
     }

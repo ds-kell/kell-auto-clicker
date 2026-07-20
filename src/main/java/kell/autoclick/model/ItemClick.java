@@ -12,6 +12,13 @@ public class ItemClick extends Item {
     private String button;
     /** null for normal click, "down"/"up" for event-level recordings. */
     private String mouseAction;
+    /** Screen geometry captured by F9, used to scale coordinates during replay. */
+    private String recordedScreenId;
+    private int recordedScreenIndex = -1;
+    private int recordedScreenX;
+    private int recordedScreenY;
+    private int recordedScreenWidth;
+    private int recordedScreenHeight;
 
     public ItemClick(int xAxis, int yAxis) {
         super(xAxis + ", " + yAxis, GlobalConst.EVENT_CLICK);
@@ -54,6 +61,33 @@ public class ItemClick extends Item {
     public boolean isMouseDownEvent() { return "down".equalsIgnoreCase(mouseAction); }
     public boolean isMouseUpEvent() { return "up".equalsIgnoreCase(mouseAction); }
     public boolean isMouseMoveEvent() { return "move".equalsIgnoreCase(mouseAction); }
+
+    public String getRecordedScreenId() { return recordedScreenId; }
+    public int getRecordedScreenIndex() { return recordedScreenIndex; }
+    public int getRecordedScreenX() { return recordedScreenX; }
+    public int getRecordedScreenY() { return recordedScreenY; }
+    public int getRecordedScreenWidth() { return recordedScreenWidth; }
+    public int getRecordedScreenHeight() { return recordedScreenHeight; }
+
+    public void setRecordedScreen(
+            String screenId,
+            int screenIndex,
+            int screenX,
+            int screenY,
+            int screenWidth,
+            int screenHeight
+    ) {
+        this.recordedScreenId = screenId;
+        this.recordedScreenIndex = screenIndex;
+        this.recordedScreenX = screenX;
+        this.recordedScreenY = screenY;
+        this.recordedScreenWidth = screenWidth;
+        this.recordedScreenHeight = screenHeight;
+    }
+
+    public boolean hasRecordedScreen() {
+        return recordedScreenWidth > 0 && recordedScreenHeight > 0;
+    }
 
     /** AWT mask for use with Robot. */
     public int getAwtButtonMask() {

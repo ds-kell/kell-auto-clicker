@@ -2,6 +2,7 @@ package kell.autoclick.click;
 
 import java.awt.AWTException;
 import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.util.List;
@@ -157,18 +158,19 @@ final class MacroPlayer {
     private void recordedMouseEvent(ItemClick item) throws AWTException {
         var robot = new Robot();
         int btn = item.getAwtButtonMask();
+        Point replayPoint = ScreenCoordinateMapper.replayPoint(item);
 
         if (item.isMouseMoveEvent()) {
             if (mousePathMode.get() == MacroMousePathMode.RANDOM) {
                 return;
             }
             robot.mouseMove(
-                    item.getXAxis() + random.nextInt(RECORDED_MOVE_JITTER_BOUND) - RECORDED_MOVE_JITTER_OFFSET,
-                    item.getYAxis() + random.nextInt(RECORDED_MOVE_JITTER_BOUND) - RECORDED_MOVE_JITTER_OFFSET
+                    replayPoint.x + random.nextInt(RECORDED_MOVE_JITTER_BOUND) - RECORDED_MOVE_JITTER_OFFSET,
+                    replayPoint.y + random.nextInt(RECORDED_MOVE_JITTER_BOUND) - RECORDED_MOVE_JITTER_OFFSET
             );
             return;
         }
-        moveToRecordedAction(robot, item);
+        moveToRecordedAction(robot, replayPoint);
         if (item.isMouseDownEvent()) {
             robot.mousePress(btn);
         } else if (item.isMouseUpEvent()) {
@@ -180,14 +182,14 @@ final class MacroPlayer {
         }
     }
 
-    private void moveToRecordedAction(Robot robot, ItemClick item) {
+    private void moveToRecordedAction(Robot robot, Point replayPoint) {
         if (mousePathMode.get() == MacroMousePathMode.RANDOM) {
             var current = MouseInfo.getPointerInfo().getLocation();
-            smoothMouseMove(robot, current.x, current.y, item.getXAxis(), item.getYAxis(),
+            smoothMouseMove(robot, current.x, current.y, replayPoint.x, replayPoint.y,
                     RECORDED_RANDOM_MOVE_PROFILE);
             return;
         }
-        robot.mouseMove(item.getXAxis(), item.getYAxis());
+        robot.mouseMove(replayPoint.x, replayPoint.y);
     }
 
     private void performDAD(ItemDAD item) throws AWTException {
