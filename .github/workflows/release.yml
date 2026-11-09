@@ -1,0 +1,55 @@
+name: Release
+# Push a tag like v5.0 to build Windows, macOS and Linux packages
+# (each with its own Java runtime, users don't need Java) and attach them to a draft Release.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            mvn_args: ''                       # .msi + portable zip (exe + bundled JRE)
+            files: |
+              target/dist/*.msi
+              target/dist/auto-clicker-windows-portable.zip
+          - os: macos-latest                   # Apple Silicon
+            mvn_args: -Dskip.win.portable
+            suffix: macos-arm64
+            files: target/dist/*.dmg
+          - os: macos-15-intel                 # Intel Macs
+            mvn_args: -Dskip.win.portable
+            suffix: macos-x64
+            files: target/dist/*.dmg
+          - os: ubuntu-22.04
+            mvn_args: -Dskip.win.portable
+            files: |
+              target/dist/*.deb
+              target/dist/*.tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '25', cache: maven}
+      - name: WiX (needed by jpackage for .msi)
+        if: runner.os == 'Windows'
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add -g WixToolset.Util.wixext/5.0.2 WixToolset.UI.wixext/5.0.2
+      - run: mvn -B package ${{ matrix.mvn_args }}
+      - name: Tag dmg with CPU type
+        if: runner.os == 'macOS'
+        run: for f in target/dist/*.dmg; do mv "$f" "${f%.dmg}-${{ matrix.suffix }}.dmg"; done
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: ${{ matrix.files }}
+          body: |
+            **Windows:** `.msi` installer, or unzip `auto-clicker-windows-portable.zip` and run `auto-clicker.exe`. SmartScreen may warn (not code-signed): *More info → Run anyway*.
+            **macOS:** open the `.dmg` (`arm64` = Apple Silicon, `x64` = Intel). Not notarized: right-click → *Open*. Then allow it in *System Settings → Privacy & Security → Accessibility* for global hotkeys and recording.
+            **Linux:** `.deb` for Debian/Ubuntu, or extract the `.tar.gz` and run `kell-auto-clicker/bin/kell-auto-clicker`. Global hotkeys need an X11 session (Wayland blocks them).

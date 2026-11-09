@@ -19,6 +19,7 @@
         <app.main-class>kell.autoclick.Main</app.main-class>
         <app.icon.win>${project.basedir}/src/main/resources/static/images/click_pointer.ico</app.icon.win>
         <app.icon.mac>${project.basedir}/src/main/resources/static/images/click_pointer.icns</app.icon.mac>
+        <app.icon.png>${project.basedir}/src/main/resources/static/images/click_pointer.png</app.icon.png>
 
         <!--
             Bundled Windows JRE for the portable .exe distribution. The Adoptium
@@ -378,6 +379,94 @@
                                         <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
                                         <argument>--win-shortcut</argument>
                                         <argument>--win-menu</argument>
+                                        <argument>--java-options</argument><argument>--enable-native-access=ALL-UNNAMED</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- ───────── Linux host: jlink + jpackage .deb and portable tar.gz ───────── -->
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os><family>unix</family><name>Linux</name></os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>jlink-linux-runtime</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>sh</executable>
+                                    <arguments>
+                                        <argument>-c</argument>
+                                        <argument>rm -rf "${jlink.image.dir}" "${project.build.directory}/jpackage-input" "${project.build.directory}/dist" &amp;&amp; jlink --add-modules ${jlink.modules} --output "${jlink.image.dir}" --strip-debug --no-header-files --no-man-pages --compress=zip-6 &amp;&amp; mkdir -p "${project.build.directory}/jpackage-input" &amp;&amp; cp "${project.build.directory}/auto-clicker.jar" "${project.build.directory}/jpackage-input/"</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>jpackage-linux-app-image</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument><argument>app-image</argument>
+                                        <argument>--name</argument><argument>kell-auto-clicker</argument>
+                                        <argument>--app-version</argument><argument>${project.version}</argument>
+                                        <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                        <argument>--input</argument><argument>${project.build.directory}/jpackage-input</argument>
+                                        <argument>--main-jar</argument><argument>auto-clicker.jar</argument>
+                                        <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                        <argument>--runtime-image</argument><argument>${jlink.image.dir}</argument>
+                                        <argument>--icon</argument><argument>${app.icon.png}</argument>
+                                        <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
+                                        <argument>--java-options</argument><argument>--enable-native-access=ALL-UNNAMED</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>tar-linux-app-image</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>tar</executable>
+                                    <arguments>
+                                        <argument>-czf</argument><argument>${project.build.directory}/dist/kell-auto-clicker-linux-x64.tar.gz</argument>
+                                        <argument>-C</argument><argument>${project.build.directory}/dist</argument>
+                                        <argument>kell-auto-clicker</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>jpackage-linux-deb</id>
+                                <phase>package</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <executable>jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument><argument>deb</argument>
+                                        <argument>--name</argument><argument>kell-auto-clicker</argument>
+                                        <argument>--app-version</argument><argument>${project.version}</argument>
+                                        <argument>--vendor</argument><argument>${app.vendor}</argument>
+                                        <argument>--input</argument><argument>${project.build.directory}/jpackage-input</argument>
+                                        <argument>--main-jar</argument><argument>auto-clicker.jar</argument>
+                                        <argument>--main-class</argument><argument>${app.main-class}</argument>
+                                        <argument>--runtime-image</argument><argument>${jlink.image.dir}</argument>
+                                        <argument>--icon</argument><argument>${app.icon.png}</argument>
+                                        <argument>--linux-shortcut</argument>
+                                        <argument>--linux-menu-group</argument><argument>Utility</argument>
+                                        <argument>--dest</argument><argument>${project.build.directory}/dist</argument>
                                         <argument>--java-options</argument><argument>--enable-native-access=ALL-UNNAMED</argument>
                                     </arguments>
                                 </configuration>

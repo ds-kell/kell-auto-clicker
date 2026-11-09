@@ -1,6 +1,15 @@
-# Kell Auto Clicker
+# Kell Auto Clicker — free auto clicker & macro recorder (Windows, macOS, Linux)
 
-Java Swing macro clicker for building and replaying mouse, keyboard, scroll, and drag actions.
+Record your mouse clicks, key presses, scrolls and drags once, then replay them as many times as you want. Global hotkeys F7 (start), F8 (stop), F9 (record). No Java installation needed.
+
+[![Download](https://img.shields.io/github/v/release/ds-kell/kell-auto-clicker?label=Download&logo=github)](../../releases/latest)
+
+| OS | File to download |
+|---|---|
+| Windows | `.msi` installer, or `auto-clicker-windows-portable.zip` (unzip, run `auto-clicker.exe`) |
+| macOS | `.dmg` (`arm64` = Apple Silicon, `x64` = Intel). Allow it under *Privacy & Security → Accessibility*. |
+| Linux | `.deb`, or `.tar.gz` (run `kell-auto-clicker/bin/kell-auto-clicker`). Hotkeys need X11, not Wayland. |
+
 
 ## Macro Flow
 
@@ -120,4 +129,18 @@ Native hotkeys and recording require the global native hook. On macOS this usual
 
 ```bash
 mvn -q test
+mvn package -Dskip.win.portable   # installer for the current OS in target/dist
 ```
+
+## ☕ Support / Ủng hộ
+
+Free and open source. If it saved you time, you can buy me a coffee — thank you!
+
+[![PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?logo=paypal&logoColor=white)](https://paypal.me/truyennt)
+[![VietQR](https://img.shields.io/badge/VietQR-Chuy%E1%BB%83n%20kho%E1%BA%A3n-E31837)](https://github.com/ds-kell/ds-kell/blob/main/DONATE.md)
+
+<img src="https://raw.githubusercontent.com/ds-kell/ds-kell/main/assets/donate-vietqr.jpg" alt="VietQR VietinBank" width="180">
+
+## License
+
+MIT

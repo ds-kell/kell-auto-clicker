@@ -381,7 +381,7 @@ public class AutoClicker {
         }
         try {
             Image image = Toolkit.getDefaultToolkit().createImage(
-                    AutoClicker.class.getResource("/static/images/click_pointer.ico"));
+                    AutoClicker.class.getResource("/static/images/click_pointer.png")); // AWT cannot decode .ico
             // Fallback to a generic image if the resource isn't found.
             if (image == null) {
                 image = Toolkit.getDefaultToolkit().createImage(new byte[0]);
