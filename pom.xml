@@ -6,7 +6,7 @@
 
     <groupId>kell.autoclick</groupId>
     <artifactId>auto-clicker</artifactId>
-    <version>5.0</version>
+    <version>5.0.1</version>
 
     <properties>
         <maven.compiler.release>25</maven.compiler.release>
@@ -130,12 +130,12 @@
                                 </opts>
                             </jre>
                             <versionInfo>
-                                <fileVersion>5.0.0.0</fileVersion>
-                                <txtFileVersion>5.0.0.0</txtFileVersion>
+                                <fileVersion>5.0.1.0</fileVersion>
+                                <txtFileVersion>5.0.1.0</txtFileVersion>
                                 <fileDescription>${app.name}</fileDescription>
                                 <copyright>Copyright 2024</copyright>
-                                <productVersion>5.0.0.0</productVersion>
-                                <txtProductVersion>5.0.0.0</txtProductVersion>
+                                <productVersion>5.0.1.0</productVersion>
+                                <txtProductVersion>5.0.1.0</txtProductVersion>
                                 <productName>${app.name}</productName>
                                 <internalName>auto-clicker</internalName>
                                 <originalFilename>auto-clicker.exe</originalFilename>
