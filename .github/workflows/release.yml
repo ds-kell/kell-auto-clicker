@@ -1,6 +1,6 @@
 name: Release
 # Push a tag like v5.0 to build Windows, macOS and Linux packages
-# (each with its own Java runtime, users don't need Java) and attach them to a draft Release.
+# (each with its own Java runtime, users don't need Java) and attach them to a GitHub Release.
 on:
   push:
     tags: ['v*']
@@ -47,7 +47,7 @@ jobs:
         run: for f in target/dist/*.dmg; do mv "$f" "${f%.dmg}-${{ matrix.suffix }}.dmg"; done
       - uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          draft: false
           files: ${{ matrix.files }}
           body: |
             **Windows:** `.msi` installer, or unzip `auto-clicker-windows-portable.zip` and run `auto-clicker.exe`. SmartScreen may warn (not code-signed): *More info → Run anyway*.
